@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>HabitCore · Prototipo v1.0</title>
 <style>
 /* ═══════════════════════════════════════════
@@ -27,45 +27,36 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{
-  width:100%;min-height:100vh;
-  background:#07070d;
-  display:flex;align-items:center;justify-content:center;
+  width:100%;height:100%;
+  margin:0;padding:0;
+  background:var(--bg);
   font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
+  overflow:hidden;
 }
 
 /* ═══════════════════════════════════════════
    DESKTOP CHROME
 ═══════════════════════════════════════════ */
-.desktop-bg{position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(124,110,247,.07) 0%,transparent 60%);pointer-events:none;}
-.desktop-label{position:fixed;top:20px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,.18);letter-spacing:.1em;text-transform:uppercase;pointer-events:none;white-space:nowrap;}
-
 /* ═══════════════════════════════════════════
    PHONE FRAME
 ═══════════════════════════════════════════ */
 .phone{
-  width:375px;height:812px;
+  width:100vw;
+  height:100dvh;
   background:var(--bg);
-  border-radius:50px;
-  border:1.5px solid rgba(255,255,255,.07);
-  box-shadow:0 0 0 8px #09090e,0 0 0 9px rgba(255,255,255,.04),0 40px 100px rgba(0,0,0,.8),0 0 60px rgba(124,110,247,.05);
+  border-radius:0;
+  border:none;
+  box-shadow:none;
   overflow:hidden;
-  position:relative;
+  position:fixed;
+  top:0;left:0;
   display:flex;flex-direction:column;
 }
-/* Notch */
-.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#09090e;border-radius:0 0 20px 20px;z-index:300;}
-.phone::after{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:10px;height:10px;background:#14141d;border-radius:50%;border:1px solid rgba(255,255,255,.08);z-index:301;}
 
 /* ═══════════════════════════════════════════
    STATUS BAR
 ═══════════════════════════════════════════ */
-.status-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 28px 0;
-  font-size:12px;font-weight:600;color:var(--text);
-  flex-shrink:0;z-index:10;position:relative;
-}
 .status-right{display:flex;gap:5px;align-items:center;}
 .status-right svg{width:14px;height:14px;fill:none;stroke:var(--text);stroke-width:1.8;}
 
@@ -79,7 +70,7 @@ html,body{
   position:absolute;inset:0;
   overflow-y:auto;overflow-x:hidden;
   scrollbar-width:none;
-  padding-bottom:90px;
+  padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px));
   transition:opacity .22s ease, transform .22s ease;
 }
 .app-screen::-webkit-scrollbar{display:none;}
@@ -94,7 +85,7 @@ html,body{
 /* ═══════════════════════════════════════════
    TODAY SCREEN — HEADER
 ═══════════════════════════════════════════ */
-.app-header{padding:24px 24px 16px;}
+.app-header{padding-top:calc(16px + env(safe-area-inset-top, 44px));padding:24px 24px 16px;}
 .header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
 .greeting{font-size:13px;color:var(--muted);font-weight:500;}
 .date-main{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);line-height:1.1;}
@@ -408,7 +399,7 @@ html,body{
   background:rgba(13,13,18,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(255,255,255,.05);
   display:flex;align-items:center;
-  padding:8px 16px 22px;gap:8px;z-index:100;
+  padding:8px 16px calc(22px + env(safe-area-inset-bottom, 0px));gap:8px;z-index:100;
 }
 .nav-item{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
@@ -1238,15 +1229,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 </head>
 <body>
 
-<div class="desktop-bg"></div>
-<div class="desktop-label">HabitCore · Prototipo v1.0 · Tocá los hábitos · Explorá Progreso en el nav inferior</div>
 
 <!-- ══════════════════════════ PHONE ══════════════════════════ -->
 <div class="phone">
 
   <!-- ── LOGIN SCREEN ── -->
   <div id="loginScreen" style="
-    position:absolute;inset:0;background:var(--bg);z-index:200;
+    position:fixed;inset:0;background:var(--bg);z-index:200;padding-top:env(safe-area-inset-top,44px);padding-bottom:env(safe-area-inset-bottom,0px);
     display:flex;flex-direction:column;align-items:center;
     justify-content:center;padding:36px 28px;gap:14px;border-radius:inherit;
   ">
@@ -1276,14 +1265,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     <div class="toast-text" id="toastText">Mensaje de sistema</div>
   </div>
 
-  <!-- Status Bar -->
-  <div class="status-bar">
-    <span id="clock">9:41</span>
-    <div class="status-right">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 6l6 6 5-5 5 5 6-6" stroke-width="2" stroke-linecap="round"/></svg>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="11" rx="2" stroke-width="1.8"/><path d="M22 11V9" stroke-width="2" stroke-linecap="round"/><rect x="4" y="9" width="12" height="7" rx="1" fill="currentColor" stroke="none"/></svg>
-    </div>
-  </div>
 
   <!-- ════ SCREENS WRAPPER ════ -->
   <div class="screens-wrap">
@@ -2297,8 +2278,6 @@ let currentScreen    = 'today';
 
 /* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded', async () => {
-  updateClock();
-  setInterval(updateClock, 30000);
   updateGreeting();
   updateDateNav();
 
