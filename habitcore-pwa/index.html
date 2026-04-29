@@ -1233,6 +1233,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   <meta name="apple-mobile-web-app-title" content="HabitCore">
   <link rel="apple-touch-icon" href="/icon-180.png">
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -1241,6 +1243,31 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 <!-- ══════════════════════════ PHONE ══════════════════════════ -->
 <div class="phone">
+
+  <!-- ── LOGIN SCREEN ── -->
+  <div id="loginScreen" style="
+    position:absolute;inset:0;background:var(--bg);z-index:200;
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;padding:36px 28px;gap:14px;border-radius:inherit;
+  ">
+    <div style="font-size:52px;margin-bottom:4px;">⚡</div>
+    <div style="font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.5px;">HabitCore</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.5;margin-bottom:8px;">
+      Ingresá tu email y te enviamos<br>un link de acceso instantáneo
+    </div>
+    <input id="loginEmail" type="email" placeholder="tu@email.com"
+      style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);
+             border-radius:12px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;"
+      autocomplete="email" onkeydown="if(event.key==='Enter')sendMagicLink()">
+    <button onclick="sendMagicLink()"
+      style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;
+             padding:15px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;">
+      Enviar link de acceso
+    </button>
+    <div id="loginMsg" style="font-size:12px;color:var(--muted);text-align:center;min-height:18px;"></div>
+  </div>
+
+
   <div class="confetti-container" id="confettiContainer"></div>
 
   <!-- Toast -->
@@ -2110,6 +2137,126 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 <!-- ══════════════════════════ JS ══════════════════════════ -->
 <script>
+/* ─── SUPABASE ─── */
+const SUPA_URL = 'https://fzmwtrwaeswxvdbbggbf.supabase.co';
+const SUPA_KEY = 'sb_publishable_NDsKRe3ysmI1cP5KB_ET9w_kGP6ECcf';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+let currentUser = null;
+
+function showLogin()  { document.getElementById('loginScreen').style.display = 'flex'; }
+function hideLogin()  { document.getElementById('loginScreen').style.display = 'none'; }
+
+async function sendMagicLink() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const msg   = document.getElementById('loginMsg');
+  if (!email) { msg.textContent = 'Escribí tu email primero.'; return; }
+  msg.textContent = 'Enviando…';
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+  if (error) { msg.style.color = 'var(--red)'; msg.textContent = error.message; }
+  else        { msg.style.color = 'var(--green)'; msg.textContent = '✓ Revisá tu bandeja — te enviamos el link.'; }
+}
+
+/* Auth state listener – fires when user clicks the magic link */
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    currentUser = session.user;
+    await loadData();
+    hideLogin();
+  } else if (event === 'SIGNED_OUT') {
+    currentUser = null;
+    habits = [];
+    customCategories = [];
+    renderHabits();
+    showLogin();
+  }
+});
+
+/* ─── DB HELPERS ─── */
+function genUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random()*16|0, v = c==='x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+}
+
+async function loadData() {
+  if (!currentUser) return;
+  const today = new Date().toISOString().slice(0,10);
+
+  const { data: rows, error } = await sb.from('habits').select('*').eq('user_id', currentUser.id);
+  if (error) { console.error('loadData:', error.message); return; }
+  habits = (rows || []).map(r => ({
+    id:           r.id,
+    name:         r.name,
+    emoji:        r.emoji,
+    type:         r.type,
+    streak:       r.streak,
+    bestStreak:   r.best_streak,
+    consistency:  r.consistency,
+    days:         r.days || [0,1,2,3,4,5,6],
+    freq:         r.freq,
+    startDate:    r.start_date,
+    endDate:      r.end_date,
+    // Reset "done" if it wasn't completed today
+    done:         r.done && r.last_done_date === today,
+    rescue:       r.rescue,
+    incorporated: r.incorporated,
+    color:        r.color,
+    categoryId:   r.category_id,
+    intention:    r.intention,
+    description:  r.description,
+    heatPattern:  r.heat_pattern || Array(35).fill(0),
+  }));
+
+  const { data: cats } = await sb.from('custom_categories').select('*').eq('user_id', currentUser.id);
+  customCategories = cats || [];
+
+  renderHabits();
+  renderFilterChips();
+  buildHeatmap90();
+  buildDayChart();
+  buildHabitBars();
+}
+
+async function saveHabitToDb(h) {
+  if (!currentUser) return;
+  const today = new Date().toISOString().slice(0,10);
+  await sb.from('habits').upsert({
+    id:             h.id,
+    user_id:        currentUser.id,
+    name:           h.name,
+    emoji:          h.emoji,
+    type:           h.type,
+    streak:         h.streak,
+    best_streak:    h.bestStreak || 0,
+    consistency:    h.consistency || 0,
+    days:           h.days,
+    freq:           h.freq,
+    start_date:     h.startDate || null,
+    end_date:       h.endDate   || null,
+    done:           h.done,
+    last_done_date: h.done ? today : null,
+    rescue:         h.rescue,
+    incorporated:   h.incorporated,
+    color:          h.color    || null,
+    category_id:    h.categoryId || null,
+    intention:      h.intention  || null,
+    description:    h.description|| null,
+    heat_pattern:   h.heatPattern|| [],
+  });
+}
+
+async function deleteHabitFromDb(id) {
+  if (!currentUser) return;
+  await sb.from('habits').delete().eq('id', id).eq('user_id', currentUser.id);
+}
+
+async function saveCategoryToDb(cat) {
+  if (!currentUser) return;
+  await sb.from('custom_categories').upsert({ ...cat, user_id: currentUser.id });
+}
+
+
 /* ─── CATEGORIES ─── */
 const BASE_CATEGORIES = [
   { id:'mental',       name:'Mental',        color:'#7c6ef7', emoji:'🧠' },
@@ -2149,16 +2296,21 @@ let activeFilter     = 'all';
 let currentScreen    = 'today';
 
 /* ─── INIT ─── */
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   updateClock();
   setInterval(updateClock, 30000);
   updateGreeting();
-  renderHabits();
-  renderFilterChips();
   updateDateNav();
-  buildHeatmap90();
-  buildDayChart();
-  buildHabitBars();
+
+  // Check if already logged in
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadData();
+    hideLogin();
+  } else {
+    showLogin();
+  }
 });
 
 function updateClock() {
@@ -2512,6 +2664,7 @@ function deleteHabitFromSheet() {
   if (!activeHabitId) return;
   const h = habits.find(x => x.id === activeHabitId);
   const name = h?.name || 'Hábito';
+  deleteHabitFromDb(activeHabitId);
   habits = habits.filter(x => x.id !== activeHabitId);
   closeSheet();
   renderHabits();
@@ -2601,7 +2754,7 @@ function addHabit() {
   else freqL = days.map(d => dayNames[d]).join(', ');
 
   habits.push({
-    id: Date.now(),
+    id: genUUID(),
     name,
     emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
     type: newHabitType,
@@ -2618,6 +2771,8 @@ function addHabit() {
     heatPattern: Array(35).fill(0),
   });
 
+  const newH = habits[habits.length - 1];
+  saveHabitToDb(newH);
   closeAddSheet();
   renderHabits();
   renderFilterChips();
@@ -2911,6 +3066,7 @@ function saveCustomCategory() {
   }
   const newCat = { id: 'custom_' + Date.now(), name, color: customSwatchColor, emoji: '🏷️' };
   customCategories.push(newCat);
+  saveCategoryToDb(newCat);
   newCategoryId = newCat.id;
   nameEl.value = '';
   document.getElementById('customCatRow').style.display  = 'none';
