@@ -1215,6 +1215,34 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   letter-spacing:.4px;text-transform:uppercase;
 }
 
+
+
+/* ── LIGHT THEME ── */
+body.light{
+  --bg:#f2f2f7;
+  --surface:#ffffff;
+  --surface2:#e8e8ed;
+  --surface3:#d8d8dd;
+  --text:#1c1c1e;
+  --muted:#8e8e93;
+  --border:rgba(0,0,0,.1);
+  --accent:#6366f1;
+  --green:#34c759;
+  --red:#ff3b30;
+  --orange:#ff9500;
+  --yellow:#ffcc00;
+}
+body.light .bottom-nav{background:rgba(255,255,255,.94);}
+body.light .habit-card{box-shadow:0 1px 3px rgba(0,0,0,.08);}
+body.light .app-screen{background:var(--bg);}
+body.light .add-sheet,body.light .bottom-sheet{background:var(--surface);}
+body.light .nav-item{color:var(--muted);}
+body.light .nav-item.active{color:var(--accent);}
+
+/* ── SAFE AREA universal ── */
+.screen-top-pad{height:calc(env(safe-area-inset-top,44px) + 16px);flex-shrink:0;}
+.logros-scroll > .logros-header,
+.insights-scroll > .insights-header{margin-top:0;}
 </style>
   <!-- PWA + iPhone -->
   <link rel="manifest" href="/manifest.json">
@@ -1556,6 +1584,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             <span class="profile-badge pb-streak">🔥 Racha: 14</span>
             <span class="profile-badge pb-habits" id="badgeHabits">5 hábitos</span>
             <span class="profile-badge pb-consist">84% consist.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Apariencia ── -->
+      <div class="settings-group" style="margin-bottom:4px;">
+        <div class="settings-group-label">Apariencia</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="toggleTheme()" style="cursor:pointer;">
+            <div class="si-icon" id="themeIcon" style="background:rgba(99,102,241,.12);font-size:18px;">☀️</div>
+            <div class="si-body">
+              <div class="si-label">Tema claro / oscuro</div>
+              <div class="si-sub" id="themeLabel">Tema oscuro activo</div>
+            </div>
+            <div class="toggle-switch" id="themeToggle"></div>
           </div>
         </div>
       </div>
@@ -2128,7 +2171,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* ─── SUPABASE ─── */
 const SUPA_URL = 'https://fzmwtrwaeswxvdbbggbf.supabase.co';
 const SUPA_KEY = 'sb_publishable_NDsKRe3ysmI1cP5KB_ET9w_kGP6ECcf';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, storageKey: 'hc_session' } });
 let currentUser = null;
 
 function showLogin()  { document.getElementById('loginScreen').style.display = 'flex'; }
@@ -2299,39 +2342,36 @@ let activeFilter     = 'all';
 let currentScreen    = 'today';
 
 /* ─── ADD-SHEET DRAG TO CLOSE ─── */
-(function() {
-  let startY = 0;
-  // Only activate on the handle bar — never on form inputs
-  function getHandle() { return document.querySelector('#addSheet .sheet-handle'); }
-  document.addEventListener('DOMContentLoaded', () => {
-    const sheet = document.getElementById('addSheet');
-    if (!sheet) return;
-    sheet.addEventListener('touchstart', e => {
-      if (!e.target.closest('.sheet-handle')) return;
-      startY = e.touches[0].clientY;
-      sheet.style.transition = 'none';
-    }, { passive: true });
-    sheet.addEventListener('touchmove', e => {
-      if (!e.target.closest('.sheet-handle')) return;
-      const dy = e.touches[0].clientY - startY;
-      if (dy > 0) sheet.style.transform = 'translateY(' + dy + 'px)';
-    }, { passive: true });
-    sheet.addEventListener('touchend', e => {
-      if (!e.target.closest('.sheet-handle') && startY === 0) return;
-      sheet.style.transition = '';
-      const dy = e.changedTouches[0].clientY - startY;
-      startY = 0;
-      if (dy > 30) { closeAddSheet(); }
-      else { sheet.style.transform = ''; }
-    }, { passive: true });
-  });
-})();
+function initSheetDrag(sheetId, closeFn) {
+  const sheet = document.getElementById(sheetId);
+  if (!sheet) return;
+  const handle = sheet.querySelector('.sheet-handle');
+  if (!handle) return;
+  let y0 = 0;
+  handle.style.padding = '14px 60px'; // bigger tap target
+  handle.addEventListener('touchstart', e => {
+    y0 = e.touches[0].clientY;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+  handle.addEventListener('touchmove', e => {
+    const dy = e.touches[0].clientY - y0;
+    if (dy > 0) sheet.style.transform = 'translateY(' + dy + 'px)';
+  }, { passive: true });
+  handle.addEventListener('touchend', e => {
+    sheet.style.transition = '';
+    if (e.changedTouches[0].clientY - y0 > 40) { sheet.style.transform = ''; closeFn(); }
+    else sheet.style.transform = '';
+    y0 = 0;
+  }, { passive: true });
+}
 
 /* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded', async () => {
   updateGreeting();
   updateDateNav();
 
+  initSheetDrag('addSheet', closeAddSheet);
+  initSheetDrag('habitSheet', closeSheet);
   // Check if already logged in
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
@@ -2481,15 +2521,15 @@ function habitCardHTML(h, isIncorporated) {
   let extra = '';
   if (h.type === 'quant' && h.quant && !h.done) {
     const p = Math.round((h.quant.current / h.quant.target) * 100);
-    extra = `<div class="quant-row" onclick="bumpQuant(event,${h.id})">
+    extra = `<div class="quant-row" onclick="bumpQuant(event,'${h.id}')">
       <div class="quant-bar-bg"><div class="quant-bar-fill" style="width:${p}%"></div></div>
       <div class="quant-label">${h.quant.current}/${h.quant.target}</div>
     </div>`;
   }
 
   return `
-  <div class="habit-card ${h.done?'done':''} ${h.rescue&&!h.done?'rescue':''}" onclick="openDetail(${h.id})">
-    <button class="check-btn ${h.done?'done':''}" onclick="event.stopPropagation();toggleHabit(${h.id})">
+  <div class="habit-card ${h.done?'done':''} ${h.rescue&&!h.done?'rescue':''}" onclick="openDetail('${h.id}')">
+    <button class="check-btn ${h.done?'done':''}" onclick="event.stopPropagation();toggleHabit('${h.id}')">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
     <div class="habit-info">
@@ -2977,7 +3017,7 @@ function renderHabitMgmt() {
       <div class="hm-drag"><span></span><span></span><span></span></div>
       <div class="hm-emoji2">${h.emoji}</div>
       <div class="hm-name2">${h.name}</div>
-      <div class="hm-pause ${paused?'paused':'active'}" onclick="togglePause(${h.id},this)">
+      <div class="hm-pause ${paused?'paused':'active'}" onclick="togglePause('${h.id}',this)">
         ${paused ? '▶ Reanudar' : '⏸ Pausar'}
       </div>
     </div>`;
@@ -3437,6 +3477,27 @@ function renderLogros() {
   renderAchievementGrid('logrosConsistencia', ACHIEVEMENTS.consistencia, metrics);
   renderAchievementGrid('logrosColeccion',    ACHIEVEMENTS.coleccion,    metrics);
   renderAchievementGrid('logrosEspeciales',   ACHIEVEMENTS.especiales,   metrics);
+}
+
+/* ─── THEME TOGGLE ─── */
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('hc_theme', isLight ? 'light' : 'dark');
+  _applyThemeUI(isLight);
+}
+function _applyThemeUI(isLight) {
+  const icon   = document.getElementById('themeIcon');
+  const label  = document.getElementById('themeLabel');
+  const toggle = document.getElementById('themeToggle');
+  if (icon)   icon.textContent   = isLight ? '🌙' : '☀️';
+  if (label)  label.textContent  = isLight ? 'Tema claro activo' : 'Tema oscuro activo';
+  if (toggle) toggle.classList.toggle('on', isLight);
+}
+function applyTheme() {
+  const saved = localStorage.getItem('hc_theme');
+  const isLight = saved === 'light';
+  if (isLight) document.body.classList.add('light');
+  _applyThemeUI(isLight);
 }
 
 /* ─── INCORPORATED TOGGLE ─── */
