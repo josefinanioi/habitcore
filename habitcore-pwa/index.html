@@ -1237,21 +1237,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   <div id="loginScreen" style="
     position:fixed;inset:0;background:var(--bg);z-index:200;padding-top:env(safe-area-inset-top,44px);padding-bottom:env(safe-area-inset-bottom,0px);
     display:flex;flex-direction:column;align-items:center;
-    justify-content:center;padding:36px 28px;gap:14px;border-radius:inherit;
+    justify-content:center;padding:36px 28px;gap:12px;border-radius:inherit;
   ">
     <div style="font-size:52px;margin-bottom:4px;">⚡</div>
     <div style="font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.5px;">HabitCore</div>
-    <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.5;margin-bottom:8px;">
-      Ingresá tu email y te enviamos<br>un link de acceso instantáneo
+    <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.5;margin-bottom:4px;">
+      Ingresá tus datos para acceder
     </div>
     <input id="loginEmail" type="email" placeholder="tu@email.com"
       style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);
              border-radius:12px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;"
-      autocomplete="email" onkeydown="if(event.key==='Enter')sendMagicLink()">
-    <button onclick="sendMagicLink()"
+      autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    <input id="loginPass" type="password" placeholder="Contraseña"
+      style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);
+             border-radius:12px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter')signIn()">
+    <button onclick="signIn()"
       style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;
              padding:15px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;">
-      Enviar link de acceso
+      Entrar
     </button>
     <div id="loginMsg" style="font-size:12px;color:var(--muted);text-align:center;min-height:18px;"></div>
   </div>
@@ -2127,14 +2131,18 @@ let currentUser = null;
 function showLogin()  { document.getElementById('loginScreen').style.display = 'flex'; }
 function hideLogin()  { document.getElementById('loginScreen').style.display = 'none'; }
 
-async function sendMagicLink() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const msg   = document.getElementById('loginMsg');
-  if (!email) { msg.textContent = 'Escribí tu email primero.'; return; }
-  msg.textContent = 'Enviando…';
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
-  if (error) { msg.style.color = 'var(--red)'; msg.textContent = error.message; }
-  else        { msg.style.color = 'var(--green)'; msg.textContent = '✓ Revisá tu bandeja — te enviamos el link.'; }
+async function signIn() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const msg      = document.getElementById('loginMsg');
+  if (!email || !password) { msg.textContent = 'Completá email y contraseña.'; return; }
+  msg.textContent = 'Ingresando…';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = error.message === 'Invalid login credentials'
+      ? 'Email o contraseña incorrectos.' : error.message;
+  }
 }
 
 /* Auth state listener – fires when user clicks the magic link */
