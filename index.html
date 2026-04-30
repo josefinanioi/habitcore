@@ -48,7 +48,6 @@ html,body{
   border-radius:0;
   border:none;
   box-shadow:none;
-  overflow:hidden;
   position:fixed;
   top:0;left:0;
   display:flex;flex-direction:column;
@@ -399,7 +398,7 @@ html,body{
   background:rgba(13,13,18,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(255,255,255,.05);
   display:flex;align-items:center;
-  padding:8px 4px 0;padding-bottom:env(safe-area-inset-bottom,0px);
+  padding:10px 4px env(safe-area-inset-bottom,20px);
   gap:2px;z-index:200;
 }
 .nav-item{
@@ -2329,6 +2328,13 @@ function getAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
 }
+
+// Haptic feedback — Android: navigator.vibrate / iOS: sin soporte nativo en PWA
+function haptic(type = 'light') {
+  if (!navigator.vibrate) return;
+  const patterns = { light: [10], medium: [20], heavy: [30, 20, 30], success: [15, 10, 40] };
+  navigator.vibrate(patterns[type] || patterns.light);
+}
 function playSuccess() {
   try {
     const ctx = getAudio();
@@ -2510,6 +2516,7 @@ const SCREENS = ['screenToday','screenInsights','screenLogros','screenSettings']
 const SCREEN_ORDER = {today:0, insights:1, logros:2, settings:3};
 
 function switchScreen(name, btn) {
+  haptic('light');
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
@@ -2661,11 +2668,17 @@ function habitCardHTML(h, isIncorporated) {
 
 /* ─── TOGGLE ─── */
 function toggleHabit(id) {
-  const h = habits.find(x => x.id === id);
+  const h = habits.find(x => String(x.id) === String(id));
   if (!h) return;
   h.done = !h.done;
+  const today = new Date().toISOString().slice(0,10);
   if (h.done) {
+    h.lastDoneDate = today;
+    // Actualizar heatPattern: posición 34 = hoy
+    if (!h.heatPattern) h.heatPattern = Array(35).fill(0);
+    h.heatPattern[34] = 1;
     playSuccess();
+    haptic('medium');
     h.streak++;
     const wasRescue = h.rescue;
     h.rescue = false;
@@ -2675,15 +2688,19 @@ function toggleHabit(id) {
     const allDone = habits.every(x => x.done);
     if (allDone) setTimeout(() => { launchConfetti(); showToast('🎉','¡Todos los hábitos del día! La consistencia se construye así.'); }, 350);
   } else {
+    h.lastDoneDate = null;
+    if (h.heatPattern) h.heatPattern[34] = 0;
     playTap();
+    haptic('light');
     if (h.streak > 0) h.streak--;
   }
+  saveHabitToDb(h);
   setTimeout(renderHabits, 40);
 }
 
 function bumpQuant(e, id) {
   e.stopPropagation();
-  const h = habits.find(x => x.id === id);
+  const h = habits.find(x => String(x.id) === String(id));
   if (!h?.quant) return;
   h.quant.current = Math.min(h.quant.current + 1, h.quant.target);
   if (h.quant.current >= h.quant.target) {
@@ -2695,9 +2712,10 @@ function bumpQuant(e, id) {
 
 /* ─── DETAIL SHEET ─── */
 function openDetail(id) {
-  const h = habits.find(x => x.id === id);
+  const h = habits.find(x => String(x.id) === String(id));
   if (!h) return;
   activeHabitId = id;
+  haptic('light');
 
   // Reset to first tab
   switchSheetTab('overview', document.querySelector('.sheet-tab'));
@@ -2877,6 +2895,7 @@ function buildDetailHeatmap(pattern) {
 
 /* ─── ADD SHEET ─── */
 function openAddSheet() {
+  haptic('light');
   // Reset state
   newCategoryId     = null;
   newDurationUnit   = 'min';
