@@ -70,7 +70,7 @@ html,body{
   position:absolute;inset:0;
   overflow-y:auto;overflow-x:hidden;
   scrollbar-width:none;
-  padding-bottom:calc(80px + env(safe-area-inset-bottom, 0px));
+  padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px));
   transition:opacity .22s ease, transform .22s ease;
 }
 .app-screen::-webkit-scrollbar{display:none;}
@@ -395,11 +395,12 @@ html,body{
    BOTTOM NAV
 ═══════════════════════════════════════════ */
 .bottom-nav{
-  position:absolute;bottom:0;left:0;right:0;
+  position:fixed;bottom:0;left:0;right:0;
   background:rgba(13,13,18,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(255,255,255,.05);
-  display:flex;align-items:flex-start;
-  padding:10px 8px env(safe-area-inset-bottom, 10px);gap:4px;z-index:100;
+  display:flex;align-items:center;
+  padding:8px 4px 0;padding-bottom:env(safe-area-inset-bottom,0px);
+  gap:2px;z-index:200;
 }
 .nav-item{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
@@ -1233,7 +1234,7 @@ body.light{
   --orange:#ff9500;
   --yellow:#ffcc00;
 }
-body.light .bottom-nav{background:rgba(255,255,255,.95);border-top-color:rgba(0,0,0,.08);}
+body.light .bottom-nav{background:rgba(255,255,255,.96);border-top-color:rgba(0,0,0,.08);}
 body.light .habit-card{box-shadow:0 1px 3px rgba(0,0,0,.08);}
 body.light .app-screen{background:var(--bg);}
 body.light .add-sheet,body.light .bottom-sheet{background:var(--surface);}
@@ -1420,14 +1421,14 @@ body.light .nav-item.active{color:var(--accent);}
             </defs>
           </svg>
           <div class="momentum-center">
-            <div class="momentum-val">72</div>
+            <div class="momentum-val" id="momentumVal">0</div>
             <div class="momentum-unit">momentum</div>
           </div>
         </div>
         <div class="momentum-info">
           <div class="momentum-title">Momentum Score</div>
           <div class="momentum-desc">Racha activa + consistencia reciente + velocidad de recovery.</div>
-          <div class="momentum-trend trend-up">↑ +8 vs semana pasada</div>
+          <div class="momentum-trend" id="momentumTrend"></div>
         </div>
       </div>
 
@@ -1435,17 +1436,17 @@ body.light .nav-item.active{color:var(--accent);}
       <div class="metrics-3">
         <div class="metric-tile">
           <div class="mt-icon">🌊</div>
-          <div class="mt-val" style="color:var(--green)">84%</div>
+          <div class="mt-val" style="color:var(--green)" id="insConsistencia">0%</div>
           <div class="mt-lbl">Consistencia global</div>
         </div>
         <div class="metric-tile">
           <div class="mt-icon">⚡</div>
-          <div class="mt-val" style="color:var(--accent2)">1.2</div>
+          <div class="mt-val" style="color:var(--accent2)" id="insRecovery">—</div>
           <div class="mt-lbl">días hasta recovery</div>
         </div>
         <div class="metric-tile">
           <div class="mt-icon">🏆</div>
-          <div class="mt-val" style="color:var(--amber)">21</div>
+          <div class="mt-val" style="color:var(--amber)" id="insMejorRacha">0</div>
           <div class="mt-lbl">mejor racha (días)</div>
         </div>
       </div>
@@ -1456,8 +1457,7 @@ body.light .nav-item.active{color:var(--accent);}
           <div class="ic-badge"><div class="ic-dot"></div><div class="ic-title">Insight de la semana</div></div>
           <div class="ic-week">Abr 22–28</div>
         </div>
-        <div class="ic-text">Fallaste <strong style="color:var(--text)">"Lectura 20 min"</strong> los últimos 3 <strong style="color:var(--text)">viernes</strong>. El patrón sugiere que el fin de semana interrumpe tu rutina nocturna. ¿Probamos moverlo a las mañanas del sábado?</div>
-        <button class="ic-action" onclick="showToast('📅','Horario de Lectura actualizado a sábados AM')">Ajustar horario →</button>
+        <div class="ic-text" id="insInsight">Completá al menos un hábito para ver tus patrones.</div>
       </div>
 
       <!-- 90-day heatmap -->
@@ -1487,7 +1487,7 @@ body.light .nav-item.active{color:var(--accent);}
           <div class="ins-section-sub">por día de semana</div>
         </div>
         <div class="day-chart" id="dayChart"></div>
-        <div class="pattern-note">Los <strong style="color:var(--text)">viernes y sábados</strong> concentran el 58% de tus fallas. Considera activar el Modo Protección los fines de semana para no perder racha.</div>
+        <div class="pattern-note" id="insPatternNote">Completá hábitos durante la semana para ver tu patrón de fallas.</div>
       </div>
 
       <!-- Recovery time card -->
@@ -1497,9 +1497,9 @@ body.light .nav-item.active{color:var(--accent);}
           <div class="rc-sub">Promedio de días entre una falla y retomar el hábito. La meta es que baje a 1 día.</div>
         </div>
         <div class="rc-value">
-          <div class="rc-num">1.2</div>
+          <div class="rc-num" id="insRecoveryNum">—</div>
           <div class="rc-unit">días</div>
-          <div class="rc-good">↓ mejorando</div>
+          <div class="rc-good" id="insRecoveryNote"></div>
         </div>
       </div>
 
@@ -1515,9 +1515,7 @@ body.light .nav-item.active{color:var(--accent);}
       <!-- Identity reflection -->
       <div class="identity-card">
         <div class="id-header">🪞 Reflexión del domingo</div>
-        <div class="id-line">Esta semana fuiste alguien que <strong>meditó 6 de 7 días</strong>.</div>
-        <div class="id-line">Fuiste alguien que <strong>evitó el azúcar 5 veces</strong>.</div>
-        <div class="id-line">Fuiste alguien que <strong>tomó agua suficiente todos los días</strong>.</div>
+        <div id="insReflexion" style="font-size:13px;color:var(--muted);line-height:1.6;">Completá hábitos esta semana para ver tu reflexión aquí.</div>
         <div style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.5;">La evidencia se acumula. Cada día que actúas, votas por la persona en la que te estás convirtiendo.</div>
       </div>
 
@@ -2220,9 +2218,7 @@ async function loadData() {
 
   renderHabits();
   renderFilterChips();
-  buildHeatmap90();
-  buildDayChart();
-  buildHabitBars();
+  updateInsightsFromData();
 }
 
 async function saveHabitToDb(h) {
@@ -2436,7 +2432,6 @@ function exportData() {
 
 /* ─── RESET ALL DATA ─── */
 async function resetAllData() {
-  if (!confirm('⚠️ ¿Borrar TODOS los hábitos y datos? Esta acción no se puede deshacer.')) return;
   if (currentUser) {
     await sb.from('habits').delete().eq('user_id', currentUser.id);
     await sb.from('custom_categories').delete().eq('user_id', currentUser.id);
@@ -2447,8 +2442,12 @@ async function resetAllData() {
   localStorage.removeItem('hc_vacation');
   vacationActive = false;
   document.getElementById('vacationBanner').style.display = 'none';
+  const vb = document.getElementById('vacationBadge');
+  if (vb) { vb.textContent = 'Desactivado'; vb.style.background=''; vb.style.color=''; }
   renderHabits();
   renderFilterChips();
+  updateInsightsFromData();
+  renderLogros();
   showToast('🗑', 'Todos los datos eliminados.');
 }
 
@@ -2535,7 +2534,7 @@ function switchScreen(name, btn) {
 
   currentScreen = name;
 
-  if (name === 'insights') setTimeout(animateHabitBars, 220);
+  if (name === 'insights') { setTimeout(() => { updateInsightsFromData(); animateHabitBars(); }, 120); }
   if (name === 'logros')   setTimeout(renderLogros, 120);
   if (name === 'settings') { renderHabitMgmt(); updateBadges(); }
 }
@@ -2998,10 +2997,27 @@ function buildHeatmap90() {
 /* ─── INSIGHTS: Day-of-week failure chart ─── */
 function buildDayChart() {
   const chart = document.getElementById('dayChart');
-  // % of habit completions by day (higher = more failures = lower bar of completions)
   const days = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-  const failRates = [18, 12, 10, 15, 34, 42, 38]; // % failure rate per day
-  const maxFail = Math.max(...failRates);
+  // Calcular tasa de fallo real por día de semana usando heatPattern de 35 días
+  // heatPattern[i] = 0 sin completar, >0 completado. Índice 0 = hace 35 días
+  const completions = new Array(7).fill(0);
+  const totals = new Array(7).fill(0);
+  if (habits && habits.length) {
+    habits.forEach(h => {
+      if (!h.heatPattern || !h.days) return;
+      h.heatPattern.forEach((v, i) => {
+        const d = new Date(); d.setDate(d.getDate() - (34 - i));
+        const jsDay = d.getDay(); // 0=Dom
+        const ourDay = jsDay === 0 ? 6 : jsDay - 1; // 0=Lu
+        if (h.days.includes(ourDay)) {
+          totals[ourDay]++;
+          if (v > 0) completions[ourDay]++;
+        }
+      });
+    });
+  }
+  const failRates = days.map((_, i) => totals[i] > 0 ? Math.round(((totals[i]-completions[i])/totals[i])*100) : 0);
+  const maxFail = Math.max(...failRates, 1);
   chart.innerHTML = days.map((d, i) => {
     const pct = Math.round((failRates[i] / maxFail) * 100);
     const color = failRates[i] > 30 ? 'var(--red)' : failRates[i] > 18 ? 'var(--amber)' : 'var(--accent)';
@@ -3013,9 +3029,111 @@ function buildDayChart() {
       <div class="day-lbl">${d}</div>
     </div>`;
   }).join('');
+  // Actualizar nota del patrón con día peor
+  const peorIdx = failRates.indexOf(Math.max(...failRates));
+  const patEl = document.getElementById('insPatternNote');
+  if (patEl && habits && habits.length && Math.max(...failRates) > 0) {
+    patEl.innerHTML = `Los <strong style="color:var(--text)">${days[peorIdx]}</strong> tienen más fallas (${failRates[peorIdx]}%). Planificá ese día con más cuidado.`;
+  }
 }
 
 /* ─── INSIGHTS: Per-habit bars ─── */
+/* ─── INSIGHTS: render dinámico desde datos reales ─── */
+function updateInsightsFromData() {
+  if (!habits || habits.length === 0) {
+    const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('momentumVal','0'); set('momentumTrend','');
+    set('insConsistencia','0%'); set('insRecovery','—'); set('insMejorRacha','0');
+    set('insInsight','Agregá hábitos para ver tus patrones.');
+    set('insPatternNote','Completá hábitos durante la semana para ver tu patrón de fallas.');
+    set('insRecoveryNum','—'); set('insRecoveryNote','');
+    set('insReflexion','Completá hábitos esta semana para ver tu reflexión aquí.');
+    const arc = document.getElementById('momentumArc');
+    if (arc) arc.setAttribute('stroke-dasharray','0 226');
+    buildHeatmap90(); buildDayChart(); buildHabitBars();
+    return;
+  }
+
+  // Consistencia global: promedio de consistency de todos los hábitos
+  const avgConsistency = Math.round(habits.reduce((s,h) => s + (h.consistency||0), 0) / habits.length);
+
+  // Mejor racha global
+  const bestStreak = Math.max(...habits.map(h => h.bestStreak||0), 0);
+
+  // Racha activa max
+  const maxStreak = Math.max(...habits.map(h => h.streak||0), 0);
+
+  // Momentum score: 0-100
+  // = (avgConsistency * 0.5) + (min(maxStreak,30)/30 * 30) + (recentActivity * 20)
+  const recentActivity = habits.filter(h => h.done).length / Math.max(habits.length, 1);
+  const momentum = Math.min(100, Math.round(avgConsistency * 0.5 + (Math.min(maxStreak,30)/30)*30 + recentActivity*20));
+
+  // Actualizar DOM
+  const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('momentumVal', momentum);
+  set('insConsistencia', avgConsistency + '%');
+  set('insMejorRacha', bestStreak);
+  set('insRecovery', maxStreak > 0 ? '< 1' : '—');
+  set('insRecoveryNum', maxStreak > 0 ? '< 1' : '—');
+  set('insRecoveryNote', maxStreak > 0 ? '↓ mejorando' : '');
+
+  // Arco SVG del momentum
+  const arc = document.getElementById('momentumArc');
+  if (arc) {
+    const circ = 226;
+    const dashLen = Math.round((momentum / 100) * circ);
+    arc.setAttribute('stroke-dasharray', dashLen + ' ' + circ);
+  }
+
+  // Trend del momentum
+  const trendEl = document.getElementById('momentumTrend');
+  if (trendEl) {
+    if (momentum >= 70) { trendEl.textContent = '↑ Buen momento. Mantené el ritmo.'; trendEl.className='momentum-trend trend-up'; }
+    else if (momentum >= 40) { trendEl.textContent = '→ En progreso. Consistencia es clave.'; trendEl.className='momentum-trend'; }
+    else { trendEl.textContent = '↓ Empezá con un hábito hoy.'; trendEl.className='momentum-trend trend-down'; }
+  }
+
+  // Insight de la semana
+  const insEl = document.getElementById('insInsight');
+  if (insEl) {
+    const topHabit = habits.reduce((best, h) => (h.streak||0) > (best.streak||0) ? h : best, habits[0]);
+    const worstHabit = habits.reduce((worst, h) => (h.consistency||0) < (worst.consistency||0) ? h : worst, habits[0]);
+    if (topHabit && (topHabit.streak||0) > 0) {
+      insEl.innerHTML = `Tu mejor racha activa: <strong style="color:var(--text)">${topHabit.emoji} ${topHabit.name}</strong> con <strong style="color:var(--text)">${topHabit.streak} días</strong> consecutivos.`;
+    } else {
+      insEl.textContent = 'Completá tus hábitos de hoy para construir tu primera racha.';
+    }
+  }
+
+  // Pattern note
+  const patEl = document.getElementById('insPatternNote');
+  if (patEl) {
+    if (avgConsistency >= 70) patEl.innerHTML = 'Consistencia alta. Seguí con tu rutina.';
+    else if (avgConsistency > 0) patEl.innerHTML = `Consistencia global del <strong style="color:var(--text)">${avgConsistency}%</strong>. Identificá qué días te cuesta más cumplir.`;
+    else patEl.textContent = 'Completá hábitos durante la semana para ver tu patrón de fallas.';
+  }
+
+  // Reflexión
+  const refEl = document.getElementById('insReflexion');
+  if (refEl) {
+    const done = habits.filter(h => h.done);
+    if (done.length > 0) {
+      refEl.innerHTML = done.map(h =>
+        `<div class="id-line">Hoy fuiste alguien que <strong>${h.emoji} ${h.name.toLowerCase()}</strong>.</div>`
+      ).join('');
+    } else if (bestStreak > 0) {
+      const best = habits.reduce((b,h) => (h.bestStreak||0)>(b.bestStreak||0)?h:b, habits[0]);
+      refEl.innerHTML = `<div class="id-line">Tu mejor marca: <strong>${best.bestStreak} días</strong> seguidos de <strong>${best.emoji} ${best.name}</strong>.</div>`;
+    } else {
+      refEl.textContent = 'Completá hábitos esta semana para ver tu reflexión aquí.';
+    }
+  }
+
+  buildHeatmap90();
+  buildDayChart();
+  buildHabitBars();
+}
+
 function buildHabitBars() {
   const container = document.getElementById('habitBars');
   const colors = ['#7c6ef7','#4ecdc4','#52c97a','#f7a35c','#e87070'];
@@ -3404,9 +3522,7 @@ function renderHabitsForOffset() {
   el.addEventListener('touchstart', e => {
     // Ignore if a sheet/overlay is open or if started inside a range slider
     const overlay = document.getElementById('sheetOverlay');
-    if (overlay && !overlay.classList.contains('hidden') && overlay.style.opacity !== '0') return;
-    const addSheet = document.getElementById('addSheet');
-    if (addSheet && addSheet.classList.contains('open')) return;
+    if (overlay && overlay.classList.contains('open')) return;
     if (e.target.tagName === 'INPUT' || e.target.closest('input[type=range]')) { startedInSlider = true; return; }
     startedInSlider = false;
     startX = e.touches[0].clientX;
