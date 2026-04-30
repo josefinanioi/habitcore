@@ -43,6 +43,9 @@ html,body{
 ═══════════════════════════════════════════ */
 .phone{
   width:100vw;
+  /* Fallbacks para iOS que no soporta dvh o svh */
+  height:100vh;
+  height:100svh;
   height:100dvh;
   background:var(--bg);
   border-radius:0;
@@ -51,6 +54,8 @@ html,body{
   position:fixed;
   top:0;left:0;
   display:flex;flex-direction:column;
+  /* iOS PWA: usar fill-available como último recurso */
+  min-height:-webkit-fill-available;
 }
 
 /* ═══════════════════════════════════════════
@@ -408,7 +413,7 @@ html,body{
 }
 .nav-item{
   flex:1;
-  height:50px;
+  height:54px;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   gap:3px;
@@ -2184,11 +2189,17 @@ async function signIn() {
 
 /* Auth state listener – fires when user clicks the magic link */
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' && session) {
+  // Supabase JS v2: "INITIAL_SESSION" se dispara al cargar si hay sesión guardada.
+  // "SIGNED_IN" solo se dispara cuando el usuario hace login activo.
+  // "TOKEN_REFRESHED" se dispara cada hora automáticamente — no recargar datos.
+  if (session?.user) {
+    const wasLoggedIn = !!currentUser;
     currentUser = session.user;
-    await loadData();
-    hideLogin();
-  } else if (event === 'SIGNED_OUT') {
+    if (!wasLoggedIn || event === 'SIGNED_IN') {
+      await loadData();
+      hideLogin();
+    }
+  } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
     currentUser = null;
     habits = [];
     customCategories = [];
@@ -2785,14 +2796,17 @@ function openDetail(id) {
   else if (h.done)    { btn.textContent = '✓ Completado'; btn.disabled = true; btn.style.opacity = '.5'; }
   else                { btn.textContent = '✓ Completar';  btn.disabled = false; btn.style.opacity = '1'; }
 
-  // Extended stats (tab 2)
-  buildDetailStats(h);
+  // Extended stats y heatmap — en try/catch para que un error no impida abrir el sheet
+  try { buildDetailStats(h); } catch(e) { console.warn('buildDetailStats:', e); }
+  try { buildDetailHeatmap(h.heatPattern); } catch(e) { console.warn('buildDetailHeatmap:', e); }
 
-  // Heatmap (tab 3)
-  buildDetailHeatmap(h.heatPattern);
-
-  document.getElementById('sheetOverlay').classList.add('open');
-  document.getElementById('bottomSheet').classList.add('open');
+  // Siempre abrir el sheet, pase lo que pase arriba
+  const overlay = document.getElementById('sheetOverlay');
+  const sheet   = document.getElementById('bottomSheet');
+  if (overlay) overlay.classList.add('open');
+  if (sheet)   sheet.classList.add('open');
+  // Resetear scroll al inicio del sheet
+  if (sheet) sheet.scrollTop = 0;
 }
 
 function buildDetailStats(h) {
@@ -3567,25 +3581,27 @@ function renderHabitsForOffset() {
 
 /* ─── SWIPE DETECTION on today screen ─── */
 (function() {
-  let startX = 0, startY = 0, startedInSlider = false;
+  let startX = null, startY = null, swipeActive = false;
   const el = document.getElementById('screenToday');
   el.addEventListener('touchstart', e => {
-    // Ignore if a sheet/overlay is open or if started inside a range slider
     const overlay = document.getElementById('sheetOverlay');
-    if (overlay && overlay.classList.contains('open')) return;
-    if (e.target.tagName === 'INPUT' || e.target.closest('input[type=range]')) { startedInSlider = true; return; }
-    startedInSlider = false;
+    if (overlay && overlay.classList.contains('open')) { swipeActive = false; return; }
+    if (e.target.tagName === 'INPUT' || (e.target.closest && e.target.closest('input[type=range]'))) { swipeActive = false; return; }
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
+    swipeActive = true;
   }, { passive: true });
   el.addEventListener('touchend', e => {
-    if (startedInSlider) return;
+    if (!swipeActive || startX === null) return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*2) {
+    swipeActive = false;
+    // Umbral relajado: 40px horizontal, relación 1.3:1 (antes 55px y 2:1)
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) {
       if (dx < 0) goToNextDay();
       else         goToPrevDay();
     }
+    startX = null; startY = null;
   }, { passive: true });
 })();
 
@@ -3897,4 +3913,4 @@ updateBadges();
     }
   </script>
 </body>
-</html>  
+</html>
