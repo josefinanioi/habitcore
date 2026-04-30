@@ -43,19 +43,12 @@ html,body{
 ═══════════════════════════════════════════ */
 .phone{
   width:100vw;
-  /* Fallbacks para iOS que no soporta dvh o svh */
   height:100vh;
-  height:100svh;
   height:100dvh;
   background:var(--bg);
-  border-radius:0;
-  border:none;
-  box-shadow:none;
   position:fixed;
   top:0;left:0;
-  display:flex;flex-direction:column;
-  /* iOS PWA: usar fill-available como último recurso */
-  min-height:-webkit-fill-available;
+  overflow:hidden;
 }
 
 /* ═══════════════════════════════════════════
@@ -68,13 +61,16 @@ html,body{
    TWO-SCREEN SYSTEM
 ═══════════════════════════════════════════ */
 .screens-wrap{
-  flex:1;position:relative;overflow:hidden;
+  position:absolute;
+  top:0;left:0;right:0;
+  bottom:0;
+  overflow:hidden;
 }
 .app-screen{
   position:absolute;inset:0;
   overflow-y:auto;overflow-x:hidden;
   scrollbar-width:none;
-  padding-bottom:24px;
+  padding-bottom:calc(56px + env(safe-area-inset-bottom,0px));
   transition:opacity .22s ease, transform .22s ease;
 }
 .app-screen::-webkit-scrollbar{display:none;}
@@ -317,15 +313,15 @@ html,body{
 ═══════════════════════════════════════════ */
 /* nav-add center button (replaces FAB) */
 .nav-add{
-  width:48px;height:48px;border-radius:50%;
+  width:52px;height:52px;border-radius:50%;
   background:var(--accent);border:none;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex-shrink:0;
   box-shadow:0 4px 20px rgba(124,110,247,.55);
-  margin-top:-8px;
-  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  transform:translateY(-10px);
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s;
 }
-.nav-add:active{transform:scale(.88);}
+.nav-add:active{transform:translateY(-10px) scale(.88);}
 .nav-add svg{width:22px;height:22px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;}
 
 /* Period picker sheet */
@@ -399,27 +395,30 @@ html,body{
    BOTTOM NAV
 ═══════════════════════════════════════════ */
 .bottom-nav{
-  /* Flex child de .phone — queda pegado al fondo sin ambigüedad */
-  flex-shrink:0;
-  width:100%;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:100;
   display:flex;
   align-items:center;
-  background:rgba(13,13,18,.94);
+  background:rgba(13,13,18,.95);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(255,255,255,.06);
   padding-bottom:env(safe-area-inset-bottom,0px);
-  position:relative;
-  overflow:visible;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+/* Ocultar nav cuando un sheet está abierto */
+.bottom-nav.nav-hidden{
+  transform:translateY(100%);
+  pointer-events:none;
 }
 .nav-item{
   flex:1;
-  height:54px;
+  height:56px;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   gap:3px;
   padding:0 4px;
-  border-radius:12px;border:none;
-  background:transparent;cursor:pointer;
+  border:none;background:transparent;cursor:pointer;
   transition:background .12s;
   -webkit-tap-highlight-color:transparent;
 }
@@ -528,29 +527,52 @@ html,body{
    SHEET OVERLAY
 ═══════════════════════════════════════════ */
 .sheet-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0);z-index:300;
+  position:fixed;inset:0;background:rgba(0,0,0,0);
+  z-index:490;   /* justo debajo del sheet (500) */
   pointer-events:none;transition:background .28s;
 }
-.sheet-overlay.open{background:rgba(0,0,0,.65);pointer-events:all;}
+.sheet-overlay.open{background:rgba(0,0,0,.55);pointer-events:all;}
 
 /* ═══════════════════════════════════════════
    HABIT DETAIL SHEET
 ═══════════════════════════════════════════ */
 .bottom-sheet{
   position:fixed;bottom:0;left:0;right:0;
-  background:var(--surface);border-radius:24px 24px 0 0;border-top:1px solid var(--border);
-  padding:0 20px calc(32px + env(safe-area-inset-bottom,16px));
-  transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);
   z-index:500;
-  height:90dvh;
-  max-height:90dvh;
+  background:var(--surface);
+  border-radius:24px 24px 0 0;
+  border-top:1px solid var(--border);
+  /* Flex column: cabecera fija + contenido scrollable */
+  display:flex;flex-direction:column;
+  height:92dvh;
+  height:92svh;
+  height:92vh;   /* fallback */
+  height:92dvh;  /* preferido */
+  max-height:92dvh;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.32,.72,0,1);
+  /* sin overflow aquí — el scroll va en .sheet-scroll-area */
+  overflow:hidden;
+}
+.bottom-sheet.open{transform:translateY(0);}
+/* Zona de handle (no scrollable, detecta drag) */
+.sheet-sticky{
+  flex-shrink:0;
+  padding:0 20px;
+  touch-action:none;   /* ← drag gesture aquí */
+  cursor:grab;
+}
+.sheet-sticky:active{cursor:grabbing;}
+/* Zona scrollable del sheet */
+.sheet-scroll-area{
+  flex:1;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
-  touch-action:pan-y;
+  padding:0 20px calc(32px + env(safe-area-inset-bottom,16px));
+  scrollbar-width:none;
 }
-.bottom-sheet::-webkit-scrollbar{display:none;}
-.bottom-sheet.open{transform:translateY(0);}
+.sheet-scroll-area::-webkit-scrollbar{display:none;}
 
 .sheet-handle{width:36px;height:4px;border-radius:99px;background:var(--border);margin:12px auto 18px;}
 .sheet-habit-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
@@ -1956,23 +1978,30 @@ body.light .nav-item.active{color:var(--accent);}
 
   <!-- Habit Detail Sheet -->
   <div class="bottom-sheet" id="bottomSheet">
-    <div class="sheet-handle"></div>
 
-    <!-- Header -->
-    <div class="sheet-habit-header">
-      <div class="sheet-habit-icon" id="sheetIcon" style="background:rgba(124,110,247,.15)">🧘</div>
-      <div style="flex:1;min-width:0;">
-        <div class="sheet-habit-name" id="sheetName">Meditación</div>
-        <div class="sheet-habit-sub" id="sheetSub">Diaria · 🔥 14 días</div>
+    <!-- ── ZONA FIJA (drag handle aquí) ── -->
+    <div class="sheet-sticky" id="bottomSheetHandle">
+      <div class="sheet-handle"></div>
+
+      <!-- Header -->
+      <div class="sheet-habit-header">
+        <div class="sheet-habit-icon" id="sheetIcon" style="background:rgba(124,110,247,.15)">🧘</div>
+        <div style="flex:1;min-width:0;">
+          <div class="sheet-habit-name" id="sheetName">Meditación</div>
+          <div class="sheet-habit-sub" id="sheetSub">Diaria · 🔥 14 días</div>
+        </div>
       </div>
-    </div>
 
-    <!-- Tabs -->
-    <div class="sheet-tabs">
-      <button class="sheet-tab active" onclick="switchSheetTab('overview',this)">Resumen</button>
-      <button class="sheet-tab" onclick="switchSheetTab('stats',this)">Estadísticas</button>
-      <button class="sheet-tab" onclick="switchSheetTab('history',this)">Historial</button>
-    </div>
+      <!-- Tabs -->
+      <div class="sheet-tabs">
+        <button class="sheet-tab active" onclick="switchSheetTab('overview',this)">Resumen</button>
+        <button class="sheet-tab" onclick="switchSheetTab('stats',this)">Estadísticas</button>
+        <button class="sheet-tab" onclick="switchSheetTab('history',this)">Historial</button>
+      </div>
+    </div><!-- /sheet-sticky -->
+
+    <!-- ── ZONA SCROLLABLE ── -->
+    <div class="sheet-scroll-area" id="bottomSheetScroll">
 
     <!-- ── TAB: Resumen ── -->
     <div class="tab-panel active" id="tabOverview">
@@ -2076,7 +2105,8 @@ body.light .nav-item.active{color:var(--accent);}
       <button class="sheet-delete-btn" onclick="deleteHabitFromSheet()">🗑 Eliminar este hábito</button>
     </div>
 
-  </div>
+    </div><!-- /sheet-scroll-area -->
+  </div><!-- /bottomSheet -->
 
   <!-- Add Habit Sheet -->
   <div class="add-sheet" id="addSheet" style="overflow-y:auto;max-height:92%;scrollbar-width:none;">
@@ -2331,27 +2361,86 @@ let activeFilter     = 'all';
 let currentScreen    = 'today';
 
 /* ─── ADD-SHEET DRAG TO CLOSE ─── */
+/* ─── SHEET DRAG ENGINE ─────────────────────────────────────────
+   Tres zonas de interacción:
+   1. sheet-sticky (handle visual + header + tabs) → detecta drag
+   2. sheet-scroll-area → scroll normal, sin conflicto
+   Drag solo hacia abajo; snap a cerrado si dy > 30% del alto del sheet
+   o velocidad > 0.5px/ms.
+────────────────────────────────────────────────────────────── */
 function initSheetDrag(sheetId, closeFn) {
   const sheet = document.getElementById(sheetId);
   if (!sheet) return;
-  const handle = sheet.querySelector('.sheet-handle');
-  if (!handle) return;
-  let y0 = 0;
-  handle.style.padding = '14px 60px'; // bigger tap target
-  handle.addEventListener('touchstart', e => {
-    y0 = e.touches[0].clientY;
+
+  // Para bottomSheet usamos sheet-sticky; para otros usamos sheet-handle
+  const dragZone = sheet.querySelector('.sheet-sticky') || sheet.querySelector('.sheet-handle');
+  if (!dragZone) return;
+
+  // También permite drag desde la parte superior del scroll area
+  // cuando ya está en scrollTop = 0
+  const scrollArea = sheet.querySelector('.sheet-scroll-area');
+
+  let startY = 0, startTime = 0, dragging = false, currentDy = 0;
+  const CLOSE_RATIO = 0.28;   // cerrar si dy > 28% de la altura
+  const CLOSE_VEL   = 0.45;   // cerrar si velocidad > 0.45 px/ms
+
+  function onStart(clientY) {
+    startY    = clientY;
+    startTime = Date.now();
+    currentDy = 0;
+    dragging  = true;
     sheet.style.transition = 'none';
-  }, { passive: true });
-  handle.addEventListener('touchmove', e => {
-    const dy = e.touches[0].clientY - y0;
-    if (dy > 0) sheet.style.transform = 'translateY(' + dy + 'px)';
-  }, { passive: true });
-  handle.addEventListener('touchend', e => {
+  }
+  function onMove(clientY) {
+    if (!dragging) return;
+    const dy = clientY - startY;
+    if (dy <= 0) return;           // solo hacia abajo
+    currentDy = dy;
+    sheet.style.transform = `translateY(${dy}px)`;
+  }
+  function onEnd(clientY) {
+    if (!dragging) return;
+    dragging = false;
+    const dy       = clientY - startY;
+    const elapsed  = Math.max(1, Date.now() - startTime);
+    const velocity = dy / elapsed;
+    const threshold = sheet.offsetHeight * CLOSE_RATIO;
     sheet.style.transition = '';
-    if (e.changedTouches[0].clientY - y0 > 40) { sheet.style.transform = ''; closeFn(); }
-    else sheet.style.transform = '';
-    y0 = 0;
+    if (dy > threshold || velocity > CLOSE_VEL) {
+      closeFn();
+    } else {
+      sheet.style.transform = ''; // snap back
+    }
+    currentDy = 0;
+  }
+
+  // Touch events en la zona de drag
+  dragZone.addEventListener('touchstart', e => {
+    onStart(e.touches[0].clientY);
   }, { passive: true });
+  dragZone.addEventListener('touchmove', e => {
+    onMove(e.touches[0].clientY);
+  }, { passive: true });
+  dragZone.addEventListener('touchend', e => {
+    onEnd(e.changedTouches[0].clientY);
+  }, { passive: true });
+
+  // También desde scroll area cuando ya llegó al top
+  if (scrollArea) {
+    let scrollDragStart = false;
+    scrollArea.addEventListener('touchstart', e => {
+      scrollDragStart = scrollArea.scrollTop === 0;
+      if (scrollDragStart) onStart(e.touches[0].clientY);
+    }, { passive: true });
+    scrollArea.addEventListener('touchmove', e => {
+      if (scrollDragStart && scrollArea.scrollTop === 0) onMove(e.touches[0].clientY);
+      else { dragging = false; sheet.style.transform = ''; sheet.style.transition = ''; }
+    }, { passive: true });
+    scrollArea.addEventListener('touchend', e => {
+      if (scrollDragStart) onEnd(e.changedTouches[0].clientY);
+      scrollDragStart = false;
+    }, { passive: true });
+  }
 }
 
 
@@ -2516,7 +2605,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   updateDateNav();
 
   initSheetDrag('addSheet', closeAddSheet);
-  initSheetDrag('habitSheet', closeSheet);
+  initSheetDrag('bottomSheet', closeSheet);
   initSheetDrag('periodSheet', closePeriodPicker);
   // Check if already logged in
   const { data: { session } } = await sb.auth.getSession();
@@ -2803,10 +2892,12 @@ function openDetail(id) {
   // Siempre abrir el sheet, pase lo que pase arriba
   const overlay = document.getElementById('sheetOverlay');
   const sheet   = document.getElementById('bottomSheet');
+  const scrollArea = sheet?.querySelector('.sheet-scroll-area');
   if (overlay) overlay.classList.add('open');
-  if (sheet)   sheet.classList.add('open');
-  // Resetear scroll al inicio del sheet
-  if (sheet) sheet.scrollTop = 0;
+  if (sheet)   { sheet.classList.add('open'); sheet.style.transform = ''; }
+  if (scrollArea) scrollArea.scrollTop = 0;
+  // Ocultar nav mientras el sheet está abierto
+  document.querySelector('.bottom-nav')?.classList.add('nav-hidden');
 }
 
 function buildDetailStats(h) {
@@ -2914,9 +3005,11 @@ function deleteHabitFromSheet() {
 }
 
 function closeSheet() {
+  const sheet = document.getElementById('bottomSheet');
+  if (sheet) { sheet.classList.remove('open'); sheet.style.transform = ''; }
   document.getElementById('sheetOverlay').classList.remove('open');
-  document.getElementById('bottomSheet').classList.remove('open');
   document.getElementById('addSheet').classList.remove('open');
+  document.querySelector('.bottom-nav')?.classList.remove('nav-hidden');
   activeHabitId = null;
 }
 
@@ -2962,11 +3055,13 @@ function openAddSheet() {
   // Open
   document.getElementById('sheetOverlay').classList.add('open');
   document.getElementById('addSheet').classList.add('open');
+  document.querySelector('.bottom-nav')?.classList.add('nav-hidden');
   setTimeout(() => document.getElementById('newHabitName').focus(), 300);
 }
 function closeAddSheet() {
   document.getElementById('sheetOverlay').classList.remove('open');
   document.getElementById('addSheet').classList.remove('open');
+  document.querySelector('.bottom-nav')?.classList.remove('nav-hidden');
 }
 function selectType(el, t) {
   document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('selected'));
@@ -3877,40 +3972,4 @@ function applyTheme() {
 }
 
 /* ─── INCORPORATED TOGGLE ─── */
-function toggleIncorporated() {
-  const h = habits.find(x => x.id === activeHabitId);
-  if (!h) return;
-  h.incorporated = !h.incorporated;
-  if (h.incorporated) {
-    h.done = true;
-    showToast('✅', 'Hábito marcado como incorporado');
-  } else {
-    showToast('🔄', 'Hábito reactivado al seguimiento');
-  }
-  const tog = document.getElementById('incorporatedToggle');
-  if (tog) tog.classList.toggle('on', h.incorporated);
-  const btn = document.getElementById('sheetCompleteBtn');
-  if (btn) {
-    if (h.incorporated) { btn.textContent = '✓ Incorporado'; btn.disabled = true; btn.style.opacity = '.4'; }
-    else                { btn.textContent = '✓ Completar';   btn.disabled = false; btn.style.opacity = '1'; }
-  }
-  renderHabits();
-}
-
-
-/* ─── INIT ─── */
-renderHabits();
-updateDateNav();
-updateBadges();
-
-</script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js');
-      });
-    }
-  </script>
-</body>
-</html>
+function toggleIncorpora
