@@ -1,0 +1,14 @@
+{
+  "name": "HabitCore",
+  "short_name": "HabitCore",
+  "description": "Tu asistente de hábitos basado en Atomic Habits",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f13",
+  "theme_color": "#6366f1",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
