@@ -85,7 +85,7 @@ html,body{
 /* ═══════════════════════════════════════════
    TODAY SCREEN — HEADER
 ═══════════════════════════════════════════ */
-.app-header{padding:calc(env(safe-area-inset-top,44px) + 16px) 20px 16px;}
+.app-header{padding:calc(env(safe-area-inset-top,56px) + 16px) 20px 16px;}
 .header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
 .greeting{font-size:13px;color:var(--muted);font-weight:500;}
 .date-main{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);line-height:1.1;}
@@ -178,7 +178,7 @@ html,body{
 ═══════════════════════════════════════════ */
 
 /* Momentum hero */
-.insights-header{padding:calc(env(safe-area-inset-top,44px) + 16px) 24px 18px;display:flex;align-items:flex-start;justify-content:space-between;}
+.insights-header{padding:calc(env(safe-area-inset-top,56px) + 16px) 24px 18px;display:flex;align-items:flex-start;justify-content:space-between;}
 .insights-title{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);line-height:1.1;}
 .insights-sub{font-size:13px;color:var(--muted);margin-top:2px;}
 .period-chip{
@@ -419,7 +419,7 @@ html,body{
 ═══════════════════════════════════════════ */
 .logros-scroll{overflow-y:auto;height:100%;scrollbar-width:none;padding-bottom:90px;}
 .logros-scroll::-webkit-scrollbar{display:none;}
-.logros-header{padding:calc(env(safe-area-inset-top,44px) + 16px) 20px 10px;}
+.logros-header{padding:calc(env(safe-area-inset-top,56px) + 16px) 20px 10px;}
 .logros-title{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);}
 .logros-sub{font-size:13px;color:var(--muted);margin-top:2px;}
 
@@ -1158,10 +1158,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin:0 12px;
 }
 .history-inline.open{
-  max-height:320px;
+  max-height:260px;
   opacity:1;
 }
-.history-inline-inner{
+.history-inline-inner{overflow-y:auto;max-height:240px;
   background:var(--surface);
   border-radius:14px;
   padding:12px 12px 14px;
@@ -1240,7 +1240,7 @@ body.light .nav-item{color:var(--muted);}
 body.light .nav-item.active{color:var(--accent);}
 
 /* ── SAFE AREA universal ── */
-.screen-top-pad{height:calc(env(safe-area-inset-top,44px) + 16px);flex-shrink:0;}
+.screen-top-pad{height:calc(env(safe-area-inset-top,56px) + 16px);flex-shrink:0;}
 .logros-scroll > .logros-header,
 .insights-scroll > .insights-header{margin-top:0;}
 </style>
@@ -1263,7 +1263,7 @@ body.light .nav-item.active{color:var(--accent);}
 
   <!-- ── LOGIN SCREEN ── -->
   <div id="loginScreen" style="
-    position:fixed;inset:0;background:var(--bg);z-index:200;padding-top:env(safe-area-inset-top,44px);padding-bottom:env(safe-area-inset-bottom,0px);
+    position:fixed;inset:0;background:var(--bg);z-index:200;padding-top:env(safe-area-inset-top,56px);padding-bottom:env(safe-area-inset-bottom,0px);
     display:flex;flex-direction:column;align-items:center;
     justify-content:center;padding:36px 28px;gap:12px;border-radius:inherit;
   ">
@@ -1280,6 +1280,11 @@ body.light .nav-item.active{color:var(--accent);}
       style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);
              border-radius:12px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;"
       autocomplete="current-password" onkeydown="if(event.key==='Enter')signIn()">
+    <div style="display:flex;align-items:center;gap:8px;width:100%;cursor:pointer;" onclick="toggleRemember()">
+      <div id="rememberBox" style="width:20px;height:20px;border-radius:5px;border:2px solid var(--accent);
+           display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;"></div>
+      <span style="font-size:13px;color:var(--muted);">Recordar mis datos</span>
+    </div>
     <button onclick="signIn()"
       style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;
              padding:15px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;">
@@ -1562,7 +1567,7 @@ body.light .nav-item.active{color:var(--accent);}
     <div class="app-screen hidden" id="screenSettings">
 
       <!-- Header -->
-      <div style="padding:calc(env(safe-area-inset-top,44px) + 16px) 20px 4px;">
+      <div style="padding:calc(env(safe-area-inset-top,56px) + 16px) 20px 4px;">
         <div style="font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);">Ajustes</div>
         <div style="font-size:13px;color:var(--muted);margin-top:2px;">Personalizá tu sistema de hábitos</div>
       </div>
@@ -1762,61 +1767,12 @@ body.light .nav-item.active{color:var(--accent);}
         </div>
       </div>
 
-      <!-- ── Apariencia ── -->
-      <div class="settings-group">
-        <div class="settings-group-label">Apariencia</div>
-        <div class="settings-list">
-
-          <div class="settings-item no-tap">
-            <div class="si-icon" style="background:rgba(112,112,160,.1);">🌙</div>
-            <div class="si-body">
-              <div class="si-label">Tema</div>
-              <div class="si-sub">El modo oscuro es el único correcto.</div>
-            </div>
-            <div class="si-right">
-              <span class="si-value">Oscuro</span>
-              <svg class="si-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </div>
-
-          <div class="settings-item no-tap">
-            <div class="si-icon" style="background:rgba(112,112,160,.1);">🔢</div>
-            <div class="si-body">
-              <div class="si-label">Límite de hábitos activos</div>
-              <div class="si-sub">Más de 10 hábitos reduce la adherencia. Recomendado: máx. 7.</div>
-            </div>
-            <div class="si-right">
-              <div class="stepper">
-                <div class="stepper-btn" onclick="stepHabitLimit(-1)">−</div>
-                <div class="stepper-val" id="habitLimit">10</div>
-                <div class="stepper-btn" onclick="stepHabitLimit(1)">+</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="settings-item no-tap">
-            <div class="si-icon" style="background:rgba(82,201,122,.08);">↕️</div>
-            <div class="si-body">
-              <div class="si-label">Mover completados al final</div>
-              <div class="si-sub">Los hábitos marcados se desplazan a la sección "Completados" al instante.</div>
-            </div>
-            <div class="si-right">
-              <label class="toggle-wrap">
-                <input type="checkbox" checked onchange="handleToggle(this,'move_done')">
-                <div class="toggle-slider"></div>
-              </label>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
       <!-- ── Integraciones ── -->
       <div class="settings-group">
         <div class="settings-group-label">Integraciones</div>
         <div class="settings-list">
 
-          <div class="settings-item">
+          <div class="settings-item" onclick="showAppleHealthInfo()" style="cursor:pointer;">
             <div class="si-icon" style="background:rgba(252,82,82,.1);">🍎</div>
             <div class="si-body">
               <div class="si-label">Conectar con Apple Health</div>
@@ -1845,7 +1801,7 @@ body.light .nav-item.active{color:var(--accent);}
           <div class="settings-item" onclick="handleExport()">
             <div class="si-icon" style="background:rgba(78,205,196,.1);">📤</div>
             <div class="si-body">
-              <div class="si-label">Exportar mis datos</div>
+              <div class="si-label"onclick="exportData()">Exportar mis datos</div>
               <div class="si-sub">Descargá tu historial completo en CSV.</div>
             </div>
             <div class="si-right">
@@ -1853,7 +1809,7 @@ body.light .nav-item.active{color:var(--accent);}
             </div>
           </div>
 
-          <div class="settings-item" onclick="startVacation()">
+          <div class="settings-item" onclick="startVacation()" style="cursor:pointer;">
             <div class="si-icon" style="background:rgba(78,205,196,.1);">🏖️</div>
             <div class="si-body">
               <div class="si-label">Modo vacaciones</div>
@@ -1887,7 +1843,7 @@ body.light .nav-item.active{color:var(--accent);}
           <div class="settings-item danger" onclick="confirmReset()">
             <div class="si-icon">🗑️</div>
             <div class="si-body">
-              <div class="si-label">Resetear todos los datos</div>
+              <div class="si-label"onclick="resetAllData()">Resetear todos los datos</div>
               <div class="si-sub">Borra hábitos, rachas e historial. Esta acción no se puede deshacer.</div>
             </div>
             <div class="si-right">
@@ -2194,6 +2150,8 @@ async function signIn() {
   const msg      = document.getElementById('loginMsg');
   if (!email || !password) { msg.textContent = 'Completá email y contraseña.'; return; }
   msg.textContent = 'Ingresando…';
+  if (rememberChecked) localStorage.setItem('hc_email', email);
+  else localStorage.removeItem('hc_email');
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
     msg.style.color = 'var(--red)';
@@ -2324,11 +2282,11 @@ const EMOJIS = ['🧘','📚','💪','💧','🥗','🏃','✍️','🌿','🎯'
 const DAY_NAMES = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
 
 let habits = [
-  { id:1, name:'Meditación',        emoji:'🧘', type:'boolean', streak:14, bestStreak:21, consistency:87, days:[0,1,2,3,4,5,6], duration:'', durationUnit:'min', done:false, rescue:false, color:'rgba(124,110,247,.15)', categoryId:'mental',       intention:'"Cuando me levante y tome el café, meditaré 5 minutos antes de abrir el teléfono."',              description:'Quiero reducir la ansiedad matutina y llegar al trabajo con más claridad mental. No busco iluminarme — solo 5 minutos de respiración consciente antes de que el mundo me interrumpa.',                                               heatPattern:[3,3,3,2,3,0,3,3,3,3,1,3,3,2,3,3,3,3,3,0,2,3,3,3,3,3,1,3,3,3,3,3,3,3,3] },
-  { id:2, name:'Lectura 20 min',    emoji:'📚', type:'timer',   streak:7,  bestStreak:30, consistency:72, days:[0,1,2,3,4,5,6], duration:'20', durationUnit:'min', done:false, rescue:true,  color:'rgba(78,205,196,.15)',  categoryId:'aprendizaje',  intention:'"Antes de dormir, leeré 20 minutos en lugar de mirar el teléfono."',                                  description:'Quiero terminar al menos un libro por mes. La lectura antes de dormir me ayuda a bajar el nivel de activación y duermo mejor que cuando scrolleo.',                                                                                    heatPattern:[3,3,2,3,3,3,0,3,3,3,3,3,2,3,0,3,3,3,3,3,3,2,3,3,3,3,3,3,0,3,3,3,3,3,3] },
-  { id:3, name:'Agua 2L',           emoji:'💧', type:'quant',   streak:21, bestStreak:21, consistency:92, days:[0,1,2,3,4,5,6], duration:'', durationUnit:'min', done:false, rescue:false, color:'rgba(82,201,122,.15)',  categoryId:'salud',        intention:'"Cada vez que voy a la cocina, tomo un vaso de agua antes de lo que iba a buscar."',                 description:'Siempre llegaba al final del día deshidratado sin darme cuenta. El truco de la cocina lo cambió todo — ahora no tengo que pensar en hidratarme.',                                                                                     quant:{current:6,target:8}, heatPattern:[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3] },
-  { id:4, name:'Ejercicio',         emoji:'💪', type:'boolean', streak:3,  bestStreak:14, consistency:55, days:[0,2,4],          duration:'60', durationUnit:'min', done:false, rescue:false, color:'rgba(247,163,92,.15)', categoryId:'ejercicio',    intention:'"Los lunes, miércoles y viernes, iré al gym directo desde el trabajo."',                                description:'No busco un físico perfecto. Quiero tener energía sostenida a lo largo del día y reducir el estrés acumulado. El gym directo desde el trabajo elimina la excusa de "ya es tarde".',                                                   heatPattern:[0,3,0,3,0,3,0,0,3,0,3,0,3,0,0,3,0,3,0,2,0,0,3,0,3,0,3,0,0,3,0,3,0,3,0] },
-  { id:5, name:'Sin azúcar añadida',emoji:'🚫', type:'avoid',   streak:9,  bestStreak:9,  consistency:73, days:[0,1,2,3,4,5,6], duration:'', durationUnit:'min', done:false, rescue:false, color:'rgba(232,112,112,.15)', categoryId:'alimentacion', intention:'"Si quiero algo dulce después de almorzar, comeré una fruta antes de decidir."',                        description:'No es una dieta. Quiero romper el ciclo azúcar → bajón → más azúcar. La fruta como buffer me da tiempo para que pase el antojo.',                                                                                                    heatPattern:[3,3,3,3,2,3,3,0,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3] },
+  { id:1, name:'Meditación',        emoji:'🧘', type:'boolean', streak: 0, bestStreak: 0, consistency: 0, days:[0,1,2,3,4,5,6], duration:'', durationUnit:'min', done:false, rescue:false, color:'rgba(124,110,247,.15)', categoryId:'mental',       intention:'"Cuando me levante y tome el café, meditaré 5 minutos antes de abrir el teléfono."',              description:'Quiero reducir la ansiedad matutina y llegar al trabajo con más claridad mental. No busco iluminarme — solo 5 minutos de respiración consciente antes de que el mundo me interrumpa.',                                               heatPattern: Array(35).fill(0) },
+  { id:2, name:'Lectura 20 min',    emoji:'📚', type:'timer',   streak: 0, bestStreak: 0, consistency: 0, days:[0,1,2,3,4,5,6], duration:'20', durationUnit:'min', done:false, rescue:true,  color:'rgba(78,205,196,.15)',  categoryId:'aprendizaje',  intention:'"Antes de dormir, leeré 20 minutos en lugar de mirar el teléfono."',                                  description:'Quiero terminar al menos un libro por mes. La lectura antes de dormir me ayuda a bajar el nivel de activación y duermo mejor que cuando scrolleo.',                                                                                    heatPattern: Array(35).fill(0) },
+  { id:3, name:'Agua 2L',           emoji:'💧', type:'quant',   streak: 0, bestStreak: 0, consistency: 0, days:[0,1,2,3,4,5,6], duration:'', durationUnit:'min', done:false, rescue:false, color:'rgba(82,201,122,.15)',  categoryId:'salud',        intention:'"Cada vez que voy a la cocina, tomo un vaso de agua antes de lo que iba a buscar."',                 description:'Siempre llegaba al final del día deshidratado sin darme cuenta. El truco de la cocina lo cambió todo — ahora no tengo que pensar en hidratarme.',                                                                                     quant:{current:6,target:8}, heatPattern: Array(35).fill(0) },
+  { id:4, name:'Ejercicio',         emoji:'💪', type:'boolean', streak: 0, bestStreak: 0, consistency: 0, days:[0,2,4],          duration:'60', durationUnit:'min', done:false, rescue:false, color:'rgba(247,163,92,.15)', categoryId:'ejercicio',    intention:'"Los lunes, miércoles y viernes, iré al gym directo desde el trabajo."',                                description:'No busco un físico perfecto. Quiero tener energía sostenida a lo largo del día y reducir el estrés acumulado. El gym directo desde el trabajo elimina la excusa de "ya es tarde".',                                                   heatPattern: Array(35).fill(0) },
+  { id:5, name:'Sin azúcar añadida',emoji:'🚫', type:'avoid',   streak: 0, bestStreak: 0, consistency: 0, days:[0,1,2,3,4,5,6], duration:'', durationUnit:'min', done:false, rescue:false, color:'rgba(232,112,112,.15)', categoryId:'alimentacion', intention:'"Si quiero algo dulce después de almorzar, comeré una fruta antes de decidir."',                        description:'No es una dieta. Quiero romper el ciclo azúcar → bajón → más azúcar. La fruta como buffer me da tiempo para que pase el antojo.',                                                                                                    heatPattern: Array(35).fill(0) },
 ];
 
 /* ─── UI STATE ─── */
@@ -2365,6 +2323,131 @@ function initSheetDrag(sheetId, closeFn) {
   }, { passive: true });
 }
 
+
+/* ─── SOUND & HAPTICS ─── */
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSuccess() {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(523, ctx.currentTime);
+    osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+  try { navigator.vibrate([30, 20, 60]); } catch(e) {}
+}
+function playTap() {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15);
+  } catch(e) {}
+  try { navigator.vibrate(15); } catch(e) {}
+}
+
+/* ─── REMEMBER ME ─── */
+let rememberChecked = localStorage.getItem('hc_remember') === '1';
+function toggleRemember() {
+  rememberChecked = !rememberChecked;
+  localStorage.setItem('hc_remember', rememberChecked ? '1' : '0');
+  document.getElementById('rememberBox').textContent = rememberChecked ? '✓' : '';
+  document.getElementById('rememberBox').style.background = rememberChecked ? 'var(--accent)' : 'transparent';
+  document.getElementById('rememberBox').style.color = '#fff';
+}
+function initRemember() {
+  const box = document.getElementById('rememberBox');
+  const savedEmail = localStorage.getItem('hc_email');
+  if (rememberChecked) {
+    if (box) { box.textContent = '✓'; box.style.background = 'var(--accent)'; box.style.color = '#fff'; }
+    if (savedEmail) { const el = document.getElementById('loginEmail'); if(el) el.value = savedEmail; }
+  }
+}
+
+/* ─── VACATION MODE ─── */
+let vacationActive = false;
+function startVacation() {
+  vacationActive = true;
+  localStorage.setItem('hc_vacation', '1');
+  document.getElementById('vacationBanner').style.display = 'flex';
+  showToast('🏖️', 'Modo vacaciones activado. Hábitos pausados.');
+  renderHabits();
+}
+function endVacation() {
+  vacationActive = false;
+  localStorage.removeItem('hc_vacation');
+  document.getElementById('vacationBanner').style.display = 'none';
+  showToast('💪', '¡De vuelta al ruedo! Hábitos reanudados.');
+  renderHabits();
+}
+function checkVacation() {
+  if (localStorage.getItem('hc_vacation') === '1') {
+    vacationActive = true;
+    const b = document.getElementById('vacationBanner');
+    if (b) b.style.display = 'flex';
+  }
+}
+
+/* ─── EXPORT DATA ─── */
+function exportData() {
+  const data = {
+    exportDate: new Date().toISOString(),
+    habits: habits.map(h => ({
+      name: h.name, emoji: h.emoji, type: h.type,
+      streak: h.streak, bestStreak: h.bestStreak,
+      consistency: h.consistency, days: h.days,
+      startDate: h.startDate, endDate: h.endDate,
+      incorporated: h.incorporated, categoryId: h.categoryId,
+    })),
+    customCategories,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'habitcore-export-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥', 'Datos exportados correctamente.');
+}
+
+/* ─── RESET ALL DATA ─── */
+async function resetAllData() {
+  if (!confirm('⚠️ ¿Borrar TODOS los hábitos y datos? Esta acción no se puede deshacer.')) return;
+  if (currentUser) {
+    await sb.from('habits').delete().eq('user_id', currentUser.id);
+    await sb.from('custom_categories').delete().eq('user_id', currentUser.id);
+  }
+  habits = [];
+  customCategories = [];
+  pausedHabits.clear();
+  localStorage.removeItem('hc_vacation');
+  vacationActive = false;
+  document.getElementById('vacationBanner').style.display = 'none';
+  renderHabits();
+  renderFilterChips();
+  showToast('🗑', 'Todos los datos eliminados.');
+}
+
+/* ─── APPLE HEALTH INFO ─── */
+function showAppleHealthInfo() {
+  showToast('📱', 'Apple Health requiere app nativa. Próximamente en App Store.');
+}
+
 /* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded', async () => {
   updateGreeting();
@@ -2372,6 +2455,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   initSheetDrag('addSheet', closeAddSheet);
   initSheetDrag('habitSheet', closeSheet);
+  initSheetDrag('periodSheet', closePeriodPicker);
   // Check if already logged in
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
@@ -2558,6 +2642,7 @@ function toggleHabit(id) {
   if (!h) return;
   h.done = !h.done;
   if (h.done) {
+    playSuccess();
     h.streak++;
     const wasRescue = h.rescue;
     h.rescue = false;
@@ -2567,6 +2652,7 @@ function toggleHabit(id) {
     const allDone = habits.every(x => x.done);
     if (allDone) setTimeout(() => { launchConfetti(); showToast('🎉','¡Todos los hábitos del día! La consistencia se construye así.'); }, 350);
   } else {
+    playTap();
     if (h.streak > 0) h.streak--;
   }
   setTimeout(renderHabits, 40);
@@ -2963,7 +3049,6 @@ document.getElementById('sheetOverlay').addEventListener('click', closeSheet);
 /* ─── SETTINGS: state ─── */
 let notifCount   = 2;
 let habitLimit   = 10;
-let vacationActive = false;
 const pausedHabits = new Set();
 
 /* ─── SETTINGS: generic toggle handler ─── */
