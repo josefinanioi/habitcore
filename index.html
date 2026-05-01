@@ -1331,7 +1331,7 @@ body.light .nav-item.active{color:var(--accent);}
 
   <!-- ── LOGIN SCREEN ── -->
   <div id="loginScreen" style="
-    position:fixed;inset:0;background:var(--bg);z-index:200;padding-top:env(safe-area-inset-top,56px);padding-bottom:env(safe-area-inset-bottom,0px);
+    position:fixed;inset:0;background:var(--bg);z-index:600;padding-top:env(safe-area-inset-top,56px);padding-bottom:env(safe-area-inset-bottom,0px);
     display:flex;flex-direction:column;align-items:center;
     justify-content:center;padding:36px 28px;gap:12px;border-radius:inherit;
   ">
@@ -2209,7 +2209,11 @@ const SUPA_KEY = 'sb_publishable_NDsKRe3ysmI1cP5KB_ET9w_kGP6ECcf';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, storageKey: 'hc_session' } });
 let currentUser = null;
 
-function showLogin()  { document.getElementById('loginScreen').style.display = 'flex'; }
+function showLogin()  {
+  // Close any open sheets so backdrop doesn't block login
+  if (typeof sheetMgr !== 'undefined') { sheetMgr.closeAll(); }
+  document.getElementById('loginScreen').style.display = 'flex';
+}
 function hideLogin()  { document.getElementById('loginScreen').style.display = 'none'; }
 
 async function forgotPassword() {
@@ -2440,6 +2444,11 @@ class SheetController {
     this.#nav?.classList.remove('is-hidden');
     this.#active = null;
     s.cb?.();
+  }
+
+  /* Close every registered sheet immediately (no animation) — used by showLogin */
+  closeAll() {
+    this.#sheets.forEach((_, id) => this.close(id));
   }
 
   /* Animate sheet off-screen, then close */
