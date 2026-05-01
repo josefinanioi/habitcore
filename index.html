@@ -536,41 +536,48 @@ html,body{
 .sheet-overlay.open{background:rgba(0,0,0,.55);pointer-events:all;}
 
 /* ═══════════════════════════════════════════
-   HABIT DETAIL — PANTALLA COMPLETA
+   CAPAS (LAYERS)
+   z 100 → .bottom-nav
+   z 490 → .sheet-overlay   (bloquea interacción con el fondo)
+   z 500 → .bottom-sheet, .add-sheet
 ═══════════════════════════════════════════ */
-.bottom-sheet{
-  position:fixed;inset:0;
-  z-index:500;
-  background:var(--bg);
-  display:flex;flex-direction:column;
-  transform:translateX(100%);
-  transition:transform .32s cubic-bezier(.32,.72,0,1);
-  overflow:hidden;
-}
-.bottom-sheet.open{transform:translateX(0);}
 
-/* Cabecera fija: barra de volver + info del hábito + tabs */
+/* ── HABIT DETAIL SHEET ── */
+.bottom-sheet{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:500;
+  height:88svh;max-height:88svh;  /* usa svh para safe area correcta en iOS */
+  background:var(--surface);
+  border-radius:22px 22px 0 0;
+  border-top:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.32,.72,0,1);
+  overflow:hidden;
+  will-change:transform;
+}
+.bottom-sheet.open{transform:translateY(0);}
+
+/* ── CABECERA FIJA (drag zone) ── */
 .sheet-sticky{
   flex-shrink:0;
   padding:0 20px;
-  background:var(--bg);
-  border-bottom:1px solid var(--border);
+  touch-action:none;          /* bloquea scroll del sistema en el handle */
+  user-select:none;
+  -webkit-user-select:none;
+  cursor:grab;
 }
-/* Barra de navegación con botón volver */
-.sheet-nav-bar{
-  display:flex;align-items:center;
-  padding:calc(env(safe-area-inset-top,44px) + 10px) 0 10px;
-}
-.sheet-back-btn{
-  background:none;border:none;
-  color:var(--accent);font-size:15px;font-weight:600;
-  cursor:pointer;padding:4px 0;
-  display:flex;align-items:center;gap:5px;
-  -webkit-tap-highlight-color:transparent;
-}
-.sheet-back-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+.sheet-sticky:active{cursor:grabbing;}
 
-/* Zona scrollable del detalle */
+/* ── DRAG HANDLE visual ── */
+.sheet-handle{
+  width:36px;height:4px;border-radius:99px;
+  background:var(--border);
+  margin:12px auto 16px;
+}
+
+/* ── ZONA SCROLLABLE ── */
 .sheet-scroll-area{
   flex:1;
   overflow-y:auto;
@@ -1953,19 +1960,12 @@ body.light .nav-item.active{color:var(--accent);}
   <!-- Sheet Overlay -->
   <div class="sheet-overlay" id="sheetOverlay"></div>
 
-  <!-- Habit Detail — pantalla completa con botón volver -->
+  <!-- Habit Detail Sheet -->
   <div class="bottom-sheet" id="bottomSheet">
 
-    <!-- ── CABECERA FIJA ── -->
+    <!-- ── CABECERA FIJA (drag handle + info + tabs) ── -->
     <div class="sheet-sticky" id="bottomSheetHandle">
-
-      <!-- Barra de navegación -->
-      <div class="sheet-nav-bar">
-        <button class="sheet-back-btn" onclick="closeSheet()">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          Volver
-        </button>
-      </div>
+      <div class="sheet-handle"></div>
 
       <!-- Header del hábito -->
       <div class="sheet-habit-header">
@@ -2658,8 +2658,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   updateGreeting();
   updateDateNav();
 
+  initSheetDrag('bottomSheet', closeSheet);
   initSheetDrag('addSheet', closeAddSheet);
-  // bottomSheet ya no es un sheet: es una pantalla completa con botón volver
   initSheetDrag('periodSheet', closePeriodPicker);
   // Check if already logged in
   const { data: { session } } = await sb.auth.getSession();
@@ -2943,11 +2943,14 @@ function openDetail(id) {
   try { buildDetailStats(h); } catch(e) { console.warn('buildDetailStats:', e); }
   try { buildDetailHeatmap(h.heatPattern); } catch(e) { console.warn('buildDetailHeatmap:', e); }
 
-  // Abrir como pantalla completa — sin overlay, sin nav-hidden (la pantalla lo cubre todo)
-  const sheet = document.getElementById('bottomSheet');
+  // Abrir sheet con overlay (bloquea fondo) y ocultar nav
+  const overlay   = document.getElementById('sheetOverlay');
+  const sheet     = document.getElementById('bottomSheet');
   const scrollArea = sheet?.querySelector('.sheet-scroll-area');
-  if (sheet) { sheet.classList.add('open'); sheet.style.transform = ''; }
+  if (overlay)    overlay.classList.add('open');
+  if (sheet)      { sheet.classList.add('open'); sheet.style.transform = ''; }
   if (scrollArea) scrollArea.scrollTop = 0;
+  document.querySelector('.bottom-nav')?.classList.add('nav-hidden');
 }
 
 function buildDetailStats(h) {
@@ -3057,6 +3060,8 @@ function deleteHabitFromSheet() {
 function closeSheet() {
   const sheet = document.getElementById('bottomSheet');
   if (sheet) { sheet.classList.remove('open'); sheet.style.transform = ''; }
+  document.getElementById('sheetOverlay')?.classList.remove('open');
+  document.querySelector('.bottom-nav')?.classList.remove('nav-hidden');
   activeHabitId = null;
 }
 
