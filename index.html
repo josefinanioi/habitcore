@@ -48,7 +48,9 @@ html,body{
   background:var(--bg);
   position:fixed;
   top:0;left:0;
-  overflow:hidden;
+  /* overflow:hidden removido — .screens-wrap ya lo maneja.
+     Tenerlo acá convertía a .phone en containing block para fixed children en iOS,
+     desplazando el nav y la login screen. */
 }
 
 /* ═══════════════════════════════════════════
@@ -534,36 +536,41 @@ html,body{
 .sheet-overlay.open{background:rgba(0,0,0,.55);pointer-events:all;}
 
 /* ═══════════════════════════════════════════
-   HABIT DETAIL SHEET
+   HABIT DETAIL — PANTALLA COMPLETA
 ═══════════════════════════════════════════ */
 .bottom-sheet{
-  position:fixed;bottom:0;left:0;right:0;
+  position:fixed;inset:0;
   z-index:500;
-  background:var(--surface);
-  border-radius:24px 24px 0 0;
-  border-top:1px solid var(--border);
-  /* Flex column: cabecera fija + contenido scrollable */
+  background:var(--bg);
   display:flex;flex-direction:column;
-  height:92dvh;
-  height:92svh;
-  height:92vh;   /* fallback */
-  height:92dvh;  /* preferido */
-  max-height:92dvh;
-  transform:translateY(100%);
-  transition:transform .35s cubic-bezier(.32,.72,0,1);
-  /* sin overflow aquí — el scroll va en .sheet-scroll-area */
+  transform:translateX(100%);
+  transition:transform .32s cubic-bezier(.32,.72,0,1);
   overflow:hidden;
 }
-.bottom-sheet.open{transform:translateY(0);}
-/* Zona de handle (no scrollable, detecta drag) */
+.bottom-sheet.open{transform:translateX(0);}
+
+/* Cabecera fija: barra de volver + info del hábito + tabs */
 .sheet-sticky{
   flex-shrink:0;
   padding:0 20px;
-  touch-action:none;   /* ← drag gesture aquí */
-  cursor:grab;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
 }
-.sheet-sticky:active{cursor:grabbing;}
-/* Zona scrollable del sheet */
+/* Barra de navegación con botón volver */
+.sheet-nav-bar{
+  display:flex;align-items:center;
+  padding:calc(env(safe-area-inset-top,44px) + 10px) 0 10px;
+}
+.sheet-back-btn{
+  background:none;border:none;
+  color:var(--accent);font-size:15px;font-weight:600;
+  cursor:pointer;padding:4px 0;
+  display:flex;align-items:center;gap:5px;
+  -webkit-tap-highlight-color:transparent;
+}
+.sheet-back-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Zona scrollable del detalle */
 .sheet-scroll-area{
   flex:1;
   overflow-y:auto;
@@ -573,8 +580,6 @@ html,body{
   scrollbar-width:none;
 }
 .sheet-scroll-area::-webkit-scrollbar{display:none;}
-
-.sheet-handle{width:36px;height:4px;border-radius:99px;background:var(--border);margin:12px auto 18px;}
 .sheet-habit-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
 .sheet-habit-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
 .sheet-habit-name{font-size:18px;font-weight:800;color:var(--text);}
@@ -1948,14 +1953,21 @@ body.light .nav-item.active{color:var(--accent);}
   <!-- Sheet Overlay -->
   <div class="sheet-overlay" id="sheetOverlay"></div>
 
-  <!-- Habit Detail Sheet -->
+  <!-- Habit Detail — pantalla completa con botón volver -->
   <div class="bottom-sheet" id="bottomSheet">
 
-    <!-- ── ZONA FIJA (drag handle aquí) ── -->
+    <!-- ── CABECERA FIJA ── -->
     <div class="sheet-sticky" id="bottomSheetHandle">
-      <div class="sheet-handle"></div>
 
-      <!-- Header -->
+      <!-- Barra de navegación -->
+      <div class="sheet-nav-bar">
+        <button class="sheet-back-btn" onclick="closeSheet()">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Volver
+        </button>
+      </div>
+
+      <!-- Header del hábito -->
       <div class="sheet-habit-header">
         <div class="sheet-habit-icon" id="sheetIcon" style="background:rgba(124,110,247,.15)">🧘</div>
         <div style="flex:1;min-width:0;">
@@ -2149,35 +2161,35 @@ body.light .nav-item.active{color:var(--accent);}
     <button class="add-btn" onclick="addHabit()">Crear hábito</button>
   </div>
 
-</div><!-- /phone -->
+  <!-- Bottom Nav — dentro de .phone, z-index correcto respecto a login (200) y sheets (500) -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="navToday" onclick="switchScreen('today',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Hoy</span>
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-item" id="navInsights" onclick="switchScreen('insights',this)">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Progreso</span>
+      <div class="nav-dot"></div>
+    </button>
+    <!-- Centro: agregar hábito -->
+    <button class="nav-add" onclick="openAddSheet()" title="Nuevo hábito">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="nav-item" id="navLogros" onclick="switchScreen('logros',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span>Logros</span>
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-item" id="navSettings" onclick="switchScreen('settings',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      <span>Ajustes</span>
+      <div class="nav-dot"></div>
+    </button>
+  </div><!-- /bottom-nav -->
 
-<!-- Bottom Nav — fuera de .phone para evitar clipping por overflow:hidden en iOS Safari -->
-<div class="bottom-nav">
-  <button class="nav-item active" id="navToday" onclick="switchScreen('today',this)">
-    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    <span>Hoy</span>
-    <div class="nav-dot"></div>
-  </button>
-  <button class="nav-item" id="navInsights" onclick="switchScreen('insights',this)">
-    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    <span>Progreso</span>
-    <div class="nav-dot"></div>
-  </button>
-  <!-- Centro: agregar hábito -->
-  <button class="nav-add" onclick="openAddSheet()" title="Nuevo hábito">
-    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-  <button class="nav-item" id="navLogros" onclick="switchScreen('logros',this)">
-    <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-    <span>Logros</span>
-    <div class="nav-dot"></div>
-  </button>
-  <button class="nav-item" id="navSettings" onclick="switchScreen('settings',this)">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-    <span>Ajustes</span>
-    <div class="nav-dot"></div>
-  </button>
-</div>
+</div><!-- /phone -->
 
 <!-- ══════════════════════════ JS ══════════════════════════ -->
 <script>
@@ -2647,7 +2659,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   updateDateNav();
 
   initSheetDrag('addSheet', closeAddSheet);
-  initSheetDrag('bottomSheet', closeSheet);
+  // bottomSheet ya no es un sheet: es una pantalla completa con botón volver
   initSheetDrag('periodSheet', closePeriodPicker);
   // Check if already logged in
   const { data: { session } } = await sb.auth.getSession();
@@ -2931,15 +2943,11 @@ function openDetail(id) {
   try { buildDetailStats(h); } catch(e) { console.warn('buildDetailStats:', e); }
   try { buildDetailHeatmap(h.heatPattern); } catch(e) { console.warn('buildDetailHeatmap:', e); }
 
-  // Siempre abrir el sheet, pase lo que pase arriba
-  const overlay = document.getElementById('sheetOverlay');
-  const sheet   = document.getElementById('bottomSheet');
+  // Abrir como pantalla completa — sin overlay, sin nav-hidden (la pantalla lo cubre todo)
+  const sheet = document.getElementById('bottomSheet');
   const scrollArea = sheet?.querySelector('.sheet-scroll-area');
-  if (overlay) overlay.classList.add('open');
-  if (sheet)   { sheet.classList.add('open'); sheet.style.transform = ''; }
+  if (sheet) { sheet.classList.add('open'); sheet.style.transform = ''; }
   if (scrollArea) scrollArea.scrollTop = 0;
-  // Ocultar nav mientras el sheet está abierto
-  document.querySelector('.bottom-nav')?.classList.add('nav-hidden');
 }
 
 function buildDetailStats(h) {
@@ -3049,9 +3057,6 @@ function deleteHabitFromSheet() {
 function closeSheet() {
   const sheet = document.getElementById('bottomSheet');
   if (sheet) { sheet.classList.remove('open'); sheet.style.transform = ''; }
-  document.getElementById('sheetOverlay').classList.remove('open');
-  document.getElementById('addSheet').classList.remove('open');
-  document.querySelector('.bottom-nav')?.classList.remove('nav-hidden');
   activeHabitId = null;
 }
 
