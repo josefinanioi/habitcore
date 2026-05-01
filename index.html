@@ -668,7 +668,7 @@ html,body{
   background:var(--surface);border-radius:24px 24px 0 0;border-top:1px solid var(--border);
   padding:0 20px calc(32px + env(safe-area-inset-bottom,16px));
   transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);
-  z-index:310;
+  z-index:500;
   max-height:92svh;
   overflow-y:scroll;
   -webkit-overflow-scrolling:touch;
@@ -2376,69 +2376,111 @@ function initSheetDrag(sheetId, closeFn) {
   const dragZone = sheet.querySelector('.sheet-sticky') || sheet.querySelector('.sheet-handle');
   if (!dragZone) return;
 
-  // También permite drag desde la parte superior del scroll area
-  // cuando ya está en scrollTop = 0
+  // Scroll area opcional: drag-to-close cuando scrollTop === 0
   const scrollArea = sheet.querySelector('.sheet-scroll-area');
 
-  let startY = 0, startTime = 0, dragging = false, currentDy = 0;
-  const CLOSE_RATIO = 0.28;   // cerrar si dy > 28% de la altura
-  const CLOSE_VEL   = 0.45;   // cerrar si velocidad > 0.45 px/ms
+  let startY = 0, startTime = 0, dragging = false;
+  const CLOSE_RATIO = 0.28;  // cerrar si dy > 28% del alto del sheet
+  const CLOSE_VEL   = 0.45;  // cerrar si velocidad > 0.45 px/ms
 
   function onStart(clientY) {
     startY    = clientY;
     startTime = Date.now();
-    currentDy = 0;
     dragging  = true;
     sheet.style.transition = 'none';
   }
+
   function onMove(clientY) {
     if (!dragging) return;
     const dy = clientY - startY;
-    if (dy <= 0) return;           // solo hacia abajo
-    currentDy = dy;
+    if (dy < 0) return;  // solo hacia abajo
     sheet.style.transform = `translateY(${dy}px)`;
   }
+
   function onEnd(clientY) {
     if (!dragging) return;
     dragging = false;
-    const dy       = clientY - startY;
-    const elapsed  = Math.max(1, Date.now() - startTime);
-    const velocity = dy / elapsed;
+    const dy        = clientY - startY;
+    const elapsed   = Math.max(1, Date.now() - startTime);
+    const velocity  = dy / elapsed;
     const threshold = sheet.offsetHeight * CLOSE_RATIO;
-    sheet.style.transition = '';
+
     if (dy > threshold || velocity > CLOSE_VEL) {
-      closeFn();
+      // Animar el sheet hacia abajo y luego cerrar
+      sheet.style.transition = 'transform .32s cubic-bezier(.32,.72,0,1)';
+      sheet.style.transform  = 'translateY(105%)';
+      let fired = false;
+      const finish = () => {
+        if (fired) return;
+        fired = true;
+        // Quitar clase y transform antes de closeFn para que el próximo open funcione
+        sheet.style.transition = '';
+        sheet.classList.remove('open');  // CSS target → translateY(100%)
+        sheet.style.transform  = '';     // inline limpiado → CSS aplica al instante
+        closeFn();                        // cierra overlay, nav, estado
+      };
+      sheet.addEventListener('transitionend', finish, { once: true });
+      setTimeout(finish, 400);  // fallback por si transitionend no dispara
     } else {
-      sheet.style.transform = ''; // snap back
+      // Snap back a abierto
+      sheet.style.transition = '';
+      sheet.style.transform  = '';
     }
-    currentDy = 0;
   }
 
-  // Touch events en la zona de drag
-  dragZone.addEventListener('touchstart', e => {
-    onStart(e.touches[0].clientY);
-  }, { passive: true });
-  dragZone.addEventListener('touchmove', e => {
-    onMove(e.touches[0].clientY);
-  }, { passive: true });
-  dragZone.addEventListener('touchend', e => {
-    onEnd(e.changedTouches[0].clientY);
-  }, { passive: true });
+  function onCancel() {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    sheet.style.transform  = '';
+  }
 
-  // También desde scroll area cuando ya llegó al top
+  // ── Zona de handle: siempre intercepta el touch, previene scroll ──
+  dragZone.addEventListener('touchstart',
+    e => onStart(e.touches[0].clientY),
+    { passive: true });
+
+  dragZone.addEventListener('touchmove', e => {
+    e.preventDefault();  // bloquea scroll mientras se arrastra el handle
+    onMove(e.touches[0].clientY);
+  }, { passive: false }); // NON-PASSIVE — necesario para preventDefault
+
+  dragZone.addEventListener('touchend',
+    e => onEnd(e.changedTouches[0].clientY),
+    { passive: true });
+
+  dragZone.addEventListener('touchcancel', onCancel, { passive: true });
+
+  // ── Scroll area: drag-to-close solo cuando está en el tope y baja ──
   if (scrollArea) {
-    let scrollDragStart = false;
+    let scrollDrag = false;
+
     scrollArea.addEventListener('touchstart', e => {
-      scrollDragStart = scrollArea.scrollTop === 0;
-      if (scrollDragStart) onStart(e.touches[0].clientY);
+      scrollDrag = scrollArea.scrollTop === 0;
+      if (scrollDrag) onStart(e.touches[0].clientY);
     }, { passive: true });
+
     scrollArea.addEventListener('touchmove', e => {
-      if (scrollDragStart && scrollArea.scrollTop === 0) onMove(e.touches[0].clientY);
-      else { dragging = false; sheet.style.transform = ''; sheet.style.transition = ''; }
-    }, { passive: true });
+      if (!scrollDrag) return;
+      const dy = e.touches[0].clientY - startY;
+      if (scrollArea.scrollTop === 0 && dy > 0) {
+        e.preventDefault();  // intercepta: arrastra el sheet, no hace scroll
+        onMove(e.touches[0].clientY);
+      } else {
+        // El usuario scrolleó hacia arriba o ya hay contenido scrolleado
+        scrollDrag = false;
+        onCancel();
+      }
+    }, { passive: false }); // NON-PASSIVE — necesario para preventDefault
+
     scrollArea.addEventListener('touchend', e => {
-      if (scrollDragStart) onEnd(e.changedTouches[0].clientY);
-      scrollDragStart = false;
+      if (scrollDrag) onEnd(e.changedTouches[0].clientY);
+      scrollDrag = false;
+    }, { passive: true });
+
+    scrollArea.addEventListener('touchcancel', () => {
+      scrollDrag = false;
+      onCancel();
     }, { passive: true });
   }
 }
