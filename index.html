@@ -4105,4 +4105,34 @@ function applyTheme() {
 }
 
 /* ─── INCORPORATED TOGGLE ─── */
-function toggleIncorpora
+function toggleIncorporated() {
+  const h = habits.find(x => x.id === activeHabitId);
+  if (!h) return;
+  h.incorporated = !h.incorporated;
+  if (h.incorporated) {
+    h.done = true;
+    showToast('✅', 'Hábito marcado como incorporado');
+  } else {
+    showToast('🔄', 'Hábito reactivado al seguimiento');
+  }
+  const tog = document.getElementById('incorporatedToggle');
+  if (tog) tog.classList.toggle('on', h.incorporated);
+  const btn = document.getElementById('sheetCompleteBtn');
+  if (btn) {
+    if (h.incorporated) { btn.textContent = '✓ Incorporado'; btn.disabled = true; btn.style.opacity = '.4'; }
+    else                { btn.textContent = '✓ Completar';   btn.disabled = false; btn.style.opacity = '1'; }
+  }
+  renderHabits();
+}
+
+</script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
