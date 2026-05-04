@@ -402,19 +402,19 @@ html,body{
   bottom:0;left:0;right:0;
   z-index:100;
   display:flex;
-  align-items:center;
-  /* height fija de íconos + safe-area; padding-bottom empuja el contenido
-     hacia arriba, dejando fondo sólido que cubre la home indicator */
+  /* align-items:flex-start → íconos en el top 60px;
+     la zona de safe-area (debajo) es solo fondo, sin iconos superpuestos */
+  align-items:flex-start;
+  /* altura total = íconos (60px) + home indicator area */
   height:calc(60px + env(safe-area-inset-bottom,0px));
-  padding-bottom:env(safe-area-inset-bottom,0px);
-  /* Fondo sólido obligatorio — transparente no cubre el área de home indicator */
+  /* Sin padding-bottom para evitar doble separación */
   background:#0d0d12;
   border-top:1px solid rgba(255,255,255,.06);
   box-sizing:border-box;
 }
 .nav-item{
   flex:1;
-  height:56px;
+  height:60px; /* ocupa toda la zona de íconos */
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   gap:3px;
@@ -738,6 +738,7 @@ html,body{
 .confetti-container{position:absolute;inset:0;pointer-events:none;z-index:300;overflow:hidden;}
 .confetti-piece{position:absolute;animation:confettiFall linear forwards;}
 @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(900px) rotate(720deg);opacity:0;}}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
 /* ═══════════════════════════════════════════
    KEYFRAMES
@@ -4143,7 +4144,67 @@ function toggleIncorporated() {
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js');
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+
+          // Cuando se detecta una nueva versión instalándose
+          reg.addEventListener('updatefound', () => {
+            const next = reg.installing;
+            next.addEventListener('statechange', () => {
+              // "installed" + hay un SW anterior = nueva versión lista
+              if (next.state === 'installed' && navigator.serviceWorker.controller) {
+                showUpdateBanner();
+              }
+            });
+          });
+
+          // Verificar actualizaciones cada vez que la app vuelve al frente
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') reg.update();
+          });
+        });
+
+        // Cuando el SW activo cambia (skipWaiting + clients.claim dispararon),
+        // recargar para que la nueva versión tome control completo
+        let reloading = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (reloading) return;
+          reloading = true;
+          window.location.reload();
+        });
+      });
+    }
+
+    function showUpdateBanner() {
+      if (document.getElementById('hc-update-banner')) return;
+      const b = document.createElement('div');
+      b.id = 'hc-update-banner';
+      b.style.cssText = [
+        'position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px) + 12px)',
+        'left:16px;right:16px;z-index:900',
+        'background:#7c6ef7;color:#fff;border-radius:14px',
+        'padding:12px 16px;display:flex;align-items:center;justify-content:space-between',
+        'font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4)',
+        'animation:slideUp .3s cubic-bezier(.32,.72,0,1)'
+      ].join(';');
+      b.innerHTML = `
+        <span>🆕 Nueva versión disponible</span>
+        <button onclick="applyUpdate()" style="
+          background:rgba(255,255,255,.25);border:none;color:#fff;
+          padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+          Actualizar
+        </button>`;
+      document.body.appendChild(b);
+    }
+
+    function applyUpdate() {
+      if (!navigator.serviceWorker.controller) { window.location.reload(); return; }
+      // Pedirle al SW en espera que tome el control ahora
+      navigator.serviceWorker.ready.then(reg => {
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+          window.location.reload();
+        }
       });
     }
   </script>
