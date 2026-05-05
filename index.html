@@ -2223,7 +2223,15 @@ body.light .nav-item.active{color:var(--accent);}
 /* ─── SUPABASE ─── */
 const SUPA_URL = 'https://fzmwtrwaeswxvdbbggbf.supabase.co';
 const SUPA_KEY = 'sb_publishable_NDsKRe3ysmI1cP5KB_ET9w_kGP6ECcf';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, storageKey: 'hc_session' } });
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
+  auth: {
+    persistSession: true,          // mantener sesión entre reinicios
+    storageKey:    'hc_session',   // clave en localStorage
+    storage:       window.localStorage, // explícito: nunca sessionStorage
+    autoRefreshToken: true,        // refrescar token automáticamente
+    detectSessionInUrl: false,     // no necesario en PWA standalone
+  }
+});
 let currentUser = null;
 
 function showLogin()  {
@@ -2266,22 +2274,29 @@ async function signIn() {
   }
 }
 
-/* Auth state listener – fires when user clicks the magic link */
+/* ─── AUTH STATE LISTENER ───────────────────────────────────────
+   Flujo correcto para PWA:
+   • INITIAL_SESSION → ignorado aquí; getSession() en DOMContentLoaded
+     lo maneja para evitar doble loadData() y race conditions.
+   • SIGNED_IN  → login activo; ocultar login y cargar datos.
+   • SIGNED_OUT → logout explícito; limpiar estado y mostrar login.
+   • TOKEN_REFRESHED / USER_UPDATED → sin acción (sesión sigue activa).
+──────────────────────────────────────────────────────────────── */
 sb.auth.onAuthStateChange(async (event, session) => {
-  // INITIAL_SESSION: dispara al cargar — con o sin sesión guardada.
-  // SIGNED_IN: login activo del usuario.
-  // TOKEN_REFRESHED: refresco automático cada hora — no recargar datos.
-  // SIGNED_OUT: logout explícito — único evento que debe mostrar login.
-  if (session?.user) {
-    const wasLoggedIn = !!currentUser;
+  if (event === 'INITIAL_SESSION') {
+    // getSession() en DOMContentLoaded ya maneja este caso.
+    // Retornar aquí evita doble llamada a loadData().
+    return;
+  }
+
+  if (event === 'SIGNED_IN') {
     currentUser = session.user;
-    if (!wasLoggedIn || event === 'SIGNED_IN') {
-      await loadData();
-      hideLogin();
-    }
-  } else if (event === 'SIGNED_OUT') {
-    // Solo logout explícito limpia la sesión.
-    // INITIAL_SESSION sin sesión ya es manejado por getSession() en DOMContentLoaded.
+    hideLogin();          // mostrar app de inmediato, sin esperar datos
+    loadData();           // cargar en background, no-bloqueante
+    return;
+  }
+
+  if (event === 'SIGNED_OUT') {
     currentUser = null;
     habits = [];
     customCategories = [];
@@ -2785,12 +2800,13 @@ window.addEventListener('DOMContentLoaded', async () => {
   sheetMgr.register('addSheet',    closeAddSheet);
   // periodSheet is a nested sheet (position:absolute in insights) — handled separately
   initPeriodSheetDrag();
-  // Check if already logged in
+  // Check inicial de sesión — fuente de verdad para el estado de arranque.
+  // getSession() lee desde localStorage (sin red), por eso es rápido.
   const { data: { session } } = await sb.auth.getSession();
-  if (session) {
+  if (session?.user) {
     currentUser = session.user;
-    await loadData();
-    hideLogin();
+    hideLogin();    // mostrar app de inmediato
+    loadData();     // cargar hábitos en background, no-bloqueante
   } else {
     showLogin();
   }
