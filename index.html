@@ -1117,6 +1117,17 @@ html,body{
 .hm-pause{font-size:var(--fs-sm);font-weight:600;padding:3px 8px;border-radius:99px;cursor:pointer;transition:all .12s;flex-shrink:0;border:1px solid;}
 .hm-pause.active{color:var(--muted);border-color:var(--border);background:var(--surface2);}
 .hm-pause.paused{color:var(--amber);border-color:rgba(247,163,92,.3);background:rgba(247,163,92,.08);}
+/* Acciones inline en el listado de hábitos (ajustes) */
+.hm-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.hm-action-btn{
+  width:30px;height:30px;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:all .12s;flex-shrink:0;-webkit-tap-highlight-color:transparent;
+}
+.hm-action-btn:active{background:var(--surface3);}
+.hm-action-btn.danger{color:var(--red);border-color:rgba(232,112,112,.2);background:rgba(232,112,112,.05);}
+.hm-action-btn.danger:active{background:rgba(232,112,112,.12);}
 
 /* Rescue mode uses */
 .rescue-uses{
@@ -2548,6 +2559,7 @@ let habits = [
 
 /* ─── UI STATE ─── */
 let activeHabitId    = null;
+let activeDateContext = null;  // null = hoy, 'YYYY-MM-DD' = fecha específica (pasado/futuro)
 let editingHabitId   = null;   // null = create, string = edit mode
 let selectedEmoji    = EMOJIS[0];
 let newHabitType     = 'boolean';
@@ -3173,10 +3185,12 @@ function bumpQuant(e, id) {
 }
 
 /* ─── DETAIL SHEET ─── */
-function openDetail(id) {
+// ds: 'YYYY-MM-DD' para días específicos; undefined/null = hoy
+function openDetail(id, ds) {
   const h = habits.find(x => String(x.id) === String(id));
   if (!h) return;
-  activeHabitId = id;
+  activeHabitId    = id;
+  activeDateContext = ds || null;
   haptic('light');
 
   // Reset to first tab
@@ -3210,11 +3224,31 @@ function openDetail(id) {
   const tog = document.getElementById('incorporatedToggle');
   tog.classList.toggle('on', !!h.incorporated);
 
-  // Complete button state
-  const btn = document.getElementById('sheetCompleteBtn');
-  if (h.incorporated)        { btn.textContent = '✓ Incorporado'; btn.disabled = true; btn.style.opacity = '.4'; }
-  else if (isCompletedToday(h)) { btn.textContent = '✓ Completado'; btn.disabled = true; btn.style.opacity = '.5'; }
-  else                       { btn.textContent = '✓ Completar';  btn.disabled = false; btn.style.opacity = '1'; }
+  // CTA footer: adaptar según contexto de fecha
+  const footer   = document.querySelector('.sheet-cta-footer');
+  const skipBtn  = document.getElementById('sheetSkipBtn');
+  const btn      = document.getElementById('sheetCompleteBtn');
+  const isFuture = ds && ds > todayStr();
+  const isPast   = ds && ds < todayStr();
+
+  if (isFuture) {
+    // Futuro: ocultar footer — no se puede completar
+    footer.style.display = 'none';
+  } else if (isPast) {
+    // Pasado: ocultar "Saltar", mostrar toggle de esa fecha
+    footer.style.display = '';
+    skipBtn.style.display = 'none';
+    const wasDone = isCompletedFor(h, ds);
+    btn.textContent = wasDone ? '✗ Desmarcar día' : '✓ Marcar día';
+    btn.disabled = false; btn.style.opacity = '1';
+  } else {
+    // Hoy: comportamiento normal
+    footer.style.display = '';
+    skipBtn.style.display = '';
+    if (h.incorporated)           { btn.textContent = '✓ Incorporado'; btn.disabled = true; btn.style.opacity = '.4'; }
+    else if (isCompletedToday(h)) { btn.textContent = '✓ Completado'; btn.disabled = true; btn.style.opacity = '.5'; }
+    else                          { btn.textContent = '✓ Completar';  btn.disabled = false; btn.style.opacity = '1'; }
+  }
 
   // Extended stats y heatmap — en try/catch para que un error no impida abrir el sheet
   try { buildDetailStats(h); } catch(e) { console.warn('buildDetailStats:', e); }
@@ -3316,23 +3350,53 @@ function switchSheetTab(name, btn) {
 }
 
 /* ─── DELETE HABIT FROM SHEET ─── */
+/* ─── ELIMINAR HÁBITO (centralizado) ─── */
+function deleteHabit(id) {
+  const h = habits.find(x => String(x.id) === String(id));
+  if (!h) return;
+  // Confirmación nativa — simple, fiable en mobile
+  if (!confirm(`¿Eliminar "${h.name}"?\n\nSe borrarán también todos los completions asociados. Esta acción no se puede deshacer.`)) return;
+  const name = h.name;
+  deleteHabitFromDb(id);
+  habits = habits.filter(x => String(x.id) !== String(id));
+  console.log('alerta eliminada:', id);
+  console.log('hábitos activos:', habits.map(x => x.id));
+  renderHabits();
+  renderHabitMgmt();
+  updateBadges();
+  showToast('🗑', `"${name}" eliminado permanentemente.`);
+}
+
 function deleteHabitFromSheet() {
   if (!activeHabitId) return;
-  const h = habits.find(x => x.id === activeHabitId);
-  const name = h?.name || 'Hábito';
-  deleteHabitFromDb(activeHabitId);
-  habits = habits.filter(x => x.id !== activeHabitId);
-  closeSheet();
-  renderHabits();
-  showToast('🗑', `"${name}" eliminado.`);
+  const id = activeHabitId;
+  // Cerrar sheet primero, luego confirmar — mejor UX en mobile
+  sheetMgr.close('bottomSheet');
+  setTimeout(() => deleteHabit(id), 350);
 }
 
 function closeSheet() {
-  activeHabitId = null;
+  activeHabitId    = null;
+  activeDateContext = null;
   // State cleanup only — animation + overlay + nav handled by SheetController
 }
 
-function completeFromSheet() { if (activeHabitId) { toggleHabit(activeHabitId); closeSheet(); } }
+function completeFromSheet() {
+  if (!activeHabitId) return;
+  const h = habits.find(x => String(x.id) === String(activeHabitId));
+  if (!h) return;
+  const ds = activeDateContext || todayStr();
+  const rerenderFn = activeDateContext ? renderHabitsForOffset : renderHabits;
+  toggleHabitForDate(h, ds, rerenderFn);
+  // Actualizar botón inmediatamente (toggleHabitForDate ya modificó completions)
+  const btn = document.getElementById('sheetCompleteBtn');
+  if (activeDateContext) {
+    const nowDone = isCompletedFor(h, ds);
+    btn.textContent = nowDone ? '✗ Desmarcar día' : '✓ Marcar día';
+  } else {
+    btn.textContent = '✓ Completado'; btn.disabled = true; btn.style.opacity = '.5';
+  }
+}
 
 function skipHabit() {
   if (!activeHabitId) return;
@@ -3390,7 +3454,7 @@ function pastDayHabitCardHTML(h, ds) {
     ? `<span class="cat-tag" style="background:${cat.color}22;color:${cat.color};">${cat.emoji} ${cat.name}</span>`
     : '';
   return `
-  <div class="habit-card ${_done?'done':''}" onclick="togglePastHabit('${h.id}','${ds}')">
+  <div class="habit-card ${_done?'done':''}" onclick="openDetail('${h.id}','${ds}')">
     <button class="check-btn ${_done?'done':''}" onclick="event.stopPropagation();togglePastHabit('${h.id}','${ds}')">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
@@ -3584,6 +3648,7 @@ function addHabit() {
     sheetMgr.close('addSheet');
     renderHabits();
     renderFilterChips();
+    renderHabitMgmt();   // actualizar lista en ajustes si estaba abierta
     showToast('✏️', `"${name}" actualizado.`);
   } else {
     /* ── CREATE ── */
@@ -3892,18 +3957,24 @@ function stepHabitLimit(delta) {
 /* ─── SETTINGS: render habit management list ─── */
 function renderHabitMgmt() {
   const list = document.getElementById('habitMgmtList');
-  list.innerHTML = habits.map(h => {
+  if (!list) return;
+  list.innerHTML = habits.length ? habits.map(h => {
     const paused = pausedHabits.has(h.id);
     return `
     <div class="hm-item">
       <div class="hm-drag"><span></span><span></span><span></span></div>
       <div class="hm-emoji2">${h.emoji}</div>
       <div class="hm-name2">${h.name}</div>
-      <div class="hm-pause ${paused?'paused':'active'}" onclick="togglePause('${h.id}',this)">
-        ${paused ? '▶ Reanudar' : '⏸ Pausar'}
+      <div class="hm-actions">
+        <button class="hm-action-btn" title="Editar" onclick="openAddSheet('${h.id}')">✏️</button>
+        <button class="hm-action-btn danger" title="Eliminar" onclick="deleteHabit('${h.id}')">🗑</button>
+        <div class="hm-pause ${paused?'paused':'active'}" onclick="togglePause('${h.id}',this)">
+          ${paused ? '▶ Reanudar' : '⏸ Pausar'}
+        </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('')
+  : '<div style="text-align:center;color:var(--muted);padding:20px;font-size:var(--fs-sm);">Sin hábitos todavía</div>';
 }
 
 function togglePause(id, el) {
@@ -4128,21 +4199,30 @@ function renderHabitsForOffset() {
     const pct = habitsForDay.length ? Math.round(done / habitsForDay.length * 100) : 0;
     document.getElementById('progressFill').style.width = pct + '%';
   } else {
-    // Future day: show planned habits (all pending, non-interactive)
+    // Día futuro: no se puede completar, pero sí abrir el detalle y editar
+    const futureDateStr = targetDate.toISOString().slice(0,10);
     const habitsForDay = habits.filter(filtered);
-    document.getElementById('pendingList').innerHTML = habitsForDay.map(h => `
-      <div class="habit-card" style="opacity:.7">
-        <div class="habit-left">
-          <div class="habit-emoji">${h.emoji||'✅'}</div>
-          <div class="habit-info">
-            <div class="habit-name">${h.name}</div>
-            <div class="habit-meta">${freqLabel(h)}${durationLabel(h)}</div>
-          </div>
-        </div>
-        <div class="habit-right">
-          <div class="done-ring" style="pointer-events:none;"></div>
-        </div>
-      </div>`).join('') || '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos planeados</div>';
+    document.getElementById('pendingList').innerHTML = habitsForDay.length
+      ? habitsForDay.map(h => {
+          const cat = getCat(h.categoryId);
+          const catTag = cat ? `<span class="cat-tag" style="background:${cat.color}22;color:${cat.color};">${cat.emoji} ${cat.name}</span>` : '';
+          return `
+          <div class="habit-card" style="opacity:.7" onclick="openDetail('${h.id}','${futureDateStr}')">
+            <button class="check-btn" style="pointer-events:none;opacity:.25;">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+            <div class="habit-info">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+                <div class="habit-name" style="margin-bottom:0;">${h.emoji} ${h.name}</div>
+              </div>
+              <div class="habit-meta" style="flex-wrap:wrap;gap:5px;">
+                <span class="habit-streak">⚡ ${h.streak}d</span>
+                ${catTag}
+              </div>
+            </div>
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos planeados</div>';
     document.getElementById('doneList').innerHTML = '';
     document.getElementById('incorporatedList').innerHTML = '';
     document.getElementById('doneSection').style.display = 'none';
