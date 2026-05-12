@@ -42,6 +42,9 @@ html,body{
   font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
   overflow:hidden;
+  overscroll-behavior:none;
+  -webkit-overflow-scrolling:auto;
+  touch-action:none;
 }
 
 /* ═══════════════════════════════════════════
@@ -563,7 +566,7 @@ html,body{
   z-index:500;
   display:flex;
   flex-direction:column;
-  max-height:92svh;
+  max-height:92dvh;
   background:var(--surface);
   border-radius:20px 20px 0 0;
   border-top:1px solid var(--border);
@@ -654,10 +657,41 @@ html,body{
 }
 .sheet-edit-btn:active{background:var(--surface2);}
 
-.sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.sheet-btn{padding:13px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:all .12s;text-align:center;}
-.sheet-btn:active{transform:scale(.97);}
-.sheet-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* ── CTA footer del detail sheet (fuera del scroll body) ── */
+.sheet-cta-footer {
+  flex-shrink: 0;               /* no se encoge — siempre visible al fondo */
+  padding: 12px 20px;
+  /* safe-area-inset-bottom: respeta el home indicator en iOS PWA */
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+/* Botones: altura táctil ≥ 52px, flex-center para alinear texto/icono */
+.sheet-btn {
+  height: 54px;
+  padding: 0 16px;
+  border-radius: var(--rsm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.sheet-btn:active { transform: scale(.97); }
+.sheet-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* Description box in detail sheet */
 .desc-box{
@@ -2073,11 +2107,6 @@ body.light .nav-item.active{color:var(--accent);}
         <div class="toggle-switch" id="incorporatedToggle"></div>
       </div>
 
-      <!-- Actions -->
-      <div class="sheet-actions">
-        <button class="sheet-btn" onclick="skipHabit()">⏭ Saltar hoy</button>
-        <button class="sheet-btn primary" id="sheetCompleteBtn" onclick="completeFromSheet()">✓ Completar</button>
-      </div>
     </div>
 
     <!-- ── TAB: Estadísticas ── -->
@@ -2146,6 +2175,15 @@ body.light .nav-item.active{color:var(--accent);}
     </div>
 
     </div><!-- /hc-scroll-body -->
+
+    <!-- CTA footer: fuera del scroll → safe-area + altura táctil garantizada -->
+    <div class="sheet-cta-footer">
+      <div class="sheet-actions">
+        <button class="sheet-btn" id="sheetSkipBtn" onclick="skipHabit()">⏭ Saltar hoy</button>
+        <button class="sheet-btn primary" id="sheetCompleteBtn" onclick="completeFromSheet()">✓ Completar</button>
+      </div>
+    </div>
+
   </div><!-- /bottomSheet -->
 
   <!-- Add Habit Sheet -->
@@ -2353,34 +2391,61 @@ function genUUID() {
   });
 }
 
+/* ─── COMPLETIONS HELPERS ─── */
+// Devuelve la fecha de hoy como 'YYYY-MM-DD'
+function todayStr() { return new Date().toISOString().slice(0,10); }
+// Devuelve la fecha de hace N días como 'YYYY-MM-DD'
+function dateStrFor(daysAgo) {
+  const d = new Date(); d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().slice(0,10);
+}
+// ¿Fue completado el hábito en la fecha dada?
+function isCompletedFor(h, ds) { return !!(h.completions && h.completions[ds]); }
+// ¿Fue completado hoy?
+function isCompletedToday(h) { return isCompletedFor(h, todayStr()); }
+// Deriva el array heatPattern[35] desde completions (más preciso que el boolean antiguo)
+function deriveHeatPattern(completions) {
+  const base = new Date();
+  return Array.from({length:35}, (_, i) => {
+    const d = new Date(base); d.setDate(d.getDate() - (34 - i));
+    return completions[d.toISOString().slice(0,10)] ? 3 : 0;
+  });
+}
+
 async function loadData() {
   if (!currentUser) return;
   const today = new Date().toISOString().slice(0,10);
 
   const { data: rows, error } = await sb.from('habits').select('*').eq('user_id', currentUser.id);
   if (error) { console.error('loadData:', error.message); return; }
-  habits = (rows || []).map(r => ({
-    id:           r.id,
-    name:         r.name,
-    emoji:        r.emoji,
-    type:         r.type,
-    streak:       r.streak,
-    bestStreak:   r.best_streak,
-    consistency:  r.consistency,
-    days:         r.days || [0,1,2,3,4,5,6],
-    freq:         r.freq,
-    startDate:    r.start_date,
-    endDate:      r.end_date,
-    // Reset "done" if it wasn't completed today
-    done:         r.done && r.last_done_date === today,
-    rescue:       r.rescue,
-    incorporated: r.incorporated,
-    color:        r.color,
-    categoryId:   r.category_id,
-    intention:    r.intention,
-    description:  r.description,
-    heatPattern:  r.heat_pattern || Array(35).fill(0),
-  }));
+  habits = (rows || []).map(r => {
+    // Migrar datos antiguos (done boolean → completions)
+    let completions = r.completions || {};
+    if (r.done && r.last_done_date && !completions[r.last_done_date]) {
+      completions = { ...completions, [r.last_done_date]: true };
+    }
+    return {
+      id:           r.id,
+      name:         r.name,
+      emoji:        r.emoji,
+      type:         r.type,
+      streak:       r.streak,
+      bestStreak:   r.best_streak,
+      consistency:  r.consistency,
+      days:         r.days || [0,1,2,3,4,5,6],
+      freq:         r.freq,
+      startDate:    r.start_date,
+      endDate:      r.end_date,
+      completions,
+      rescue:       r.rescue,
+      incorporated: r.incorporated,
+      color:        r.color,
+      categoryId:   r.category_id,
+      intention:    r.intention,
+      description:  r.description,
+      heatPattern:  deriveHeatPattern(completions),
+    };
+  });
 
   const { data: cats } = await sb.from('custom_categories').select('*').eq('user_id', currentUser.id);
   customCategories = cats || [];
@@ -2406,8 +2471,7 @@ async function saveHabitToDb(h) {
     freq:           h.freq,
     start_date:     h.startDate || null,
     end_date:       h.endDate   || null,
-    done:           h.done,
-    last_done_date: h.done ? today : null,
+    completions:    h.completions || {},
     rescue:         h.rescue,
     incorporated:   h.incorporated,
     color:          h.color    || null,
@@ -2967,12 +3031,9 @@ function renderHabits() {
     const catOk = activeFilter === 'all' || h.categoryId === activeFilter;
     return dayOk && catOk;
   };
-  // Auto-complete incorporated habits
-  habits.forEach(h => { if (h.incorporated) h.done = true; });
-
   const incorporated = habits.filter(h => h.incorporated && filtered(h));
-  const pending = habits.filter(h => !h.done && !h.incorporated && filtered(h));
-  const done    = habits.filter(h =>  h.done && !h.incorporated && filtered(h));
+  const pending = habits.filter(h => !isCompletedToday(h) && !h.incorporated && filtered(h));
+  const done    = habits.filter(h =>  isCompletedToday(h) && !h.incorporated && filtered(h));
 
   document.getElementById('pendingList').innerHTML      = pending.map(habitCardHTML).join('');
   document.getElementById('doneList').innerHTML         = done.map(habitCardHTML).join('');
@@ -2985,11 +3046,11 @@ function renderHabits() {
   const allVisible = [...pending, ...done];
   const allFiltered = habits.filter(filtered);
   document.getElementById('allDoneState').classList.toggle(
-    'visible', allFiltered.length > 0 && allFiltered.every(h => h.done)
+    'visible', allFiltered.length > 0 && allFiltered.every(h => isCompletedToday(h) || h.incorporated)
   );
 
   const todayHabits = habits.filter(filtered);
-  const totalDone = todayHabits.filter(h => h.done).length;
+  const totalDone = todayHabits.filter(h => isCompletedToday(h) || h.incorporated).length;
   const pct = todayHabits.length ? Math.round((totalDone / todayHabits.length) * 100) : 0;
   document.getElementById('progressCount').textContent = `${totalDone} de ${todayHabits.length}`;
   document.getElementById('progressFill').style.width  = `${pct}%`;
@@ -3008,10 +3069,11 @@ function durationLabel(h) {
 }
 
 function habitCardHTML(h, isIncorporated) {
-  const hot   = h.streak >= 7 && !h.done && !h.incorporated;
+  const _done = isCompletedToday(h);
+  const hot   = h.streak >= 7 && !_done && !h.incorporated;
   const icon  = h.streak >= 21 ? '🏆' : h.streak >= 7 ? '🔥' : '⚡';
   const typeL = {boolean:'',timer:'⏱',quant:'📊',avoid:'🚫'}[h.type];
-  const rescue= h.rescue && !h.done ? `<div class="rescue-badge">⚡ Rescue</div>` : '';
+  const rescue= h.rescue && !_done ? `<div class="rescue-badge">⚡ Rescue</div>` : '';
 
   // Category tag
   const cat = getCat(h.categoryId);
@@ -3025,7 +3087,7 @@ function habitCardHTML(h, isIncorporated) {
   const dur = h.duration ? `<span style="font-size:var(--fs-xs);color:var(--muted);margin-left:2px;">${h.duration}${h.durationUnit}</span>` : '';
 
   let extra = '';
-  if (h.type === 'quant' && h.quant && !h.done) {
+  if (h.type === 'quant' && h.quant && !_done) {
     const p = Math.round((h.quant.current / h.quant.target) * 100);
     extra = `<div class="quant-row" onclick="bumpQuant(event,'${h.id}')">
       <div class="quant-bar-bg"><div class="quant-bar-fill" style="width:${p}%"></div></div>
@@ -3034,8 +3096,8 @@ function habitCardHTML(h, isIncorporated) {
   }
 
   return `
-  <div class="habit-card ${h.done?'done':''} ${h.rescue&&!h.done?'rescue':''}" onclick="openDetail('${h.id}')">
-    <button class="check-btn ${h.done?'done':''}" onclick="event.stopPropagation();toggleHabit('${h.id}')">
+  <div class="habit-card ${_done?'done':''} ${h.rescue&&!_done?'rescue':''}" onclick="openDetail('${h.id}')">
+    <button class="check-btn ${_done?'done':''}" onclick="event.stopPropagation();toggleHabit('${h.id}')">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
     <div class="habit-info">
@@ -3062,32 +3124,40 @@ function habitCardHTML(h, isIncorporated) {
 function toggleHabit(id) {
   const h = habits.find(x => String(x.id) === String(id));
   if (!h) return;
-  h.done = !h.done;
-  const today = new Date().toISOString().slice(0,10);
-  if (h.done) {
-    h.lastDoneDate = today;
-    // Actualizar heatPattern: posición 34 = hoy
-    if (!h.heatPattern) h.heatPattern = Array(35).fill(0);
-    h.heatPattern[34] = 3; // 3 = completado (consistente con stats que cuentan v===3)
+  toggleHabitForDate(h, todayStr());
+}
+
+function toggleHabitForDate(h, ds, rerenderFn) {
+  if (!h.completions) h.completions = {};
+  const wasDone = !!h.completions[ds];
+
+  if (wasDone) {
+    // Desmarcar
+    delete h.completions[ds];
+    h.heatPattern = deriveHeatPattern(h.completions);
+    recalculateStreak(h);
+    playTap();
+    haptic('light');
+  } else {
+    // Marcar como completado
+    h.completions[ds] = true;
+    h.heatPattern = deriveHeatPattern(h.completions);
+    recalculateStreak(h);
     playSuccess();
     haptic('medium');
-    h.streak++;
     const wasRescue = h.rescue;
     h.rescue = false;
     if (wasRescue)           showToast('⚡','¡Racha rescatada! Completaste al día siguiente.');
     else if (h.streak === 7) showToast('🔥',`¡7 días seguidos de "${h.name}"! La racha se calienta.`);
-    else if (h.streak > h.bestStreak) { h.bestStreak = h.streak; showToast('🏆',`¡Nuevo récord! ${h.streak} días de "${h.name}".`); }
-    const allDone = habits.every(x => x.done);
-    if (allDone) setTimeout(() => { launchConfetti(); showToast('🎉','¡Todos los hábitos del día! La consistencia se construye así.'); }, 350);
-  } else {
-    h.lastDoneDate = null;
-    if (h.heatPattern) h.heatPattern[34] = 0;
-    playTap();
-    haptic('light');
-    if (h.streak > 0) h.streak--;
+    else if (h.streak > (h.bestStreak||0)) { h.bestStreak = h.streak; showToast('🏆',`¡Nuevo récord! ${h.streak} días de "${h.name}".`); }
+    // ¿Todos los hábitos de hoy completados?
+    if (ds === todayStr()) {
+      const allDone = habits.filter(x => !x.incorporated).every(x => isCompletedToday(x));
+      if (allDone) setTimeout(() => { launchConfetti(); showToast('🎉','¡Todos los hábitos del día! La consistencia se construye así.'); }, 350);
+    }
   }
   saveHabitToDb(h);
-  setTimeout(renderHabits, 40);
+  setTimeout(rerenderFn || renderHabits, 40);
 }
 
 function bumpQuant(e, id) {
@@ -3096,7 +3166,7 @@ function bumpQuant(e, id) {
   if (!h?.quant) return;
   h.quant.current = Math.min(h.quant.current + 1, h.quant.target);
   if (h.quant.current >= h.quant.target) {
-    h.done = true; h.streak++;
+    if (!isCompletedToday(h)) toggleHabitForDate(h, todayStr());
     showToast('💧',`¡Meta alcanzada! ${h.quant.target} vasos de agua hoy.`);
   }
   setTimeout(renderHabits, 40);
@@ -3142,9 +3212,9 @@ function openDetail(id) {
 
   // Complete button state
   const btn = document.getElementById('sheetCompleteBtn');
-  if (h.incorporated) { btn.textContent = '✓ Incorporado'; btn.disabled = true; btn.style.opacity = '.4'; }
-  else if (h.done)    { btn.textContent = '✓ Completado'; btn.disabled = true; btn.style.opacity = '.5'; }
-  else                { btn.textContent = '✓ Completar';  btn.disabled = false; btn.style.opacity = '1'; }
+  if (h.incorporated)        { btn.textContent = '✓ Incorporado'; btn.disabled = true; btn.style.opacity = '.4'; }
+  else if (isCompletedToday(h)) { btn.textContent = '✓ Completado'; btn.disabled = true; btn.style.opacity = '.5'; }
+  else                       { btn.textContent = '✓ Completar';  btn.disabled = false; btn.style.opacity = '1'; }
 
   // Extended stats y heatmap — en try/catch para que un error no impida abrir el sheet
   try { buildDetailStats(h); } catch(e) { console.warn('buildDetailStats:', e); }
@@ -3267,7 +3337,14 @@ function completeFromSheet() { if (activeHabitId) { toggleHabit(activeHabitId); 
 function skipHabit() {
   if (!activeHabitId) return;
   const h = habits.find(x => x.id === activeHabitId);
-  if (h) { h.done = true; showToast('⏭',`"${h.name}" saltado hoy. La racha sigue intacta.`); renderHabits(); }
+  if (h) {
+    if (!h.completions) h.completions = {};
+    h.completions[todayStr()] = true;
+    h.heatPattern = deriveHeatPattern(h.completions);
+    saveHabitToDb(h);
+    showToast('⏭',`"${h.name}" saltado hoy. La racha sigue intacta.`);
+    renderHabits();
+  }
   closeSheet();
 }
 
@@ -3290,7 +3367,13 @@ function buildDetailHeatmap(pattern) {
 function togglePastDay(index) {
   const h = habits.find(x => x.id === activeHabitId);
   if (!h) return;
-  h.heatPattern[index] = h.heatPattern[index] === 3 ? 0 : 3;
+  // index 0 = hace 34 días, index 34 = hoy
+  const daysAgo = 34 - index;
+  const ds = dateStrFor(daysAgo);
+  if (!h.completions) h.completions = {};
+  if (h.completions[ds]) delete h.completions[ds];
+  else h.completions[ds] = true;
+  h.heatPattern = deriveHeatPattern(h.completions);
   recalculateStreak(h);
   saveHabitToDb(h);
   buildDetailHeatmap(h.heatPattern);
@@ -3299,18 +3382,50 @@ function togglePastDay(index) {
   haptic('light');
 }
 
+/* ─── PAST DAY CARD & TOGGLE ─── */
+function pastDayHabitCardHTML(h, ds) {
+  const _done = isCompletedFor(h, ds);
+  const cat = getCat(h.categoryId);
+  const catTag = cat
+    ? `<span class="cat-tag" style="background:${cat.color}22;color:${cat.color};">${cat.emoji} ${cat.name}</span>`
+    : '';
+  return `
+  <div class="habit-card ${_done?'done':''}" onclick="togglePastHabit('${h.id}','${ds}')">
+    <button class="check-btn ${_done?'done':''}" onclick="event.stopPropagation();togglePastHabit('${h.id}','${ds}')">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+    <div class="habit-info">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
+        <div class="habit-name" style="margin-bottom:0;">${h.emoji} ${h.name}</div>
+      </div>
+      <div class="habit-meta" style="flex-wrap:wrap;gap:5px;">
+        <span class="habit-streak">⚡ ${h.streak}d</span>
+        ${catTag}
+      </div>
+    </div>
+  </div>`;
+}
+
+function togglePastHabit(id, ds) {
+  const h = habits.find(x => String(x.id) === String(id));
+  if (!h) return;
+  haptic('light');
+  toggleHabitForDate(h, ds, renderHabitsForOffset);
+}
+
 function recalculateStreak(h) {
-  // Recalculate streak from heatPattern backwards from today
+  // Recalculate streak from completions, going back up to 365 days
+  if (!h.completions) { h.streak = 0; return; }
   let streak = 0;
-  for (let i = 34; i >= 0; i--) {
-    const daysAgo   = 34 - i;
-    const date      = new Date();
+  for (let daysAgo = 0; daysAgo < 365; daysAgo++) {
+    const date  = new Date();
     date.setDate(date.getDate() - daysAgo);
-    const jsDay     = date.getDay();
+    const jsDay = date.getDay();
     const dayIdx    = jsDay === 0 ? 6 : jsDay - 1; // 0=Lu…6=Do
     const scheduled = h.days ? h.days.includes(dayIdx) : true;
     if (!scheduled) continue;  // día no programado no rompe racha
-    if (h.heatPattern[i] === 3 || h.heatPattern[i] === 1) {
+    const ds = date.toISOString().slice(0,10);
+    if (h.completions[ds]) {
       streak++;
     } else {
       break;
@@ -3482,7 +3597,7 @@ function addHabit() {
       freq: freqL,
       startDate: startDate || null,
       endDate:   endDate   || null,
-      done: false, rescue: false,
+      completions: {}, rescue: false,
       color: 'rgba(124,110,247,.15)',
       categoryId: newCategoryId,
       intention: `"${intention}"`,
@@ -3605,7 +3720,7 @@ function updateInsightsFromData() {
 
   // Momentum score: 0-100
   // = (avgConsistency * 0.5) + (min(maxStreak,30)/30 * 30) + (recentActivity * 20)
-  const recentActivity = habits.filter(h => h.done).length / Math.max(habits.length, 1);
+  const recentActivity = habits.filter(h => isCompletedToday(h)).length / Math.max(habits.length, 1);
   const momentum = Math.min(100, Math.round(avgConsistency * 0.5 + (Math.min(maxStreak,30)/30)*30 + recentActivity*20));
 
   // Actualizar DOM
@@ -3656,7 +3771,7 @@ function updateInsightsFromData() {
   // Reflexión
   const refEl = document.getElementById('insReflexion');
   if (refEl) {
-    const done = habits.filter(h => h.done);
+    const done = habits.filter(h => isCompletedToday(h));
     if (done.length > 0) {
       refEl.innerHTML = done.map(h =>
         `<div class="id-line">Hoy fuiste alguien que <strong>${h.emoji} ${h.name.toLowerCase()}</strong>.</div>`
@@ -3978,9 +4093,7 @@ function goToNextDay() {
 
 function renderHabitsForOffset() {
   if (dateOffset === 0) {
-    // Reset done state from DB (last_done_date check)
-    const today = new Date().toISOString().slice(0,10);
-    habits.forEach(h => { if (h.lastDoneDate !== today) h.done = false; });
+    // Volver a hoy — completions ya tiene el estado correcto, solo re-renderizar
     renderHabits();
     document.getElementById('progressLabel').textContent = 'Progreso de hoy';
     return;
@@ -3994,37 +4107,26 @@ function renderHabitsForOffset() {
   const filtered = h => h.days && h.days.includes(ourDay);
   
   if (dateOffset < 0) {
-    // Past day: show completion from heatPattern
-    // heatPattern[0] = 35 days ago, heatPattern[34] = today
-    const idx = 34 + dateOffset; // dateOffset is negative
+    // Día pasado: cards interactivos — se puede marcar/desmarcar con completions
+    const targetDateStr = targetDate.toISOString().slice(0,10);
     const habitsForDay = habits.filter(filtered);
-    document.getElementById('pendingList').innerHTML = habitsForDay.map(h => {
-      const wasCompleted = idx >= 0 && h.heatPattern && h.heatPattern[idx] > 0;
-      return `<div class="habit-card" style="opacity:${wasCompleted?'.6':'1'}">
-        <div class="habit-left">
-          <div class="habit-emoji">${h.emoji||'✅'}</div>
-          <div class="habit-info">
-            <div class="habit-name">${h.name}</div>
-            <div class="habit-meta">${freqLabel(h)}${durationLabel(h)}</div>
-          </div>
-        </div>
-        <div class="habit-right">
-          <div class="done-ring ${wasCompleted?'done':''}" style="pointer-events:none;">
-            ${wasCompleted?'<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round"><polyline points="20 6 9 17 4 12"/></svg>':''}
-          </div>
-        </div>
-      </div>`;
-    }).join('') || '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos este día</div>';
+
+    // Renderizar todos juntos en pendingList (la separación pending/done no aplica en pasado)
+    document.getElementById('pendingList').innerHTML = habitsForDay.length
+      ? habitsForDay.map(h => pastDayHabitCardHTML(h, targetDateStr)).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos este día</div>';
+
     document.getElementById('doneList').innerHTML = '';
     document.getElementById('incorporatedList').innerHTML = '';
     document.getElementById('doneSection').style.display = 'none';
     document.getElementById('incorporatedSection').style.display = 'none';
     document.getElementById('pendingLabel').style.display = 'none';
     document.getElementById('allDoneState').classList.remove('visible');
-    const done = habitsForDay.filter((h,i) => { const idx2=34+dateOffset; return idx2>=0&&h.heatPattern&&h.heatPattern[idx2]>0; }).length;
+
+    const done = habitsForDay.filter(h => isCompletedFor(h, targetDateStr)).length;
     document.getElementById('progressCount').textContent = `${done} de ${habitsForDay.length}`;
-    const pct = habitsForDay.length ? Math.round(done/habitsForDay.length*100) : 0;
-    document.getElementById('progressFill').style.width = pct+'%';
+    const pct = habitsForDay.length ? Math.round(done / habitsForDay.length * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
   } else {
     // Future day: show planned habits (all pending, non-interactive)
     const habitsForDay = habits.filter(filtered);
@@ -4272,10 +4374,10 @@ function computeMetrics() {
     ? Math.round(habits.reduce((s, h) => s + (h.consistency||0), 0) / habits.length) : 0;
   const habitCount   = habits.length;
   const incorporated = habits.filter(h => h.incorporated).length;
-  const perfectDay   = habits.length > 0 && habits.every(h => h.done) ? 1 : 0;
+  const perfectDay   = habits.length > 0 && habits.every(h => isCompletedToday(h) || h.incorporated) ? 1 : 0;
   const catSet       = new Set(habits.map(h => h.categoryId).filter(Boolean));
   const totalXP      = habits.reduce((s, h) => s + (h.streak||0)*10 + (h.incorporated?200:0), 0)
-                     + habits.filter(h => h.done).length * 5;
+                     + habits.filter(h => isCompletedToday(h)).length * 5;
   return { bestStreak, consistency, habitCount, incorporated, perfectDay,
            morning:0, recovery:0, categories: catSet.size, totalXP };
 }
@@ -4355,7 +4457,9 @@ function toggleIncorporated() {
   if (!h) return;
   h.incorporated = !h.incorporated;
   if (h.incorporated) {
-    h.done = true;
+    if (!h.completions) h.completions = {};
+    h.completions[todayStr()] = true;
+    h.heatPattern = deriveHeatPattern(h.completions);
     showToast('✅', 'Hábito marcado como incorporado');
   } else {
     showToast('🔄', 'Hábito reactivado al seguimiento');

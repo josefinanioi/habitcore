@@ -1,4 +1,4 @@
-const CACHE = 'habitcore-v10';
+const CACHE = 'habitcore-v12';
 const ASSETS = ['/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', e => {
