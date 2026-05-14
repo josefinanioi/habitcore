@@ -114,12 +114,13 @@ html,body{
 }
 
 /* Progress bar */
-.progress-section{padding:0 24px 18px;}
-.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.progress-label{font-size:var(--fs-xs);color:var(--muted);font-weight:500;}
-.progress-count{font-size:var(--fs-xs);font-weight:700;color:var(--text);}
-.progress-bar-bg{height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;}
-.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .5s cubic-bezier(.34,1.56,.64,1);}
+.progress-section{padding:0 20px 16px;}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.progress-label{font-size:var(--fs-sm);color:var(--muted);font-weight:500;}
+.progress-count{font-size:var(--fs-base);font-weight:800;color:var(--text);letter-spacing:-.02em;}
+.progress-count span{color:var(--muted);font-weight:500;font-size:var(--fs-sm);}
+.progress-bar-bg{height:7px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .55s cubic-bezier(.34,1.56,.64,1);}
 
 .consistency-badge{
   display:flex;align-items:center;gap:10px;
@@ -134,33 +135,55 @@ html,body{
 .cb-ring{width:36px;height:36px;flex-shrink:0;}
 
 /* Section label */
-.section-label{padding:0 24px 9px;font-size:var(--fs-sm);font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
+.section-label{padding:0 20px 8px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;}
+.section-label.done-label{color:var(--green);opacity:.8;}
 
 /* ═══════════════════════════════════════════
    HABIT CARDS
 ═══════════════════════════════════════════ */
-.habits-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.habits-list{padding:0 16px;display:flex;flex-direction:column;gap:7px;}
 .habit-card{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);padding:14px 16px;
-  display:flex;align-items:center;gap:14px;
+  border-radius:var(--r);padding:11px 14px;
+  display:flex;align-items:center;gap:12px;
   cursor:pointer;
-  transition:transform .12s,opacity .25s,border-color .2s;
+  transition:transform .14s,opacity .35s ease,border-color .25s,background .2s;
   position:relative;overflow:hidden;
   -webkit-tap-highlight-color:transparent;user-select:none;
 }
-.habit-card:active{transform:scale(.98);}
-.habit-card.done{opacity:.5;border-color:rgba(82,201,122,.15);}
+.habit-card:active{transform:scale(.987);}
+.habit-card.done{
+  opacity:.38;
+  border-color:rgba(82,201,122,.1);
+  transform:none;
+}
+.habit-card.done .habit-name{text-decoration-color:rgba(112,112,160,.25);}
+/* Detail access button (chevron right) */
+.detail-btn{
+  background:none;border:none;
+  padding:5px 2px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:8px;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+  opacity:.35;transition:opacity .15s,background .12s;
+}
+.detail-btn:active{opacity:.8;background:var(--surface2);}
 .habit-card.rescue{border-color:rgba(247,163,92,.4);animation:rescuePulse 2.5s infinite,slideDown .3s ease both;}
 
 .check-btn{
-  width:30px;height:30px;border-radius:50%;
+  width:40px;height:40px;border-radius:50%;
   border:2px solid var(--border);background:transparent;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .22s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;
+  transition:all .24s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
 }
-.check-btn.done{background:var(--green);border-color:var(--green);box-shadow:0 0 0 5px rgba(82,201,122,.13);}
-.check-btn svg{width:14px;height:14px;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;fill:none;opacity:0;transform:scale(.4);transition:all .18s cubic-bezier(.34,1.56,.64,1) .04s;}
+.check-btn:active:not(.done){border-color:var(--green);background:rgba(82,201,122,.1);transform:scale(.92);}
+.check-btn.done{
+  background:var(--green);border-color:var(--green);
+  box-shadow:0 0 0 8px rgba(82,201,122,.14),0 0 18px rgba(82,201,122,.2);
+  animation:checkPop .35s cubic-bezier(.34,1.56,.64,1);
+}
+.check-btn svg{width:18px;height:18px;stroke:#fff;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;fill:none;opacity:0;transform:scale(.3);transition:all .22s cubic-bezier(.34,1.56,.64,1) .05s;}
 .check-btn.done svg{opacity:1;transform:scale(1);}
 
 .habit-info{flex:1;min-width:0;}
@@ -168,7 +191,12 @@ html,body{
 .habit-card.done .habit-name{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(112,112,160,.35);}
 .habit-meta{display:flex;align-items:center;gap:8px;}
 .habit-streak{font-size:var(--fs-xs);font-weight:600;display:flex;align-items:center;gap:3px;color:var(--muted);}
-.habit-streak.hot{color:var(--amber);}
+.habit-streak.hot{
+  color:var(--amber);
+  font-weight:700;
+  text-shadow:0 0 10px rgba(247,163,92,.55);
+  font-size:13px;
+}
 .type-badge{font-size:var(--fs-xs);font-weight:600;padding:2px 7px;border-radius:99px;background:var(--surface2);color:var(--muted);}
 
 .habit-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
@@ -182,11 +210,18 @@ html,body{
 
 .done-section{margin-top:18px;}
 
-.all-done-state{display:none;flex-direction:column;align-items:center;padding:36px 32px;text-align:center;}
+.all-done-state{display:none;flex-direction:column;align-items:center;padding:40px 32px 32px;text-align:center;}
 .all-done-state.visible{display:flex;}
-.all-done-emoji{font-size:52px;margin-bottom:14px;animation:bounce .6s cubic-bezier(.34,1.56,.64,1);}
-.all-done-title{font-size:19px;font-weight:800;color:var(--text);margin-bottom:6px;}
-.all-done-sub{font-size:13.5px;color:var(--muted);line-height:1.6;}
+.all-done-emoji{font-size:60px;margin-bottom:16px;animation:allDoneBounce .7s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 0 18px rgba(247,163,92,.35));}
+.all-done-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px;letter-spacing:-.02em;}
+.all-done-sub{font-size:14px;color:var(--muted);line-height:1.65;max-width:260px;}
+.all-done-streak{
+  margin-top:18px;padding:10px 20px;
+  background:rgba(124,110,247,.1);border:1px solid rgba(124,110,247,.2);
+  border-radius:99px;
+  font-size:var(--fs-sm);font-weight:700;color:var(--accent);
+  display:flex;align-items:center;gap:6px;
+}
 
 /* ═══════════════════════════════════════════
    INSIGHTS SCREEN
@@ -812,6 +847,8 @@ html,body{
 @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes rescuePulse{0%,100%{box-shadow:0 0 0 0 rgba(247,163,92,.3)}50%{box-shadow:0 0 0 4px rgba(247,163,92,.1)}}
 @keyframes popIn{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes checkPop{0%{transform:scale(.75)}55%{transform:scale(1.18)}80%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes allDoneBounce{0%{transform:scale(0) rotate(-15deg)}60%{transform:scale(1.2) rotate(8deg)}85%{transform:scale(.92) rotate(-3deg)}100%{transform:scale(1) rotate(0deg)}}
 
 .habit-card{animation:slideDown .28s ease both;}
 .habit-card:nth-child(1){animation-delay:.04s}
@@ -1499,39 +1536,25 @@ body.light .nav-item.active{color:var(--accent);}
         <div class="progress-bar-bg">
           <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
         </div>
-        <div class="consistency-badge">
-          <div class="cb-icon">🌊</div>
-          <div class="cb-text">
-            <div class="cb-label">Consistencia 30 días</div>
-            <div style="display:flex;align-items:baseline;gap:6px;">
-              <div class="cb-value">84%</div>
-              <div class="cb-change">↑ +6% vs mes anterior</div>
-            </div>
-          </div>
-          <svg class="cb-ring" viewBox="0 0 38 38">
-            <circle cx="19" cy="19" r="15" fill="none" stroke="#1e1e2a" stroke-width="4"/>
-            <circle cx="19" cy="19" r="15" fill="none" stroke="#52c97a" stroke-width="4"
-              stroke-dasharray="79.2 94.2" stroke-dashoffset="23.6"
-              stroke-linecap="round" transform="rotate(-90 19 19)"/>
-            <text x="19" y="23" text-anchor="middle" font-size="9" font-weight="800" fill="#52c97a">84</text>
-          </svg>
-        </div>
       </div>
 
       <!-- Category filter chips -->
       <div class="filter-row" id="filterRow"></div>
 
-      <div class="section-label" id="pendingLabel">Pendientes hoy</div>
+      <div class="section-label" id="pendingLabel">Para hoy</div>
       <div class="habits-list" id="pendingList"></div>
 
       <div class="all-done-state" id="allDoneState">
-        <div class="all-done-emoji">🎉</div>
-        <div class="all-done-title">¡Todo listo por hoy!</div>
-        <div class="all-done-sub">Completaste todos tus hábitos.<br>La consistencia se construye día a día.</div>
+        <div class="all-done-emoji">🔥</div>
+        <div class="all-done-title">Día completo</div>
+        <div class="all-done-sub">Cada día que mostrás es quien sos.<br>Volvé mañana para mantener tu racha.</div>
+        <div class="all-done-streak" id="allDoneStreakChip" style="display:none;">
+          <span>⚡</span><span id="allDoneStreakText"></span>
+        </div>
       </div>
 
       <div class="done-section" id="doneSection" style="display:none;">
-        <div class="section-label">Completados</div>
+        <div class="section-label done-label">Listos ✓</div>
         <div class="habits-list" id="doneList"></div>
       </div>
 
@@ -3057,14 +3080,24 @@ function renderHabits() {
 
   const allVisible = [...pending, ...done];
   const allFiltered = habits.filter(filtered);
-  document.getElementById('allDoneState').classList.toggle(
-    'visible', allFiltered.length > 0 && allFiltered.every(h => isCompletedToday(h) || h.incorporated)
-  );
+  const isAllDone = allFiltered.length > 0 && allFiltered.every(h => isCompletedToday(h) || h.incorporated);
+  document.getElementById('allDoneState').classList.toggle('visible', isAllDone);
+  if (isAllDone) {
+    const maxStreak = Math.max(0, ...habits.map(h => h.streak || 0));
+    const chip = document.getElementById('allDoneStreakChip');
+    const chipTxt = document.getElementById('allDoneStreakText');
+    if (maxStreak >= 2) {
+      chipTxt.textContent = `${maxStreak} días en racha`;
+      chip.style.display = 'flex';
+    } else {
+      chip.style.display = 'none';
+    }
+  }
 
   const todayHabits = habits.filter(filtered);
   const totalDone = todayHabits.filter(h => isCompletedToday(h) || h.incorporated).length;
   const pct = todayHabits.length ? Math.round((totalDone / todayHabits.length) * 100) : 0;
-  document.getElementById('progressCount').textContent = `${totalDone} de ${todayHabits.length}`;
+  document.getElementById('progressCount').innerHTML = `${totalDone}<span> de ${todayHabits.length}</span>`;
   document.getElementById('progressFill').style.width  = `${pct}%`;
 }
 
@@ -3108,8 +3141,8 @@ function habitCardHTML(h, isIncorporated) {
   }
 
   return `
-  <div class="habit-card ${_done?'done':''} ${h.rescue&&!_done?'rescue':''}" onclick="openDetail('${h.id}')">
-    <button class="check-btn ${_done?'done':''}" onclick="event.stopPropagation();toggleHabit('${h.id}')">
+  <div class="habit-card ${_done?'done':''} ${h.rescue&&!_done?'rescue':''}" onclick="toggleHabit('${h.id}')">
+    <button class="check-btn ${_done?'done':''}" onclick="event.stopPropagation();toggleHabit('${h.id}')" aria-label="${_done?'Desmarcar':'Completar'} ${h.name}">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
     <div class="habit-info">
@@ -3125,9 +3158,11 @@ function habitCardHTML(h, isIncorporated) {
       </div>
       ${extra}
     </div>
-    <div class="habit-right">
+    <div class="habit-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
       ${rescue}
-      <span class="freq-label">${freqLabel(h)}</span>
+      <button class="detail-btn" onclick="event.stopPropagation();openDetail('${h.id}')" aria-label="Ver detalle de ${h.name}">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
   </div>`;
 }
@@ -4195,7 +4230,7 @@ function renderHabitsForOffset() {
     document.getElementById('allDoneState').classList.remove('visible');
 
     const done = habitsForDay.filter(h => isCompletedFor(h, targetDateStr)).length;
-    document.getElementById('progressCount').textContent = `${done} de ${habitsForDay.length}`;
+    document.getElementById('progressCount').innerHTML = `${done}<span> de ${habitsForDay.length}</span>`;
     const pct = habitsForDay.length ? Math.round(done / habitsForDay.length * 100) : 0;
     document.getElementById('progressFill').style.width = pct + '%';
   } else {
@@ -4229,7 +4264,7 @@ function renderHabitsForOffset() {
     document.getElementById('incorporatedSection').style.display = 'none';
     document.getElementById('pendingLabel').style.display = 'none';
     document.getElementById('allDoneState').classList.remove('visible');
-    document.getElementById('progressCount').textContent = `0 de ${habitsForDay.length}`;
+    document.getElementById('progressCount').innerHTML = `0<span> de ${habitsForDay.length}</span>`;
     document.getElementById('progressFill').style.width = '0%';
   }
 }
