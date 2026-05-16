@@ -1685,9 +1685,8 @@ body.light .nav-item.active{color:var(--accent);}
 
       <!-- Identity reflection -->
       <div class="identity-card">
-        <div class="id-header">🪞 Reflexión del domingo</div>
+        <div class="id-header">🪞 Quién estás siendo</div>
         <div id="insReflexion" style="font-size:var(--fs-sm);color:var(--muted);line-height:1.6;">Completá hábitos esta semana para ver tu reflexión aquí.</div>
-        <div style="margin-top:12px;font-size:var(--fs-xs);color:var(--muted);line-height:1.5;">La evidencia se acumula. Cada día que actúas, votas por la persona en la que te estás convirtiendo.</div>
       </div>
 
     </div><!-- /screenInsights -->
@@ -2484,6 +2483,8 @@ async function loadData() {
   const { data: cats } = await sb.from('custom_categories').select('*').eq('user_id', currentUser.id);
   customCategories = cats || [];
 
+  // Recalcular streak y consistencia desde completions reales en la carga inicial
+  habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); });
   renderHabits();
   renderFilterChips();
   updateInsightsFromData();
@@ -3183,6 +3184,7 @@ function toggleHabitForDate(h, ds, rerenderFn) {
     delete h.completions[ds];
     h.heatPattern = deriveHeatPattern(h.completions);
     recalculateStreak(h);
+    recalculateConsistency(h);
     playTap();
     haptic('light');
   } else {
@@ -3190,21 +3192,29 @@ function toggleHabitForDate(h, ds, rerenderFn) {
     h.completions[ds] = true;
     h.heatPattern = deriveHeatPattern(h.completions);
     recalculateStreak(h);
+    recalculateConsistency(h);
     playSuccess();
     haptic('medium');
     const wasRescue = h.rescue;
     h.rescue = false;
     if (wasRescue)           showToast('⚡','¡Racha rescatada! Completaste al día siguiente.');
-    else if (h.streak === 7) showToast('🔥',`¡7 días seguidos de "${h.name}"! La racha se calienta.`);
-    else if (h.streak > (h.bestStreak||0)) { h.bestStreak = h.streak; showToast('🏆',`¡Nuevo récord! ${h.streak} días de "${h.name}".`); }
+    else if (h.streak === 7) showToast('🔥',`¡7 días seguidos de "${h.name}"! El momentum es real.`);
+    else if (h.streak === 30) showToast('🏆',`¡30 días de "${h.name}"! Esto ya es parte de vos.`);
+    else if (h.streak > (h.bestStreak||0)) { h.bestStreak = h.streak; showToast('⭐',`Nuevo récord: ${h.streak} días seguidos de "${h.name}".`); }
     // ¿Todos los hábitos de hoy completados?
     if (ds === todayStr()) {
       const allDone = habits.filter(x => !x.incorporated).every(x => isCompletedToday(x));
-      if (allDone) setTimeout(() => { launchConfetti(); showToast('🎉','¡Todos los hábitos del día! La consistencia se construye así.'); }, 350);
+      if (allDone) setTimeout(() => { launchConfetti(); showToast('🔥','Día completo. Cada día que mostrás es quien sos.'); }, 350);
     }
   }
   saveHabitToDb(h);
-  setTimeout(rerenderFn || renderHabits, 40);
+  // Re-render y actualizar insights en tiempo real
+  setTimeout(() => {
+    (rerenderFn || renderHabits)();
+    // Actualizar insights si la pantalla está visible
+    const insScreen = document.getElementById('screenInsights');
+    if (insScreen && !insScreen.classList.contains('hidden')) updateInsightsFromData();
+  }, 40);
 }
 
 function bumpQuant(e, id) {
@@ -3534,6 +3544,48 @@ function recalculateStreak(h) {
   if (streak > (h.bestStreak || 0)) h.bestStreak = streak;
 }
 
+// Recalcula consistencia desde completions reales (últimos N días programados)
+function recalculateConsistency(h, days = 30) {
+  if (!h.completions) { h.consistency = 0; return; }
+  let scheduled = 0, done = 0;
+  for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const jsDay  = d.getDay();
+    const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
+    const isScheduled = !h.days || h.days.length === 0 || h.days.length === 7 || h.days.includes(dayIdx);
+    if (!isScheduled) continue;
+    scheduled++;
+    const ds = d.toISOString().slice(0, 10);
+    if (h.completions[ds]) done++;
+  }
+  h.consistency = scheduled > 0 ? Math.round((done / scheduled) * 100) : 0;
+}
+
+// Tiempo promedio de recovery: días entre una falla y la siguiente completión (últimos 90 días)
+function computeRecoveryDays() {
+  let totalDays = 0, count = 0;
+  habits.forEach(h => {
+    if (!h.completions) return;
+    let missStreak = 0;
+    for (let i = 89; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const jsDay  = d.getDay();
+      const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
+      const scheduled = !h.days || h.days.length === 7 || h.days.includes(dayIdx);
+      if (!scheduled) continue;
+      const ds = d.toISOString().slice(0, 10);
+      if (h.completions[ds]) {
+        if (missStreak > 0) { totalDays += missStreak; count++; }
+        missStreak = 0;
+      } else {
+        missStreak++;
+      }
+    }
+  });
+  return count > 0 ? Math.round((totalDays / count) * 10) / 10 : null;
+}
+
 /* ─── EMOJI PICKER ─── */
 function renderEmojiGrid() {
   const grid = document.getElementById('emojiGrid');
@@ -3717,18 +3769,17 @@ function addHabit() {
 function buildHeatmap90() {
   const grid = document.getElementById('heatmap90');
   const cols = 13, rows = 7, total = cols * rows; // 91 days
-  // Aggregate real heatPattern data from all habits (heatPattern = last 35 days)
+  // Usar completions reales para los 91 días (no limitado a heatPattern de 35 días)
   const data = new Array(total).fill(0);
   if (habits && habits.length) {
     habits.forEach(h => {
-      if (!h.heatPattern) return;
-      // heatPattern covers last 35 days; map to last 35 cells of our 91-day grid
-      h.heatPattern.forEach((v, i) => {
-        if (v > 0) {
-          const cellIdx = total - 35 + i;
-          if (cellIdx >= 0) data[cellIdx] = Math.min(4, data[cellIdx] + 1);
-        }
-      });
+      if (!h.completions) return;
+      for (let i = 0; i < total; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - (total - 1 - i));
+        const ds = d.toISOString().slice(0, 10);
+        if (h.completions[ds]) data[i] = Math.min(habits.length, data[i] + 1);
+      }
     });
   }
   const maxVal = Math.max(...data, 1);
@@ -3753,22 +3804,22 @@ function buildHeatmap90() {
 function buildDayChart() {
   const chart = document.getElementById('dayChart');
   const days = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-  // Calcular tasa de fallo real por día de semana usando heatPattern de 35 días
-  // heatPattern[i] = 0 sin completar, >0 completado. Índice 0 = hace 35 días
+  // Calcular tasa de fallo por día usando completions reales (últimos 90 días)
   const completions = new Array(7).fill(0);
   const totals = new Array(7).fill(0);
   if (habits && habits.length) {
     habits.forEach(h => {
-      if (!h.heatPattern || !h.days) return;
-      h.heatPattern.forEach((v, i) => {
-        const d = new Date(); d.setDate(d.getDate() - (34 - i));
-        const jsDay = d.getDay(); // 0=Dom
-        const ourDay = jsDay === 0 ? 6 : jsDay - 1; // 0=Lu
-        if (h.days.includes(ourDay)) {
-          totals[ourDay]++;
-          if (v > 0) completions[ourDay]++;
-        }
-      });
+      if (!h.completions) return;
+      for (let i = 0; i < 90; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const jsDay  = d.getDay();
+        const ourDay = jsDay === 0 ? 6 : jsDay - 1;
+        const scheduled = !h.days || h.days.length === 0 || h.days.length === 7 || h.days.includes(ourDay);
+        if (!scheduled) continue;
+        totals[ourDay]++;
+        const ds = d.toISOString().slice(0, 10);
+        if (h.completions[ds]) completions[ourDay]++;
+      }
     });
   }
   const failRates = days.map((_, i) => totals[i] > 0 ? Math.round(((totals[i]-completions[i])/totals[i])*100) : 0);
@@ -3809,7 +3860,10 @@ function updateInsightsFromData() {
     return;
   }
 
-  // Consistencia global: promedio de consistency de todos los hábitos
+  // Recalcular consistencia de todos los hábitos desde completions (datos frescos)
+  habits.forEach(h => recalculateConsistency(h));
+
+  // Consistencia global: promedio real desde completions
   const avgConsistency = Math.round(habits.reduce((s,h) => s + (h.consistency||0), 0) / habits.length);
 
   // Mejor racha global
@@ -3823,14 +3877,19 @@ function updateInsightsFromData() {
   const recentActivity = habits.filter(h => isCompletedToday(h)).length / Math.max(habits.length, 1);
   const momentum = Math.min(100, Math.round(avgConsistency * 0.5 + (Math.min(maxStreak,30)/30)*30 + recentActivity*20));
 
+  // Recovery real desde completions
+  const recoveryDays = computeRecoveryDays();
+  const recoveryStr  = recoveryDays === null ? '—' : recoveryDays === 0 ? '< 1' : String(recoveryDays);
+  const recoveryNote = recoveryDays === null ? '' : recoveryDays <= 1 ? '↓ recuperación rápida' : recoveryDays <= 3 ? '→ en progreso' : '↑ intentá retomar antes';
+
   // Actualizar DOM
   const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
   set('momentumVal', momentum);
   set('insConsistencia', avgConsistency + '%');
   set('insMejorRacha', bestStreak);
-  set('insRecovery', maxStreak > 0 ? '< 1' : '—');
-  set('insRecoveryNum', maxStreak > 0 ? '< 1' : '—');
-  set('insRecoveryNote', maxStreak > 0 ? '↓ mejorando' : '');
+  set('insRecovery', recoveryStr);
+  set('insRecoveryNum', recoveryStr);
+  set('insRecoveryNote', recoveryNote);
 
   // Arco SVG del momentum
   const arc = document.getElementById('momentumArc');
@@ -3843,9 +3902,10 @@ function updateInsightsFromData() {
   // Trend del momentum
   const trendEl = document.getElementById('momentumTrend');
   if (trendEl) {
-    if (momentum >= 70) { trendEl.textContent = '↑ Buen momento. Mantené el ritmo.'; trendEl.className='momentum-trend trend-up'; }
-    else if (momentum >= 40) { trendEl.textContent = '→ En progreso. Consistencia es clave.'; trendEl.className='momentum-trend'; }
-    else { trendEl.textContent = '↓ Empezá con un hábito hoy.'; trendEl.className='momentum-trend trend-down'; }
+    if (momentum >= 80) { trendEl.textContent = '🔥 Estás en racha. No rompas el ciclo.'; trendEl.className='momentum-trend trend-up'; }
+    else if (momentum >= 60) { trendEl.textContent = '↑ Buen momento. Seguí apareciendo.'; trendEl.className='momentum-trend trend-up'; }
+    else if (momentum >= 35) { trendEl.textContent = '→ En construcción. Un día a la vez.'; trendEl.className='momentum-trend'; }
+    else { trendEl.textContent = '↓ Empezá con uno hoy. Siempre con uno.'; trendEl.className='momentum-trend trend-down'; }
   }
 
   // Insight de la semana
@@ -3868,19 +3928,32 @@ function updateInsightsFromData() {
     else patEl.textContent = 'Completá hábitos durante la semana para ver tu patrón de fallas.';
   }
 
-  // Reflexión
+  // Reflexión: "Quién estás siendo"
   const refEl = document.getElementById('insReflexion');
   if (refEl) {
     const done = habits.filter(h => isCompletedToday(h));
+    const hotHabits = habits.filter(h => (h.streak||0) >= 7);
+    const IDENTITY_TEMPLATES = [
+      h => `Sos alguien que ${h.emoji} <strong>${h.name}</strong>. ${h.streak >= 3 ? `Llevas ${h.streak} días sin saltarte.` : 'Ya va tomando forma.'}`,
+      h => `${h.emoji} <strong>${h.name}</strong> ya no es algo que hacés — es parte de cómo funcionás.`,
+      h => `Cada vez que elegís ${h.emoji} <strong>${h.name}</strong>, le das forma a quien querés ser.`,
+    ];
     if (done.length > 0) {
-      refEl.innerHTML = done.map(h =>
-        `<div class="id-line">Hoy fuiste alguien que <strong>${h.emoji} ${h.name.toLowerCase()}</strong>.</div>`
-      ).join('');
+      refEl.innerHTML = done.slice(0, 3).map((h, i) => {
+        const tmpl = IDENTITY_TEMPLATES[i % IDENTITY_TEMPLATES.length];
+        return `<div class="id-line">${tmpl(h)}</div>`;
+      }).join('');
+      if (done.length > 3) {
+        refEl.innerHTML += `<div class="id-line" style="margin-top:6px;color:var(--muted)">…y ${done.length - 3} hábito${done.length - 3 > 1 ? 's' : ''} más hoy.</div>`;
+      }
+    } else if (hotHabits.length > 0) {
+      const h = hotHabits.sort((a,b) => b.streak - a.streak)[0];
+      refEl.innerHTML = `<div class="id-line">${h.emoji} <strong>${h.name}</strong> lleva ${h.streak} días seguidos. Eso no es suerte — es identidad.</div>`;
     } else if (bestStreak > 0) {
       const best = habits.reduce((b,h) => (h.bestStreak||0)>(b.bestStreak||0)?h:b, habits[0]);
-      refEl.innerHTML = `<div class="id-line">Tu mejor marca: <strong>${best.bestStreak} días</strong> seguidos de <strong>${best.emoji} ${best.name}</strong>.</div>`;
+      refEl.innerHTML = `<div class="id-line">Tu mejor racha fue ${best.emoji} <strong>${best.name}</strong> por ${best.bestStreak} días. Podés volver a ese nivel.</div>`;
     } else {
-      refEl.textContent = 'Completá hábitos esta semana para ver tu reflexión aquí.';
+      refEl.textContent = 'Completá tu primer hábito y empezá a ver quién estás siendo.';
     }
   }
 
@@ -4213,25 +4286,29 @@ function renderHabitsForOffset() {
   const filtered = h => h.days && h.days.includes(ourDay);
   
   if (dateOffset < 0) {
-    // Día pasado: cards interactivos — se puede marcar/desmarcar con completions
+    // Día pasado: cards interactivos — misma lógica que hoy (pending arriba, listos abajo)
     const targetDateStr = targetDate.toISOString().slice(0,10);
-    const habitsForDay = habits.filter(filtered);
+    const habitsForDay  = habits.filter(filtered);
+    const pendingForDay = habitsForDay.filter(h => !isCompletedFor(h, targetDateStr));
+    const doneForDay    = habitsForDay.filter(h =>  isCompletedFor(h, targetDateStr));
 
-    // Renderizar todos juntos en pendingList (la separación pending/done no aplica en pasado)
-    document.getElementById('pendingList').innerHTML = habitsForDay.length
-      ? habitsForDay.map(h => pastDayHabitCardHTML(h, targetDateStr)).join('')
-      : '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos este día</div>';
-
-    document.getElementById('doneList').innerHTML = '';
+    document.getElementById('pendingList').innerHTML = pendingForDay.length
+      ? pendingForDay.map(h => pastDayHabitCardHTML(h, targetDateStr)).join('')
+      : (!habitsForDay.length ? '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos este día</div>' : '');
+    document.getElementById('doneList').innerHTML = doneForDay.length
+      ? doneForDay.map(h => pastDayHabitCardHTML(h, targetDateStr)).join('')
+      : '';
     document.getElementById('incorporatedList').innerHTML = '';
-    document.getElementById('doneSection').style.display = 'none';
+    document.getElementById('doneSection').style.display         = doneForDay.length    ? 'block' : 'none';
     document.getElementById('incorporatedSection').style.display = 'none';
-    document.getElementById('pendingLabel').style.display = 'none';
-    document.getElementById('allDoneState').classList.remove('visible');
+    document.getElementById('pendingLabel').style.display        = pendingForDay.length ? 'block' : 'none';
 
-    const done = habitsForDay.filter(h => isCompletedFor(h, targetDateStr)).length;
-    document.getElementById('progressCount').innerHTML = `${done}<span> de ${habitsForDay.length}</span>`;
-    const pct = habitsForDay.length ? Math.round(done / habitsForDay.length * 100) : 0;
+    const allPastDone = habitsForDay.length > 0 && doneForDay.length === habitsForDay.length;
+    document.getElementById('allDoneState').classList.toggle('visible', allPastDone);
+
+    const doneCount = doneForDay.length;
+    document.getElementById('progressCount').innerHTML = `${doneCount}<span> de ${habitsForDay.length}</span>`;
+    const pct = habitsForDay.length ? Math.round(doneCount / habitsForDay.length * 100) : 0;
     document.getElementById('progressFill').style.width = pct + '%';
   } else {
     // Día futuro: no se puede completar, pero sí abrir el detalle y editar
