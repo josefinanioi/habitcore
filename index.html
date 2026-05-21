@@ -13,6 +13,7 @@
   --surface:   rgba(255,255,255,.032);
   --surface2:  #1a1a26;
   --surface3:  #222232;
+  --sheet-bg:  #13131f;          /* fondo sólido para sheets/modales */
   --border:    rgba(255,255,255,.07);
   --accent:    #7c6ef7;
   --accent-s:  rgba(124,110,247,.14);
@@ -683,12 +684,16 @@ html,body{
   position:fixed;inset:0;
   z-index:490;
   background:transparent;
+  backdrop-filter:blur(0px);
+  -webkit-backdrop-filter:blur(0px);
   pointer-events:none;
   transition:background .28s ease;
   -webkit-tap-highlight-color:transparent;
 }
 #hc-backdrop.is-open {
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
   pointer-events:all;
 }
 
@@ -700,9 +705,13 @@ html,body{
   display:flex;
   flex-direction:column;
   max-height:92dvh;
-  background:var(--surface);
+  /* Sólido — no usar var(--surface) que es rgba casi transparente */
+  background:var(--sheet-bg);
   border-radius:20px 20px 0 0;
-  border-top:1px solid var(--border);
+  /* Borde superior más visible para definir el "borde de la hoja" */
+  border-top:1px solid rgba(255,255,255,.1);
+  /* Sombra hacia arriba para dar sensación de elevación real */
+  box-shadow: 0 -16px 60px rgba(0,0,0,.7), 0 -1px 0 rgba(255,255,255,.07);
   transform:translateY(100%);
   transition:transform .35s cubic-bezier(.32,.72,0,1);
   will-change:transform;
@@ -723,7 +732,7 @@ html,body{
 .hc-handle-zone:active { cursor:grabbing; }
 .hc-handle-pill {
   width:36px;height:4px;border-radius:99px;
-  background:var(--border);
+  background:rgba(255,255,255,.14);
   margin:12px auto 16px;
 }
 
@@ -796,8 +805,9 @@ html,body{
   padding: 12px 20px;
   /* safe-area-inset-bottom: respeta el home indicator en iOS PWA */
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  /* Ligeramente más oscuro que --sheet-bg para anclar el footer */
+  background: #0f0f1c;
+  border-top: 1px solid rgba(255,255,255,.06);
 }
 .sheet-actions {
   display: grid;
@@ -1523,6 +1533,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 body.light{
   --bg:#f2f2f7;
   --surface:#ffffff;
+  --sheet-bg:#ffffff;
   --surface2:#e8e8ed;
   --surface3:#d8d8dd;
   --text:#1c1c1e;
@@ -1537,7 +1548,7 @@ body.light{
 body.light .bottom-nav{background:#f8f8fa;border-top-color:rgba(0,0,0,.08);}
 body.light .habit-card{box-shadow:0 1px 3px rgba(0,0,0,.08);}
 body.light .app-screen{background:var(--bg);}
-body.light .add-sheet,body.light .hc-sheet{background:var(--surface);}
+/* light: --sheet-bg:#ffffff ya está en el bloque body.light de variables */
 body.light .nav-item{color:var(--muted);}
 body.light .nav-item.active{color:var(--accent);}
 
