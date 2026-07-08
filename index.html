@@ -327,7 +327,7 @@ html,body{
 ═══════════════════════════════════════════ */
 
 /* Momentum hero */
-.insights-header{padding:calc(env(safe-area-inset-top,56px) + 16px) 24px 18px;display:flex;align-items:flex-start;justify-content:space-between;}
+.insights-header{padding:calc(env(safe-area-inset-top,56px) + 46px) 24px 18px;display:flex;align-items:flex-start;justify-content:space-between;}
 .insights-title{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);line-height:1.1;}
 .insights-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:2px;}
 .period-chip{
@@ -582,7 +582,7 @@ html,body{
 ═══════════════════════════════════════════ */
 .logros-scroll{overflow-y:auto;height:100%;scrollbar-width:none;padding-bottom:90px;}
 .logros-scroll::-webkit-scrollbar{display:none;}
-.logros-header{padding:calc(env(safe-area-inset-top,56px) + 16px) 20px 10px;}
+.logros-header{padding:calc(env(safe-area-inset-top,56px) + 46px) 20px 10px;}
 .logros-title{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);}
 .logros-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:2px;}
 
@@ -923,6 +923,289 @@ html,body{
 .freq-chip.selected{background:var(--accent-s);border-color:var(--accent);color:#a89ef7;}
 .add-btn{width:100%;padding:14px;border-radius:var(--rsm);background:linear-gradient(135deg,var(--accent),#5a4de0);border:none;color:#fff;font-size:var(--fs-base);font-weight:700;cursor:pointer;transition:transform .12s;box-shadow:0 5px 18px rgba(124,110,247,.3);}
 .add-btn:active{transform:scale(.98);}
+
+/* ═══════════════════════════════════════════
+   MISIONES — SEGUNDO PILAR
+   Identidad: aventura, curiosidad, descubrimiento.
+   Acento cálido dorado vs. el violeta disciplinado de Hábitos.
+═══════════════════════════════════════════ */
+:root{
+  --m-accent:  #e8b34a;   /* oro cálido — acento del mundo Misiones */
+  --m-accent-d:#d1972f;
+  --m-glow:    rgba(232,179,74,.22);
+  /* colores por categoría */
+  --cat-exploracion: #4ecdc4;
+  --cat-coraje:      #e05c5c;
+  --cat-creatividad: #c77dff;
+  --cat-sabiduria:   #5c8ce0;
+  --cat-comunicacion:#f0a955;
+  --cat-legendarias: #e8b34a;
+}
+
+/* ── World switch (píldora flotante superior) ── */
+.world-switch{
+  position:fixed;
+  top:calc(env(safe-area-inset-top,24px) + 8px);
+  left:50%;transform:translateX(-50%);
+  z-index:110;
+  display:flex;gap:2px;padding:3px;
+  background:rgba(18,18,28,.72);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:99px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:opacity .25s ease, transform .25s ease;
+}
+.world-switch.is-hidden{
+  opacity:0;pointer-events:none;
+  transform:translateX(-50%) translateY(-14px);
+}
+.ws-btn{
+  border:none;background:transparent;cursor:pointer;
+  padding:6px 15px;border-radius:99px;
+  font-size:12px;font-weight:700;letter-spacing:.02em;
+  color:var(--muted);display:flex;align-items:center;gap:5px;
+  transition:color .2s, background .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.ws-btn.active{color:#fff;}
+.ws-btn.ws-habits.active{background:linear-gradient(135deg,#7c6ef7,#5a4de0);}
+.ws-btn.ws-missions.active{background:linear-gradient(135deg,#e8b34a,#d1972f);color:#221800;}
+
+/* Reservar espacio superior para el switch en ambos mundos */
+.app-header{padding-top:calc(env(safe-area-inset-top,52px) + 46px);}
+
+/* ── Missions bottom-nav (variante) ── */
+.bottom-nav-m .nav-item.active svg{stroke:var(--m-accent);filter:drop-shadow(0 0 6px var(--m-glow));}
+.bottom-nav-m .nav-item.active span{color:var(--m-accent);}
+.bottom-nav-m .nav-item.active .nav-dot{background:var(--m-accent);}
+.nav-add-m{background:linear-gradient(135deg,var(--m-accent),var(--m-accent-d))!important;box-shadow:0 4px 16px var(--m-glow)!important;}
+
+/* ═══ MISIONES · Header ═══ */
+.m-header{padding:calc(env(safe-area-inset-top,52px) + 46px) 20px 8px;}
+.m-eyebrow{font-size:var(--fs-xs);color:var(--m-accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
+.m-title{font-size:26px;font-weight:800;letter-spacing:-.04em;color:var(--text);line-height:1.05;}
+.m-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:4px;line-height:1.5;}
+
+/* ═══ MISIONES · Hero de progreso ═══ */
+.m-hero{
+  margin:14px 16px 8px;padding:18px;
+  background:linear-gradient(135deg,rgba(232,179,74,.10),rgba(78,205,196,.05));
+  border:1px solid rgba(232,179,74,.18);
+  border-radius:var(--r);
+  display:flex;align-items:center;gap:18px;
+}
+.m-hero-ring{position:relative;width:74px;height:74px;flex-shrink:0;}
+.m-hero-ring svg{transform:rotate(-90deg);width:74px;height:74px;}
+.m-hero-ring .mr-track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:6;}
+.m-hero-ring .mr-fill{fill:none;stroke:var(--m-accent);stroke-width:6;stroke-linecap:round;transition:stroke-dasharray 1s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 0 6px var(--m-glow));}
+.m-hero-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.m-hero-pct b{font-size:19px;font-weight:800;color:var(--text);line-height:1;}
+.m-hero-pct span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.m-hero-info{flex:1;}
+.m-hero-count{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.02em;}
+.m-hero-count span{color:var(--muted);font-weight:500;font-size:var(--fs-sm);}
+.m-hero-label{font-size:var(--fs-sm);color:var(--muted);margin-top:2px;line-height:1.4;}
+
+/* ═══ MISIONES · Sugerencia "¿Y si...?" ═══ */
+.m-suggest{
+  margin:8px 16px 6px;padding:14px 16px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-left:3px solid var(--m-accent);
+  border-radius:var(--rsm);cursor:pointer;
+  transition:transform .12s, border-color .2s;
+  display:flex;align-items:center;gap:12px;
+}
+.m-suggest:active{transform:scale(.99);}
+.m-suggest-emoji{font-size:26px;flex-shrink:0;}
+.m-suggest-body{flex:1;min-width:0;}
+.m-suggest-kicker{font-size:var(--fs-xs);color:var(--m-accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+.m-suggest-text{font-size:var(--fs-base);font-weight:600;color:var(--text);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.m-suggest-arrow{color:var(--muted);flex-shrink:0;}
+
+/* ═══ MISIONES · Capítulos (categorías) ═══ */
+.m-section-label{padding:16px 20px 10px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.m-chapters{display:flex;flex-direction:column;gap:10px;padding:0 16px;}
+.m-chapter{
+  position:relative;overflow:hidden;
+  border-radius:var(--r);padding:16px 18px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  cursor:pointer;display:flex;align-items:center;gap:14px;
+  transition:transform .14s, border-color .2s;
+  animation:slideDown .32s cubic-bezier(.22,1,.36,1) both;
+}
+.m-chapter:active{transform:scale(.985);}
+.m-chapter::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--cc,#888);
+}
+.m-chapter-glow{
+  position:absolute;right:-30px;top:50%;transform:translateY(-50%);
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,var(--cc,#888),transparent 70%);
+  opacity:.12;pointer-events:none;
+}
+.m-chapter-emoji{
+  width:46px;height:46px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  background:color-mix(in srgb, var(--cc,#888) 16%, transparent);
+}
+.m-chapter-body{flex:1;min-width:0;z-index:1;}
+.m-chapter-name{font-size:var(--fs-md);font-weight:800;color:var(--text);letter-spacing:-.01em;}
+.m-chapter-tag{font-size:var(--fs-sm);color:var(--muted);margin-top:1px;}
+.m-chapter-meta{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.m-chapter-bar{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;}
+.m-chapter-bar i{display:block;height:100%;border-radius:99px;background:var(--cc,#888);transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.m-chapter-frac{font-size:var(--fs-xs);font-weight:700;color:var(--cc,#888);flex-shrink:0;}
+.m-chapter-seal{
+  position:absolute;right:14px;top:14px;font-size:15px;
+  filter:drop-shadow(0 0 6px var(--cc));
+}
+
+/* ═══ MISIONES · Card de misión ═══ */
+.m-list{display:flex;flex-direction:column;gap:9px;padding:0 16px;}
+.m-card{
+  position:relative;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 15px;
+  display:flex;align-items:flex-start;gap:13px;
+  cursor:pointer;transition:transform .12s, border-color .2s, opacity .3s;
+  animation:slideDown .3s cubic-bezier(.22,1,.36,1) both;
+}
+.m-card:active{transform:scale(.99);}
+.m-card.completed{opacity:.62;}
+.m-card.completed .m-card-title{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.25);}
+.m-card-state{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all .2s;
+  background:transparent;cursor:pointer;
+}
+.m-card-state.completed{background:var(--cc,var(--green));border-color:var(--cc,var(--green));color:#fff;}
+.m-card-emoji{font-size:22px;flex-shrink:0;margin-top:-1px;}
+.m-card-body{flex:1;min-width:0;}
+.m-card-title{font-size:var(--fs-base);font-weight:700;color:var(--text);line-height:1.35;}
+.m-card-desc{font-size:var(--fs-sm);color:var(--muted);margin-top:3px;line-height:1.45;}
+.m-card-foot{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.m-cat-pill{font-size:var(--fs-xs);font-weight:700;padding:2px 9px;border-radius:99px;letter-spacing:.02em;display:inline-flex;align-items:center;gap:4px;}
+.m-card-date{font-size:var(--fs-xs);color:var(--muted);}
+.m-fav{
+  position:absolute;right:12px;top:12px;
+  background:none;border:none;cursor:pointer;font-size:17px;
+  color:var(--muted);opacity:.5;transition:transform .2s, opacity .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.m-fav.on{opacity:1;color:var(--m-accent);animation:favPop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes favPop{0%{transform:scale(.6)}55%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+/* ═══ MISIONES · Estado vacío ═══ */
+.m-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:48px 32px;}
+.m-empty-emoji{font-size:52px;margin-bottom:16px;opacity:.85;}
+.m-empty-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px;}
+.m-empty-sub{font-size:var(--fs-sm);color:var(--muted);line-height:1.6;max-width:250px;}
+
+/* ═══ MISIONES · Timeline (Vividas) ═══ */
+.m-tl{padding:4px 16px 0;}
+.m-tl-item{
+  position:relative;padding:0 0 20px 26px;
+  animation:fadeInUp .35s ease both;
+}
+.m-tl-item::before{
+  content:'';position:absolute;left:7px;top:22px;bottom:-2px;width:2px;
+  background:rgba(255,255,255,.08);
+}
+.m-tl-item:last-child::before{display:none;}
+.m-tl-dot{
+  position:absolute;left:0;top:5px;width:16px;height:16px;border-radius:50%;
+  background:var(--cc,var(--m-accent));border:3px solid var(--bg);
+  box-shadow:0 0 0 1px var(--cc,var(--m-accent));
+}
+.m-tl-date{font-size:var(--fs-xs);color:var(--m-accent);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;}
+.m-tl-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;cursor:pointer;transition:transform .12s;}
+.m-tl-card:active{transform:scale(.99);}
+.m-tl-title{font-size:var(--fs-base);font-weight:700;color:var(--text);line-height:1.3;}
+.m-tl-title .tl-emoji{margin-right:6px;}
+.m-tl-notes{font-size:var(--fs-sm);color:var(--muted);margin-top:5px;line-height:1.5;font-style:italic;}
+
+/* ═══ MISIONES · Mapa / Progreso ═══ */
+.m-map-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 16px 4px;}
+.m-stat{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;}
+.m-stat-val{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-.03em;line-height:1;}
+.m-stat-val.gold{color:var(--m-accent);}
+.m-stat-lbl{font-size:var(--fs-xs);color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.m-cat-progress{padding:6px 16px;}
+.m-cat-row{display:flex;align-items:center;gap:11px;padding:9px 0;}
+.m-cat-row-emoji{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:color-mix(in srgb, var(--cc,#888) 15%, transparent);}
+.m-cat-row-body{flex:1;min-width:0;}
+.m-cat-row-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.m-cat-row-name{font-size:var(--fs-sm);font-weight:700;color:var(--text);}
+.m-cat-row-frac{font-size:var(--fs-xs);font-weight:700;color:var(--cc,#888);}
+.m-cat-row-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;}
+.m-cat-row-bar i{display:block;height:100%;border-radius:99px;background:var(--cc,#888);transition:width .9s cubic-bezier(.34,1.56,.64,1);}
+
+/* ── Insignias / hitos ── */
+.m-badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:8px 16px 16px;}
+.m-badge{aspect-ratio:1;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:var(--surface2);border:1px solid var(--border);padding:8px 4px;text-align:center;transition:transform .15s;}
+.m-badge.earned{background:linear-gradient(160deg,rgba(232,179,74,.14),rgba(232,179,74,.04));border-color:rgba(232,179,74,.3);}
+.m-badge.earned .m-badge-icon{filter:none;}
+.m-badge-icon{font-size:24px;filter:grayscale(1) opacity(.35);transition:filter .3s;}
+.m-badge-name{font-size:9px;font-weight:700;color:var(--muted);line-height:1.15;letter-spacing:.02em;}
+.m-badge.earned .m-badge-name{color:var(--text);}
+
+/* ═══ MISIONES · Sheets ═══ */
+.m-detail-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 18px;}
+.m-detail-emoji{font-size:52px;margin-bottom:12px;}
+.m-detail-cat{font-size:var(--fs-xs);font-weight:700;padding:3px 12px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px;}
+.m-detail-title{font-size:21px;font-weight:800;color:var(--text);line-height:1.25;letter-spacing:-.02em;}
+.m-detail-desc{font-size:var(--fs-base);color:var(--muted);line-height:1.6;margin-top:10px;}
+.m-detail-reward{
+  margin:16px 0;padding:14px 16px;border-radius:var(--rsm);
+  background:linear-gradient(135deg,rgba(232,179,74,.10),rgba(232,179,74,.03));
+  border:1px solid rgba(232,179,74,.2);
+}
+.m-detail-reward-label{font-size:var(--fs-xs);font-weight:700;color:var(--m-accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.m-detail-reward-text{font-size:var(--fs-base);color:var(--text);line-height:1.5;font-style:italic;}
+.m-detail-notes{font-size:var(--fs-sm);color:var(--text);line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-top:6px;}
+.m-detail-meta{font-size:var(--fs-sm);color:var(--muted);text-align:center;margin-top:8px;}
+
+/* ── Sello de completado (microinteracción) ── */
+.stamp-overlay{
+  position:fixed;inset:0;z-index:520;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;
+}
+.stamp-overlay.show{opacity:1;}
+.stamp-overlay .stamp-veil{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;}
+.stamp-overlay.show .stamp-veil{opacity:1;}
+.stamp{
+  position:relative;text-align:center;
+  transform:scale(0) rotate(-18deg);
+}
+.stamp.go{animation:stampPress .6s cubic-bezier(.3,1.4,.5,1) forwards;}
+@keyframes stampPress{
+  0%{transform:scale(2.4) rotate(-18deg);opacity:0;}
+  45%{opacity:1;}
+  60%{transform:scale(.92) rotate(-4deg);opacity:1;}
+  100%{transform:scale(1) rotate(-6deg);opacity:1;}
+}
+.stamp-ring{
+  width:150px;height:150px;border-radius:50%;
+  border:4px solid var(--cc,var(--m-accent));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--cc,var(--m-accent)) 20%,transparent), 0 8px 40px rgba(0,0,0,.5);
+  background:rgba(18,18,28,.9);
+}
+.stamp-ring-emoji{font-size:44px;}
+.stamp-ring-label{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--cc,var(--m-accent));}
+.stamp-reward{
+  margin-top:20px;max-width:280px;
+  font-size:15px;line-height:1.55;color:var(--text);font-style:italic;
+  opacity:0;
+}
+.stamp.go .stamp-reward{animation:fadeInUp .5s ease .45s forwards;}
 
 /* ═══════════════════════════════════════════
    TOAST
@@ -1619,6 +1902,12 @@ body.light .nav-item.active{color:var(--accent);}
   </div>
 
 
+  <!-- ════ WORLD SWITCH ════ -->
+  <div class="world-switch" id="worldSwitch">
+    <button class="ws-btn ws-habits active" id="wsHabits" onclick="switchWorld('habits')">◐ Hábitos</button>
+    <button class="ws-btn ws-missions" id="wsMissions" onclick="switchWorld('missions')">Misiones</button>
+  </div>
+
   <!-- ════ SCREENS WRAPPER ════ -->
   <div class="screens-wrap">
 
@@ -1864,7 +2153,7 @@ body.light .nav-item.active{color:var(--accent);}
     <div class="app-screen hidden" id="screenSettings">
 
       <!-- Header -->
-      <div style="padding:calc(env(safe-area-inset-top,56px) + 16px) 20px 4px;">
+      <div style="padding:calc(env(safe-area-inset-top,56px) + 46px) 20px 4px;">
         <div style="font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text);">Ajustes</div>
         <div style="font-size:var(--fs-sm);color:var(--muted);margin-top:2px;">Personalizá tu sistema de hábitos</div>
       </div>
@@ -2165,6 +2454,101 @@ body.light .nav-item.active{color:var(--accent);}
 
     </div><!-- /screenSettings -->
 
+    <!-- ══════════════ MISIONES · DESCUBRIR ══════════════ -->
+    <div class="app-screen hidden" id="screenDiscover">
+      <div class="m-header">
+        <div class="m-eyebrow">Tu libro de aventuras</div>
+        <div class="m-title">Descubrir</div>
+        <div class="m-sub">Experiencias para vivir alguna vez. Sin prisa, sin culpa.</div>
+      </div>
+
+      <div class="m-hero">
+        <div class="m-hero-ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="mr-track" cx="37" cy="37" r="32"></circle>
+            <circle class="mr-fill" id="mExploredArc" cx="37" cy="37" r="32" stroke-dasharray="0 201"></circle>
+          </svg>
+          <div class="m-hero-pct"><b id="mExploredPct">0%</b><span>explorado</span></div>
+        </div>
+        <div class="m-hero-info">
+          <div class="m-hero-count" id="mLivedCount">0<span> experiencias vividas</span></div>
+          <div class="m-hero-label" id="mHeroLabel">Tu historia recién empieza.</div>
+        </div>
+      </div>
+
+      <div class="m-suggest" id="mSuggest" onclick="openSuggestedMission()" style="display:none;">
+        <div class="m-suggest-emoji" id="mSuggestEmoji">✨</div>
+        <div class="m-suggest-body">
+          <div class="m-suggest-kicker">¿Y si esta semana…?</div>
+          <div class="m-suggest-text" id="mSuggestText">—</div>
+        </div>
+        <svg class="m-suggest-arrow" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="m-section-label">Capítulos</div>
+      <div class="m-chapters" id="mChapters"></div>
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- ══════════════ MISIONES · CATEGORÍA (capítulo abierto) ══════════════ -->
+    <div class="app-screen hidden" id="screenChapter">
+      <div class="m-header" id="mChapterHeader">
+        <button onclick="switchMissionScreen('discover', document.getElementById('navDiscover'))" style="background:none;border:none;color:var(--muted);font-size:var(--fs-sm);cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:5px;">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="15 18 9 12 15 6"/></svg> Volver
+        </button>
+        <div class="m-eyebrow" id="mChapterTag">Capítulo</div>
+        <div class="m-title" id="mChapterTitle">—</div>
+        <div class="m-sub" id="mChapterSub">—</div>
+      </div>
+      <div class="m-list" id="mChapterList"></div>
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- ══════════════ MISIONES · FAVORITAS ══════════════ -->
+    <div class="app-screen hidden" id="screenFavorites">
+      <div class="m-header">
+        <div class="m-eyebrow">Tu lista de deseos</div>
+        <div class="m-title">Favoritas</div>
+        <div class="m-sub">Las aventuras que querés vivir próximamente.</div>
+      </div>
+      <div class="m-list" id="mFavList"></div>
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- ══════════════ MISIONES · VIVIDAS (timeline) ══════════════ -->
+    <div class="app-screen hidden" id="screenLived">
+      <div class="m-header">
+        <div class="m-eyebrow">Tu diario de aventuras</div>
+        <div class="m-title">Vividas</div>
+        <div class="m-sub">Todo lo que ya forma parte de tu historia.</div>
+      </div>
+      <div class="m-tl" id="mTimeline"></div>
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- ══════════════ MISIONES · MAPA / PROGRESO ══════════════ -->
+    <div class="app-screen hidden" id="screenMap">
+      <div class="m-header">
+        <div class="m-eyebrow">Tu mapa de crecimiento</div>
+        <div class="m-title">Progreso</div>
+        <div class="m-sub">Cuánto has explorado de cada dimensión de tu vida.</div>
+      </div>
+
+      <div class="m-map-stats">
+        <div class="m-stat"><div class="m-stat-val gold" id="mStatExplored">0%</div><div class="m-stat-lbl">Explorado</div></div>
+        <div class="m-stat"><div class="m-stat-val" id="mStatLived">0</div><div class="m-stat-lbl">Vividas</div></div>
+        <div class="m-stat"><div class="m-stat-val" id="mStatChapters">0/6</div><div class="m-stat-lbl">Capítulos completos</div></div>
+        <div class="m-stat"><div class="m-stat-val" id="mStatFav">0</div><div class="m-stat-lbl">En tu lista</div></div>
+      </div>
+
+      <div class="m-section-label">Progreso por capítulo</div>
+      <div class="m-cat-progress" id="mCatProgress"></div>
+
+      <div class="m-section-label">Hitos</div>
+      <div class="m-badges" id="mBadges"></div>
+      <div style="height:20px;"></div>
+    </div>
+
   </div><!-- /screens-wrap -->
 
   <!-- Confirm Reset Modal -->
@@ -2424,11 +2808,73 @@ body.light .nav-item.active{color:var(--accent);}
     </div><!-- /hc-scroll-body -->
   </div><!-- /addSheet -->
 
+  <!-- ══ Misión · Detalle ══ -->
+  <div class="hc-sheet" id="missionSheet">
+    <div class="hc-handle-zone"><div class="hc-handle-pill"></div></div>
+    <div class="hc-scroll-body" style="padding:0 20px calc(20px + env(safe-area-inset-bottom,16px));">
+      <div class="m-detail-hero">
+        <div class="m-detail-emoji" id="mdEmoji">🗺️</div>
+        <div class="m-detail-cat" id="mdCat">Exploración</div>
+        <div class="m-detail-title" id="mdTitle">—</div>
+        <div class="m-detail-desc" id="mdDesc" style="display:none;"></div>
+      </div>
+
+      <div class="m-detail-reward" id="mdRewardBox" style="display:none;">
+        <div class="m-detail-reward-label">✦ Recompensa</div>
+        <div class="m-detail-reward-text" id="mdReward">—</div>
+      </div>
+
+      <div id="mdNotesWrap" style="display:none;">
+        <div class="add-field-label" style="margin-top:6px;">Tus notas</div>
+        <div class="m-detail-notes" id="mdNotes">—</div>
+      </div>
+      <div class="m-detail-meta" id="mdMeta" style="display:none;"></div>
+    </div>
+    <div class="sheet-cta-footer">
+      <div class="sheet-actions" style="grid-template-columns:auto 1fr;">
+        <button class="sheet-btn" id="mdFavBtn" onclick="toggleMissionFavoriteFromSheet()" style="padding:0 18px;">⭐</button>
+        <button class="sheet-btn primary" id="mdCompleteBtn" onclick="completeMissionFromSheet()">Marcar como vivida</button>
+      </div>
+      <button class="sheet-btn" onclick="openMissionSheet(currentMissionId)" style="width:100%;margin-top:10px;background:transparent;border-color:var(--border);">Editar</button>
+      <button class="sheet-delete-btn" onclick="deleteMissionFromSheet()">Eliminar misión</button>
+    </div>
+  </div><!-- /missionSheet -->
+
+  <!-- ══ Misión · Crear / Editar ══ -->
+  <div class="hc-sheet add-sheet" id="missionAddSheet">
+    <div class="hc-handle-zone"><div class="hc-handle-pill"></div></div>
+    <div class="hc-scroll-body">
+      <div class="add-sheet-title" id="missionAddTitle">Nueva misión</div>
+
+      <div class="add-field-label">Emoji</div>
+      <input class="add-input" id="mfEmoji" placeholder="🗺️" maxlength="4" style="width:80px;text-align:center;font-size:22px;">
+
+      <div class="add-field-label">Título</div>
+      <input class="add-input" id="mfTitle" placeholder="Ej: Ver un amanecer desde un lugar alto" maxlength="90">
+
+      <div class="add-field-label">Descripción <span style="text-transform:none;font-weight:400;">(opcional)</span></div>
+      <textarea class="add-textarea" id="mfDesc" placeholder="Un detalle que la haga especial…" maxlength="200"></textarea>
+
+      <div class="add-field-label">Recompensa simbólica <span style="text-transform:none;font-weight:400;">(opcional)</span></div>
+      <input class="add-input" id="mfReward" placeholder="Ej: Hay momentos que solo se guardan mirando." maxlength="140">
+
+      <div class="add-field-label">Categoría</div>
+      <div class="cat-picker" id="mfCatPicker"></div>
+
+      <div id="mfNotesWrap" style="display:none;">
+        <div class="add-field-label">Notas / recuerdo</div>
+        <textarea class="add-textarea" id="mfNotes" placeholder="¿Cómo fue? ¿Qué te dejó?" maxlength="500"></textarea>
+      </div>
+
+      <button class="add-btn" style="margin-top:6px;background:linear-gradient(135deg,var(--m-accent),var(--m-accent-d));color:#221800;box-shadow:0 5px 18px var(--m-glow);" onclick="saveMission()">Guardar misión</button>
+    </div>
+  </div><!-- /missionAddSheet -->
+
 
 </div><!-- /phone -->
 
 <!-- Bottom Nav — fuera de .phone, hijo directo de body → position:fixed real al viewport -->
-<div class="bottom-nav">
+<div class="bottom-nav" id="habitsNav">
   <button class="nav-item active" id="navToday" onclick="switchScreen('today',this)">
     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     <span>Hoy</span>
@@ -2455,6 +2901,46 @@ body.light .nav-item.active{color:var(--accent);}
   </button>
 </div><!-- /bottom-nav -->
 
+<!-- Bottom Nav — Mundo Misiones -->
+<div class="bottom-nav bottom-nav-m is-hidden" id="missionsNav" style="display:none;">
+  <button class="nav-item active" id="navDiscover" onclick="switchMissionScreen('discover',this)">
+    <svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+    <span>Descubrir</span>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="navFavorites" onclick="switchMissionScreen('favorites',this)">
+    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span>Favoritas</span>
+    <div class="nav-dot"></div>
+  </button>
+  <!-- Centro: nueva misión -->
+  <button class="nav-add nav-add-m" onclick="openMissionSheet()" title="Nueva misión">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="nav-item" id="navLived" onclick="switchMissionScreen('lived',this)">
+    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <span>Vividas</span>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="navMap" onclick="switchMissionScreen('map',this)">
+    <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    <span>Mapa</span>
+    <div class="nav-dot"></div>
+  </button>
+</div><!-- /missionsNav -->
+
+<!-- Overlay del sello de completado -->
+<div class="stamp-overlay" id="stampOverlay">
+  <div class="stamp-veil"></div>
+  <div class="stamp" id="stampInner">
+    <div class="stamp-ring" id="stampRing">
+      <div class="stamp-ring-emoji" id="stampEmoji">🗺️</div>
+      <div class="stamp-ring-label" id="stampLabel">Vivida</div>
+    </div>
+    <div class="stamp-reward" id="stampReward">—</div>
+  </div>
+</div>
+
 <!-- ══════════════════════════ JS ══════════════════════════ -->
 <script>
 /* ─── SUPABASE ─── */
@@ -2476,12 +2962,19 @@ function showLogin()  {
   if (typeof sheetMgr !== 'undefined') { sheetMgr.closeAll(); }
   // Hide nav — it lives in root stacking context (z:100) above .phone (z:1)
   // so without hiding it would cover the login screen
-  document.querySelector('.bottom-nav')?.classList.add('is-hidden');
+  document.querySelectorAll('.bottom-nav').forEach(n => n.classList.add('is-hidden'));
+  document.getElementById('worldSwitch')?.classList.add('is-hidden');
   document.getElementById('loginScreen').style.display = 'flex';
 }
 function hideLogin()  {
   document.getElementById('loginScreen').style.display = 'none';
-  document.querySelector('.bottom-nav')?.classList.remove('is-hidden');
+  document.getElementById('worldSwitch')?.classList.remove('is-hidden');
+  // Mostrar solo el nav del mundo activo
+  if (typeof currentWorld !== 'undefined' && currentWorld === 'missions') {
+    document.getElementById('missionsNav')?.classList.remove('is-hidden');
+  } else {
+    document.getElementById('habitsNav')?.classList.remove('is-hidden');
+  }
 }
 
 async function forgotPassword() {
@@ -2614,6 +3107,8 @@ async function loadData() {
   renderHabits();
   renderFilterChips();
   updateInsightsFromData();
+
+  loadMissions();   // cargar el segundo pilar en background
 }
 
 async function saveHabitToDb(h) {
@@ -2765,6 +3260,8 @@ class SheetController {
     if (body) body.scrollTop = 0;
     this.#backdrop?.classList.add('is-open');
     this.#nav?.classList.add('is-hidden');
+    document.getElementById('missionsNav')?.classList.add('is-hidden');
+    document.getElementById('worldSwitch')?.classList.add('is-hidden');
     this.#active = id;
   }
 
@@ -2775,7 +3272,16 @@ class SheetController {
     s.el.classList.remove('is-open');
     s.el.style.transform = '';
     this.#backdrop?.classList.remove('is-open');
-    this.#nav?.classList.remove('is-hidden');
+    // Restaurar el nav del mundo activo y el world switch
+    if (typeof currentWorld !== 'undefined' && currentWorld === 'missions') {
+      document.getElementById('missionsNav')?.classList.remove('is-hidden');
+    } else {
+      this.#nav?.classList.remove('is-hidden');
+    }
+    // No mostrar el world switch si el login está abierto
+    if (document.getElementById('loginScreen')?.style.display !== 'flex') {
+      document.getElementById('worldSwitch')?.classList.remove('is-hidden');
+    }
     this.#active = null;
     s.cb?.();
   }
@@ -3091,6 +3597,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   sheetMgr.register('bottomSheet', closeSheet);
   sheetMgr.register('addSheet',    closeAddSheet);
+  sheetMgr.register('missionSheet',    () => {});
+  sheetMgr.register('missionAddSheet', () => { editingMissionId = null; });
   // periodSheet is a nested sheet (position:absolute in insights) — handled separately
   initPeriodSheetDrag();
   // Check inicial de sesión — fuente de verdad para el estado de arranque.
@@ -3126,7 +3634,7 @@ const SCREEN_ORDER = {today:0, insights:1, logros:2, settings:3};
 
 function switchScreen(name, btn) {
   haptic('light');
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#habitsNav .nav-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
   const prevOrder = SCREEN_ORDER[currentScreen] ?? 0;
@@ -4829,6 +5337,574 @@ function toggleIncorporated() {
     else                { btn.textContent = '✓ Completar';   btn.disabled = false; btn.style.opacity = '1'; }
   }
   renderHabits();
+}
+
+/* ══════════════════════════════════════════════════════════
+   ███  MISIONES — SEGUNDO PILAR  ███
+══════════════════════════════════════════════════════════ */
+
+const MISSION_CATEGORIES = [
+  { id:'exploracion',   emoji:'🗺️', name:'Exploración',  color:'var(--cat-exploracion)',  hex:'#4ecdc4', tagline:'Descubrí lo que no conocés' },
+  { id:'coraje',        emoji:'⚔️', name:'Coraje',       color:'var(--cat-coraje)',       hex:'#e05c5c', tagline:'Enfrentá lo que te asusta' },
+  { id:'creatividad',   emoji:'🎨', name:'Creatividad',  color:'var(--cat-creatividad)',  hex:'#c77dff', tagline:'Creá algo que no existía' },
+  { id:'sabiduria',     emoji:'🧠', name:'Sabiduría',    color:'var(--cat-sabiduria)',    hex:'#5c8ce0', tagline:'Entendé el mundo y a vos' },
+  { id:'comunicacion',  emoji:'🤝', name:'Comunicación', color:'var(--cat-comunicacion)', hex:'#f0a955', tagline:'Conectá de verdad' },
+  { id:'legendarias',   emoji:'👑', name:'Legendarias',  color:'var(--cat-legendarias)',  hex:'#e8b34a', tagline:'Los sueños que definen una vida' },
+];
+const mCat = id => MISSION_CATEGORIES.find(c => c.id === id) || MISSION_CATEGORIES[0];
+
+/* ─── 33 misiones precargadas (seed) ─── */
+const SEED_MISSIONS = [
+  // 🗺 Exploración
+  { emoji:'📍', category:'exploracion', title:'Visitá un lugar de tu ciudad al que nunca hayas ido.', reward:'Tu ciudad es más grande de lo que creías.' },
+  { emoji:'📚', category:'exploracion', title:'Entrá a una biblioteca y elegí un libro solo por intuición.', reward:'Algunas historias te encuentran a vos.' },
+  { emoji:'🌅', category:'exploracion', title:'Mirá un atardecer desde un lugar alto, sin sacar fotos.', reward:'Hay momentos que solo se guardan mirando.' },
+  { emoji:'🏘️', category:'exploracion', title:'Explorá un mercado, feria o barrio que siempre pasás de largo.', reward:'Lo cotidiano también esconde aventuras.' },
+  { emoji:'🛤️', category:'exploracion', title:'Volvé a casa por un camino completamente distinto.', reward:'A veces perderse es la forma de descubrir.' },
+  { emoji:'☕', category:'exploracion', title:'Descubrí un café escondido y convertílo en "tu lugar".', reward:'Ahora hay un rincón del mundo que es tuyo.' },
+  // ⚔️ Coraje
+  { emoji:'💬', category:'coraje', title:'Iniciá una conversación con alguien que no conozcas.', reward:'Cada persona que conocés expande un poco tu mundo.' },
+  { emoji:'🔰', category:'coraje', title:'Anotate en una actividad en la que seas completamente principiante.', reward:'Empezar de cero también es un acto de valentía.' },
+  { emoji:'🎤', category:'coraje', title:'Participá en un evento abierto (micrófono abierto, taller, charla).', reward:'Mostrarte es más valiente que esconderte.' },
+  { emoji:'🍽️', category:'coraje', title:'Almorzá o cená solo, sin usar el celular.', reward:'Aprender a estar con vos mismo lo cambia todo.' },
+  { emoji:'✨', category:'coraje', title:'Decí "sí" a una invitación que normalmente rechazarías.', reward:'Las mejores historias empiezan con un sí.' },
+  { emoji:'👂', category:'coraje', title:'Preguntale a alguien sobre su historia y escuchalo de verdad.', reward:'Escuchar es el coraje de soltar el propio ruido.' },
+  // 🎨 Creatividad
+  { emoji:'✏️', category:'creatividad', title:'Dibujá algo aunque sepas que va a quedar feo.', reward:'Crear no se trata de perfección, sino de animarse.' },
+  { emoji:'📖', category:'creatividad', title:'Escribí un cuento corto.', reward:'Hoy creaste algo que antes no existía.' },
+  { emoji:'🍳', category:'creatividad', title:'Cociná un plato típico de un país que nunca visitaste.', reward:'Viajaste sin moverte de tu cocina.' },
+  { emoji:'🎧', category:'creatividad', title:'Creá una playlist para un estado de ánimo y nombrala como una película.', reward:'Le pusiste banda sonora a tu vida.' },
+  { emoji:'📓', category:'creatividad', title:'Empezá un diario sin reglas.', reward:'Tus palabras merecen un lugar donde vivir.' },
+  { emoji:'🎥', category:'creatividad', title:'Grabá un video de un minuto contando cómo fue tu día.', reward:'Hoy quedó guardado para tu yo del futuro.' },
+  { emoji:'🪵', category:'creatividad', title:'Creá algo con tus manos (origami, cerámica, madera, pintura).', reward:'Lo que hacés con las manos, queda en la memoria.' },
+  // 🧠 Sabiduría
+  { emoji:'🎩', category:'sabiduria', title:'Aprendé un truco de magia.', reward:'La curiosidad siempre encuentra una nueva puerta.' },
+  { emoji:'🎬', category:'sabiduria', title:'Mirá un documental sobre un tema del que no sepas nada.', reward:'Saber un poco más te hace ver distinto.' },
+  { emoji:'💭', category:'sabiduria', title:'Memorizá una frase que quieras llevar con vos toda la vida.', reward:'Ahora llevás una brújula en la memoria.' },
+  { emoji:'🌀', category:'sabiduria', title:'Perdete durante una hora explorando Wikipedia al azar.', reward:'La curiosidad no necesita destino.' },
+  { emoji:'🚑', category:'sabiduria', title:'Aprendé primeros auxilios básicos.', reward:'Hoy te volviste alguien capaz de ayudar.' },
+  { emoji:'📕', category:'sabiduria', title:'Leé un libro de un género que nunca elegirías.', reward:'Salir de lo conocido siempre enseña algo.' },
+  // 🤝 Comunicación
+  { emoji:'✉️', category:'comunicacion', title:'Escribile una carta a mano a alguien importante para vos.', reward:'Algunas palabras merecen viajar más despacio.' },
+  { emoji:'📞', category:'comunicacion', title:'Llamá a un familiar con quien hace meses no hablás.', reward:'La distancia se acorta con una sola llamada.' },
+  { emoji:'🌟', category:'comunicacion', title:'Hacé cinco cumplidos sinceros a personas distintas en un mismo día.', reward:'Alegrar el día de alguien también alegra el tuyo.' },
+  { emoji:'🤗', category:'comunicacion', title:'Volvé a encontrarte con un viejo amigo.', reward:'Hay lazos que el tiempo no borra.' },
+  { emoji:'🗣️', category:'comunicacion', title:'Tené una conversación profunda que dure al menos una hora.', reward:'Las charlas verdaderas dejan huella.' },
+  // 👑 Legendarias
+  { emoji:'🧘', category:'legendarias', title:'Pasá 24 horas completamente solo, sin celular ni redes sociales.', reward:'Te reencontraste con el silencio y con vos.' },
+  { emoji:'🏆', category:'legendarias', title:'Creá algo que haga sentir orgulloso a tu yo de diez años.', reward:'Cumpliste una promesa que ni sabías que tenías.' },
+  { emoji:'🎫', category:'legendarias', title:'Reservá una experiencia que hoy te dé miedo.', reward:'Las mejores historias empiezan el día que comprás el pasaje.' },
+];
+
+/* ─── Estado ─── */
+let missions = [];
+let currentWorld = 'habits';
+let currentMissionScreen = 'discover';
+let currentMissionId = null;
+let editingMissionId = null;
+let currentChapterCat = null;
+let missionsTableOk = true;
+
+const MISSION_SCREENS = ['screenDiscover','screenChapter','screenFavorites','screenLived','screenMap'];
+const MISSION_SCREEN_ORDER = {discover:0, chapter:0, favorites:1, lived:2, map:3};
+
+/* ─── World switching ─── */
+function switchWorld(world) {
+  if (world === currentWorld) return;
+  haptic('light');
+  currentWorld = world;
+  document.getElementById('wsHabits').classList.toggle('active', world === 'habits');
+  document.getElementById('wsMissions').classList.toggle('active', world === 'missions');
+
+  const habitsScreens   = ['screenToday','screenInsights','screenLogros','screenSettings'];
+  const habitsNav       = document.getElementById('habitsNav');
+  const missionsNav     = document.getElementById('missionsNav');
+
+  if (world === 'missions') {
+    habitsScreens.forEach(id => document.getElementById(id).classList.add('hidden'));
+    habitsNav.classList.add('is-hidden');
+    setTimeout(() => { habitsNav.style.display = 'none'; }, 280);
+    missionsNav.style.display = 'flex';
+    requestAnimationFrame(() => missionsNav.classList.remove('is-hidden'));
+    switchMissionScreen(currentMissionScreen === 'chapter' ? 'discover' : currentMissionScreen,
+      document.getElementById('nav' + capitalize(currentMissionScreen === 'chapter' ? 'discover' : currentMissionScreen)));
+    renderMissions();
+  } else {
+    MISSION_SCREENS.forEach(id => document.getElementById(id).classList.add('hidden'));
+    missionsNav.classList.add('is-hidden');
+    setTimeout(() => { missionsNav.style.display = 'none'; }, 280);
+    habitsNav.style.display = 'flex';
+    requestAnimationFrame(() => habitsNav.classList.remove('is-hidden'));
+    const target = document.getElementById('screen' + capitalize(currentScreen));
+    if (target) target.classList.remove('hidden');
+  }
+}
+function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* ─── Mission screen switching ─── */
+function switchMissionScreen(name, btn) {
+  haptic('light');
+  document.querySelectorAll('#missionsNav .nav-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else if (name === 'discover') document.getElementById('navDiscover')?.classList.add('active');
+
+  const prevOrder = MISSION_SCREEN_ORDER[currentMissionScreen] ?? 0;
+  const nextOrder = MISSION_SCREEN_ORDER[name] ?? 0;
+  const goingRight = nextOrder > prevOrder;
+
+  MISSION_SCREENS.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    if (goingRight) el.classList.remove('from-left'); else el.classList.add('from-left');
+  });
+
+  const target = document.getElementById('screen' + capitalize(name));
+  if (!target) return;
+  requestAnimationFrame(() => {
+    target.classList.remove('hidden');
+    if (!goingRight) target.classList.remove('from-left');
+  });
+  currentMissionScreen = name;
+
+  if (name === 'discover')  renderDiscover();
+  if (name === 'favorites') renderFavorites();
+  if (name === 'lived')     renderLived();
+  if (name === 'map')       renderMap();
+}
+
+/* ─── Supabase ─── */
+async function loadMissions() {
+  if (!currentUser) return;
+  const { data: rows, error } = await sb.from('missions').select('*').eq('user_id', currentUser.id);
+  if (error) {
+    console.warn('loadMissions:', error.message);
+    missionsTableOk = false;
+    // Fallback: mostrar seed en memoria (sin persistir) para no romper la UX
+    missions = SEED_MISSIONS.map((m, i) => ({ id:'seed-'+i, ...m, status:'available', is_favorite:false, completed_at:null, notes:null, is_seed:true }));
+    renderMissions();
+    return;
+  }
+  missionsTableOk = true;
+  missions = (rows || []).map(r => ({
+    id:r.id, emoji:r.emoji, title:r.title, description:r.description, reward:r.reward,
+    category:r.category, status:r.status || 'available', is_favorite:!!r.is_favorite,
+    completed_at:r.completed_at, notes:r.notes, is_seed:!!r.is_seed,
+  }));
+  if (missions.length === 0) await seedMissions();
+  renderMissions();
+}
+
+async function seedMissions() {
+  if (!currentUser || !missionsTableOk) return;
+  const rows = SEED_MISSIONS.map(m => ({
+    user_id: currentUser.id, emoji:m.emoji, title:m.title,
+    description:m.description || null, reward:m.reward || null,
+    category:m.category, status:'available', is_favorite:false, is_seed:true,
+  }));
+  const { data, error } = await sb.from('missions').insert(rows).select('*');
+  if (error) { console.warn('seedMissions:', error.message); return; }
+  missions = (data || []).map(r => ({
+    id:r.id, emoji:r.emoji, title:r.title, description:r.description, reward:r.reward,
+    category:r.category, status:r.status, is_favorite:!!r.is_favorite,
+    completed_at:r.completed_at, notes:r.notes, is_seed:!!r.is_seed,
+  }));
+}
+
+async function saveMissionToDb(m) {
+  if (!currentUser || !missionsTableOk) return;
+  const payload = {
+    user_id: currentUser.id, emoji:m.emoji, title:m.title,
+    description:m.description || null, reward:m.reward || null,
+    category:m.category, status:m.status, is_favorite:m.is_favorite,
+    completed_at:m.completed_at || null, notes:m.notes || null, is_seed:m.is_seed || false,
+  };
+  if (m.id && !String(m.id).startsWith('seed-')) payload.id = m.id;
+  const { data, error } = await sb.from('missions').upsert(payload).select('*').single();
+  if (error) { console.warn('saveMissionToDb:', error.message); return; }
+  if (data) m.id = data.id;
+}
+
+async function deleteMissionFromDb(id) {
+  if (!currentUser || !missionsTableOk || String(id).startsWith('seed-')) return;
+  await sb.from('missions').delete().eq('id', id).eq('user_id', currentUser.id);
+}
+
+/* ─── Render maestro ─── */
+function renderMissions() {
+  renderDiscover();
+  if (currentMissionScreen === 'favorites') renderFavorites();
+  if (currentMissionScreen === 'lived')     renderLived();
+  if (currentMissionScreen === 'map')       renderMap();
+  if (currentMissionScreen === 'chapter' && currentChapterCat) renderChapter(currentChapterCat);
+}
+
+/* ─── Stats ─── */
+function missionStats() {
+  const total = missions.length;
+  const lived = missions.filter(m => m.status === 'completed').length;
+  const pct = total ? Math.round((lived / total) * 100) : 0;
+  const fav = missions.filter(m => m.is_favorite && m.status !== 'completed').length;
+  let chaptersComplete = 0;
+  MISSION_CATEGORIES.forEach(c => {
+    const inCat = missions.filter(m => m.category === c.id);
+    if (inCat.length > 0 && inCat.every(m => m.status === 'completed')) chaptersComplete++;
+  });
+  return { total, lived, pct, fav, chaptersComplete };
+}
+
+/* ─── Descubrir ─── */
+function renderDiscover() {
+  const s = missionStats();
+  // Hero
+  const arc = document.getElementById('mExploredArc');
+  const circ = 2 * Math.PI * 32; // ≈201
+  if (arc) arc.setAttribute('stroke-dasharray', `${(s.pct/100*circ).toFixed(1)} ${circ.toFixed(1)}`);
+  document.getElementById('mExploredPct').textContent = s.pct + '%';
+  document.getElementById('mLivedCount').innerHTML = `${s.lived}<span> experiencias vividas</span>`;
+  const label = document.getElementById('mHeroLabel');
+  if (s.lived === 0)      label.textContent = 'Tu historia recién empieza.';
+  else if (s.pct < 30)    label.textContent = 'Ya diste los primeros pasos.';
+  else if (s.pct < 70)    label.textContent = 'Estás construyendo una vida rica en experiencias.';
+  else if (s.pct < 100)   label.textContent = 'Muy pocas cosas te quedan por descubrir.';
+  else                    label.textContent = '¡Completaste todas tus misiones! Creá nuevas.';
+
+  // Sugerencia
+  const available = missions.filter(m => m.status !== 'completed');
+  const sug = document.getElementById('mSuggest');
+  if (available.length) {
+    const pick = available[Math.floor(Math.random() * available.length)];
+    sug.dataset.mid = pick.id;
+    document.getElementById('mSuggestEmoji').textContent = pick.emoji || mCat(pick.category).emoji;
+    document.getElementById('mSuggestText').textContent = pick.title;
+    sug.style.display = 'flex';
+  } else { sug.style.display = 'none'; }
+
+  // Capítulos
+  const cont = document.getElementById('mChapters');
+  cont.innerHTML = MISSION_CATEGORIES.map((c, i) => {
+    const inCat = missions.filter(m => m.category === c.id);
+    const done  = inCat.filter(m => m.status === 'completed').length;
+    const pct   = inCat.length ? Math.round(done/inCat.length*100) : 0;
+    const complete = inCat.length > 0 && done === inCat.length;
+    return `
+    <div class="m-chapter" style="--cc:${c.hex};animation-delay:${(i*0.05).toFixed(2)}s" onclick="openChapter('${c.id}')">
+      <div class="m-chapter-glow"></div>
+      ${complete ? `<div class="m-chapter-seal">✦</div>` : ''}
+      <div class="m-chapter-emoji">${c.emoji}</div>
+      <div class="m-chapter-body">
+        <div class="m-chapter-name">${c.name}</div>
+        <div class="m-chapter-tag">${c.tagline}</div>
+        <div class="m-chapter-meta">
+          <div class="m-chapter-bar"><i style="width:${pct}%"></i></div>
+          <div class="m-chapter-frac">${done}/${inCat.length}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openChapter(catId) {
+  currentChapterCat = catId;
+  renderChapter(catId);
+  switchMissionScreen('chapter', null);
+}
+function renderChapter(catId) {
+  const c = mCat(catId);
+  const inCat = missions.filter(m => m.category === catId);
+  const done  = inCat.filter(m => m.status === 'completed').length;
+  document.getElementById('mChapterHeader').style.setProperty('--cc', c.hex);
+  document.getElementById('mChapterTag').textContent = c.tagline;
+  document.getElementById('mChapterTag').style.color = c.hex;
+  document.getElementById('mChapterTitle').textContent = `${c.emoji} ${c.name}`;
+  document.getElementById('mChapterSub').textContent = `${done} de ${inCat.length} vividas`;
+  // ordenar: disponibles primero, completadas al final
+  const sorted = [...inCat].sort((a,b) => (a.status==='completed') - (b.status==='completed'));
+  document.getElementById('mChapterList').innerHTML =
+    sorted.map((m,i) => missionCardHTML(m, i)).join('') ||
+    `<div class="m-empty"><div class="m-empty-emoji">${c.emoji}</div><div class="m-empty-title">Capítulo vacío</div><div class="m-empty-sub">Agregá tu primera misión de ${c.name}.</div></div>`;
+}
+
+/* ─── Card de misión ─── */
+function missionCardHTML(m, i = 0) {
+  const c = mCat(m.category);
+  const done = m.status === 'completed';
+  const dateStr = m.completed_at ? formatMissionDate(m.completed_at) : '';
+  return `
+  <div class="m-card ${done?'completed':''}" style="--cc:${c.hex};animation-delay:${(i*0.04).toFixed(2)}s" onclick="openMissionDetail('${m.id}')">
+    <button class="m-card-state ${done?'completed':''}" style="${done?`--cc:${c.hex}`:''}" onclick="event.stopPropagation();quickCompleteMission('${m.id}')">
+      ${done ? '✓' : ''}
+    </button>
+    <div class="m-card-emoji">${m.emoji || c.emoji}</div>
+    <div class="m-card-body">
+      <div class="m-card-title">${m.title}</div>
+      ${m.description ? `<div class="m-card-desc">${m.description}</div>` : ''}
+      <div class="m-card-foot">
+        <span class="m-cat-pill" style="background:${c.hex}22;color:${c.hex};">${c.emoji} ${c.name}</span>
+        ${dateStr ? `<span class="m-card-date">· ${dateStr}</span>` : ''}
+      </div>
+    </div>
+    <button class="m-fav ${m.is_favorite?'on':''}" onclick="event.stopPropagation();toggleMissionFavorite('${m.id}')">${m.is_favorite?'⭐':'☆'}</button>
+  </div>`;
+}
+
+/* ─── Favoritas ─── */
+function renderFavorites() {
+  const favs = missions.filter(m => m.is_favorite && m.status !== 'completed');
+  const cont = document.getElementById('mFavList');
+  if (!favs.length) {
+    cont.innerHTML = `<div class="m-empty"><div class="m-empty-emoji">⭐</div><div class="m-empty-title">Todavía sin favoritas</div><div class="m-empty-sub">Marcá con ⭐ las misiones que quieras vivir próximamente y aparecerán acá.</div></div>`;
+    return;
+  }
+  cont.innerHTML = favs.map((m,i) => missionCardHTML(m, i)).join('');
+}
+
+/* ─── Vividas (timeline) ─── */
+function renderLived() {
+  const lived = missions.filter(m => m.status === 'completed')
+    .sort((a,b) => (b.completed_at||'').localeCompare(a.completed_at||''));
+  const cont = document.getElementById('mTimeline');
+  if (!lived.length) {
+    cont.innerHTML = `<div class="m-empty"><div class="m-empty-emoji">📖</div><div class="m-empty-title">Tu diario está en blanco</div><div class="m-empty-sub">Cada misión que vivas quedará registrada acá, como un recuerdo.</div></div>`;
+    return;
+  }
+  cont.innerHTML = lived.map((m,i) => {
+    const c = mCat(m.category);
+    return `
+    <div class="m-tl-item" style="--cc:${c.hex};animation-delay:${(i*0.05).toFixed(2)}s">
+      <div class="m-tl-dot"></div>
+      <div class="m-tl-date">${m.completed_at ? formatMissionDate(m.completed_at, true) : 'Vivida'}</div>
+      <div class="m-tl-card" onclick="openMissionDetail('${m.id}')">
+        <div class="m-tl-title"><span class="tl-emoji">${m.emoji || c.emoji}</span>${m.title}</div>
+        ${m.notes ? `<div class="m-tl-notes">"${m.notes}"</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ─── Mapa / Progreso ─── */
+function renderMap() {
+  const s = missionStats();
+  document.getElementById('mStatExplored').textContent = s.pct + '%';
+  document.getElementById('mStatLived').textContent = s.lived;
+  document.getElementById('mStatChapters').textContent = s.chaptersComplete + '/6';
+  document.getElementById('mStatFav').textContent = s.fav;
+
+  document.getElementById('mCatProgress').innerHTML = MISSION_CATEGORIES.map(c => {
+    const inCat = missions.filter(m => m.category === c.id);
+    const done  = inCat.filter(m => m.status === 'completed').length;
+    const pct   = inCat.length ? Math.round(done/inCat.length*100) : 0;
+    return `
+    <div class="m-cat-row" style="--cc:${c.hex}">
+      <div class="m-cat-row-emoji">${c.emoji}</div>
+      <div class="m-cat-row-body">
+        <div class="m-cat-row-top">
+          <span class="m-cat-row-name">${c.name}</span>
+          <span class="m-cat-row-frac">${done}/${inCat.length}</span>
+        </div>
+        <div class="m-cat-row-bar"><i style="width:${pct}%"></i></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Hitos
+  const milestones = [
+    { icon:'🌱', name:'Primer paso',      earned: s.lived >= 1 },
+    { icon:'🔥', name:'5 vividas',        earned: s.lived >= 5 },
+    { icon:'⭐', name:'10 vividas',       earned: s.lived >= 10 },
+    { icon:'🎯', name:'25 vividas',       earned: s.lived >= 25 },
+    { icon:'🧭', name:'Todo tocado',      earned: MISSION_CATEGORIES.every(c => missions.some(m => m.category===c.id && m.status==='completed')) },
+    { icon:'📖', name:'Un capítulo',      earned: s.chaptersComplete >= 1 },
+    { icon:'👑', name:'Leyenda',          earned: missions.some(m => m.category==='legendarias' && m.status==='completed') },
+    { icon:'🏆', name:'Todo explorado',   earned: s.total > 0 && s.lived === s.total },
+  ];
+  document.getElementById('mBadges').innerHTML = milestones.map(b => `
+    <div class="m-badge ${b.earned?'earned':''}">
+      <div class="m-badge-icon">${b.icon}</div>
+      <div class="m-badge-name">${b.name}</div>
+    </div>`).join('');
+}
+
+/* ─── Detalle ─── */
+function openMissionDetail(id) {
+  const m = missions.find(x => String(x.id) === String(id));
+  if (!m) return;
+  currentMissionId = id;
+  const c = mCat(m.category);
+  document.getElementById('mdEmoji').textContent = m.emoji || c.emoji;
+  const catEl = document.getElementById('mdCat');
+  catEl.textContent = `${c.emoji} ${c.name}`;
+  catEl.style.background = c.hex + '22'; catEl.style.color = c.hex;
+  document.getElementById('mdTitle').textContent = m.title;
+  const desc = document.getElementById('mdDesc');
+  if (m.description) { desc.textContent = m.description; desc.style.display = 'block'; } else desc.style.display = 'none';
+  const rb = document.getElementById('mdRewardBox');
+  if (m.reward) { document.getElementById('mdReward').textContent = m.reward; rb.style.display = 'block'; } else rb.style.display = 'none';
+
+  const done = m.status === 'completed';
+  const notesWrap = document.getElementById('mdNotesWrap');
+  if (done && m.notes) { document.getElementById('mdNotes').textContent = m.notes; notesWrap.style.display = 'block'; } else notesWrap.style.display = 'none';
+  const meta = document.getElementById('mdMeta');
+  if (done && m.completed_at) { meta.textContent = `✅ Vivida el ${formatMissionDate(m.completed_at, true)}`; meta.style.display = 'block'; } else meta.style.display = 'none';
+
+  const favBtn = document.getElementById('mdFavBtn');
+  favBtn.textContent = m.is_favorite ? '⭐' : '☆';
+  favBtn.style.color = m.is_favorite ? 'var(--m-accent)' : 'var(--muted)';
+  const compBtn = document.getElementById('mdCompleteBtn');
+  compBtn.textContent = done ? '✓ Vivida — desmarcar' : 'Marcar como vivida';
+  compBtn.style.background = done ? 'var(--surface3)' : 'var(--m-accent)';
+  compBtn.style.color = done ? 'var(--text)' : '#221800';
+
+  sheetMgr.open('missionSheet');
+}
+
+function toggleMissionFavoriteFromSheet() {
+  toggleMissionFavorite(currentMissionId);
+  const m = missions.find(x => String(x.id) === String(currentMissionId));
+  if (m) {
+    const favBtn = document.getElementById('mdFavBtn');
+    favBtn.textContent = m.is_favorite ? '⭐' : '☆';
+    favBtn.style.color = m.is_favorite ? 'var(--m-accent)' : 'var(--muted)';
+  }
+}
+
+function completeMissionFromSheet() {
+  const m = missions.find(x => String(x.id) === String(currentMissionId));
+  if (!m) return;
+  if (m.status === 'completed') {
+    // desmarcar
+    m.status = 'available'; m.completed_at = null;
+    saveMissionToDb(m); renderMissions();
+    sheetMgr.close('missionSheet');
+    showToast('↩️', 'Misión devuelta a disponibles.');
+  } else {
+    sheetMgr.close('missionSheet');
+    setTimeout(() => doCompleteMission(m), 260);
+  }
+}
+
+function quickCompleteMission(id) {
+  const m = missions.find(x => String(x.id) === String(id));
+  if (!m) return;
+  if (m.status === 'completed') { m.status='available'; m.completed_at=null; saveMissionToDb(m); renderMissions(); return; }
+  doCompleteMission(m);
+}
+
+function doCompleteMission(m) {
+  haptic('medium');
+  m.status = 'completed';
+  m.completed_at = new Date().toISOString().slice(0,10);
+  saveMissionToDb(m);
+  showStamp(m);
+  renderMissions();
+}
+
+function toggleMissionFavorite(id) {
+  const m = missions.find(x => String(x.id) === String(id));
+  if (!m) return;
+  m.is_favorite = !m.is_favorite;
+  haptic('light');
+  saveMissionToDb(m);
+  renderMissions();
+}
+
+/* ─── Sello de completado ─── */
+function showStamp(m) {
+  const c = mCat(m.category);
+  const overlay = document.getElementById('stampOverlay');
+  const inner   = document.getElementById('stampInner');
+  document.getElementById('stampRing').style.setProperty('--cc', c.hex);
+  document.getElementById('stampEmoji').textContent = m.emoji || c.emoji;
+  document.getElementById('stampReward').textContent = m.reward || '¡Nueva experiencia vivida!';
+  overlay.classList.add('show');
+  inner.classList.remove('go'); void inner.offsetWidth; inner.classList.add('go');
+  try { playSuccess?.(); } catch(e){}
+  clearTimeout(showStamp._t);
+  showStamp._t = setTimeout(() => { overlay.classList.remove('show'); }, 2600);
+  overlay.onclick = () => { overlay.classList.remove('show'); clearTimeout(showStamp._t); };
+}
+
+/* ─── Sugerencia ─── */
+function openSuggestedMission() {
+  const id = document.getElementById('mSuggest').dataset.mid;
+  if (id) openMissionDetail(id);
+}
+
+/* ─── Crear / Editar ─── */
+function openMissionSheet(id = null) {
+  haptic('light');
+  editingMissionId = id;
+  const m = id ? missions.find(x => String(x.id) === String(id)) : null;
+  if (id) sheetMgr.close('missionSheet');
+
+  document.getElementById('missionAddTitle').textContent = m ? 'Editar misión' : 'Nueva misión';
+  document.getElementById('mfEmoji').value  = m?.emoji || '';
+  document.getElementById('mfTitle').value  = m?.title || '';
+  document.getElementById('mfDesc').value   = m?.description || '';
+  document.getElementById('mfReward').value = m?.reward || '';
+  document.getElementById('mfNotes').value  = m?.notes || '';
+  document.getElementById('mfNotesWrap').style.display = (m && m.status === 'completed') ? 'block' : 'none';
+  renderMissionCatPicker(m?.category || 'exploracion');
+  sheetMgr.open('missionAddSheet');
+  setTimeout(() => { if (!m) document.getElementById('mfTitle').focus(); }, 300);
+}
+
+let mfSelectedCat = 'exploracion';
+function renderMissionCatPicker(selected) {
+  mfSelectedCat = selected;
+  document.getElementById('mfCatPicker').innerHTML = MISSION_CATEGORIES.map(c => `
+    <div class="cat-picker-pill ${c.id===selected?'selected':''}"
+      style="${c.id===selected?`background:${c.hex}22;border-color:${c.hex};color:${c.hex}`:''}"
+      onclick="selectMissionCat('${c.id}')">${c.emoji} ${c.name}</div>`).join('');
+}
+function selectMissionCat(id) { renderMissionCatPicker(id); }
+
+async function saveMission() {
+  const title = document.getElementById('mfTitle').value.trim();
+  if (!title) { showToast('✏️', 'Ponéle un título a la misión.'); return; }
+  const emoji  = document.getElementById('mfEmoji').value.trim() || mCat(mfSelectedCat).emoji;
+  const desc   = document.getElementById('mfDesc').value.trim();
+  const reward = document.getElementById('mfReward').value.trim();
+  const notes  = document.getElementById('mfNotes').value.trim();
+
+  const wasEditing = !!editingMissionId;
+  if (editingMissionId) {
+    const m = missions.find(x => String(x.id) === String(editingMissionId));
+    if (m) {
+      m.emoji=emoji; m.title=title; m.description=desc; m.reward=reward;
+      m.category=mfSelectedCat; if (m.status==='completed') m.notes=notes;
+      await saveMissionToDb(m);
+    }
+  } else {
+    const m = { id:'tmp-'+Date.now(), emoji, title, description:desc, reward,
+      category:mfSelectedCat, status:'available', is_favorite:false, completed_at:null, notes:null, is_seed:false };
+    missions.push(m);
+    await saveMissionToDb(m);
+  }
+  editingMissionId = null;
+  sheetMgr.close('missionAddSheet');
+  renderMissions();
+  showToast('🗺️', wasEditing ? 'Misión actualizada.' : 'Nueva misión agregada.');
+}
+
+function deleteMissionFromSheet() {
+  const m = missions.find(x => String(x.id) === String(currentMissionId));
+  if (!m) return;
+  missions = missions.filter(x => String(x.id) !== String(currentMissionId));
+  deleteMissionFromDb(currentMissionId);
+  sheetMgr.close('missionSheet');
+  renderMissions();
+  showToast('🗑', 'Misión eliminada.');
+}
+
+/* ─── Utilidades ─── */
+function formatMissionDate(iso, long = false) {
+  if (!iso) return '';
+  const [y,mo,d] = iso.split('-').map(Number);
+  const date = new Date(y, mo-1, d);
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const mesesL = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  if (long) return `${d} de ${mesesL[mo-1]} de ${y}`;
+  return `${d} ${meses[mo-1]}`;
 }
 
 </script>
