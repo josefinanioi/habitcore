@@ -940,7 +940,43 @@ html,body{
   --cat-sabiduria:   #5c8ce0;
   --cat-comunicacion:#f0a955;
   --cat-legendarias: #e8b34a;
+  --cat-desconexion: #7bc67e;
 }
+
+/* ═══ COMPAÑERO · impulsos de abandonar un hábito ═══ */
+.comp-open-btn{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  background:var(--surface);border:1.5px solid var(--border);font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.comp-open-btn:active{transform:scale(.94);}
+.comp-kicker{font-size:var(--fs-xs);font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.comp-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.02em;line-height:1.2;margin-bottom:6px;}
+.comp-sub{font-size:var(--fs-sm);color:var(--muted);line-height:1.5;margin-bottom:18px;}
+.comp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.comp-chip{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:999px;
+  padding:9px 14px;font-size:var(--fs-sm);font-weight:600;color:var(--text);cursor:pointer;
+}
+.comp-chip.sel{border-color:var(--accent);background:rgba(124,110,247,.14);}
+.comp-msg{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:14px 16px;font-size:var(--fs-base);color:var(--text);line-height:1.55;margin-bottom:10px;
+}
+.comp-msg b{color:var(--accent);}
+.comp-actions{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+.comp-actions .sheet-btn{width:100%;}
+.comp-link{background:none;border:none;color:var(--muted);font-size:var(--fs-sm);cursor:pointer;padding:10px;text-decoration:underline;width:100%;}
+.comp-timer{font-size:52px;font-weight:800;text-align:center;color:var(--text);letter-spacing:-.03em;margin:8px 0 4px;font-variant-numeric:tabular-nums;}
+.comp-breath{
+  width:150px;height:150px;border-radius:50%;margin:18px auto 10px;
+  background:radial-gradient(circle,rgba(124,110,247,.55),rgba(124,110,247,.12));
+  transform:scale(.6);transition:transform 4s ease-in-out;
+}
+.comp-breath.in{transform:scale(1);}
+.comp-breath.out{transform:scale(.6);transition-duration:6s;}
+.comp-breath-label{text-align:center;font-size:var(--fs-base);font-weight:700;color:var(--text);min-height:22px;}
+.comp-stat{font-size:var(--fs-xs);color:var(--muted);text-align:center;margin-top:14px;}
 
 /* ── World switch (píldora flotante superior) ── */
 .world-switch{
@@ -1860,7 +1896,7 @@ body.light .nav-item.active{color:var(--accent);}
   <!-- ── LOGIN SCREEN ── -->
   <div id="loginScreen" style="
     position:fixed;inset:0;background:var(--bg);z-index:600;padding-top:env(safe-area-inset-top,56px);padding-bottom:env(safe-area-inset-bottom,0px);
-    display:flex;flex-direction:column;align-items:center;
+    display:none;flex-direction:column;align-items:center;
     justify-content:center;padding:36px 28px;gap:12px;border-radius:inherit;
   ">
     <div style="font-size:52px;margin-bottom:4px;">⚡</div>
@@ -1921,6 +1957,7 @@ body.light .nav-item.active{color:var(--accent);}
           </div>
           <div class="header-right">
             <span class="progress-count" id="progressCount">0<span> de 0</span></span>
+            <button class="comp-open-btn" onclick="openCompanion()" title="Tengo un impulso">🫂</button>
             <button class="avatar-btn" onclick="switchScreen('settings', document.getElementById('navSettings'))" title="Ajustes">J</button>
           </div>
         </div>
@@ -2537,7 +2574,7 @@ body.light .nav-item.active{color:var(--accent);}
       <div class="m-map-stats">
         <div class="m-stat"><div class="m-stat-val gold" id="mStatExplored">0%</div><div class="m-stat-lbl">Explorado</div></div>
         <div class="m-stat"><div class="m-stat-val" id="mStatLived">0</div><div class="m-stat-lbl">Vividas</div></div>
-        <div class="m-stat"><div class="m-stat-val" id="mStatChapters">0/6</div><div class="m-stat-lbl">Capítulos completos</div></div>
+        <div class="m-stat"><div class="m-stat-val" id="mStatChapters">0/7</div><div class="m-stat-lbl">Capítulos completos</div></div>
         <div class="m-stat"><div class="m-stat-val" id="mStatFav">0</div><div class="m-stat-lbl">En tu lista</div></div>
       </div>
 
@@ -2870,6 +2907,12 @@ body.light .nav-item.active{color:var(--accent);}
     </div>
   </div><!-- /missionAddSheet -->
 
+  <!-- ══ Compañero · impulsos ══ -->
+  <div class="hc-sheet add-sheet" id="companionSheet">
+    <div class="hc-handle-zone"><div class="hc-handle-pill"></div></div>
+    <div class="hc-scroll-body" id="compBody" style="padding-bottom:calc(24px + env(safe-area-inset-bottom,16px));"></div>
+  </div><!-- /companionSheet -->
+
 
 </div><!-- /phone -->
 
@@ -3104,6 +3147,8 @@ async function loadData() {
 
   // Recalcular streak y consistencia desde completions reales en la carga inicial
   habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); });
+  saveCache('habits', habits);
+  saveCache('customCategories', customCategories);
   renderHabits();
   renderFilterChips();
   updateInsightsFromData();
@@ -3113,6 +3158,7 @@ async function loadData() {
 
 async function saveHabitToDb(h) {
   if (!currentUser) return;
+  saveCache('habits', habits);
   const today = new Date().toISOString().slice(0,10);
   await sb.from('habits').upsert({
     id:             h.id,
@@ -3140,6 +3186,7 @@ async function saveHabitToDb(h) {
 
 async function deleteHabitFromDb(id) {
   if (!currentUser) return;
+  saveCache('habits', habits.filter(h => h.id !== id));
   await sb.from('habits').delete().eq('id', id).eq('user_id', currentUser.id);
 }
 
@@ -3599,19 +3646,68 @@ window.addEventListener('DOMContentLoaded', async () => {
   sheetMgr.register('addSheet',    closeAddSheet);
   sheetMgr.register('missionSheet',    () => {});
   sheetMgr.register('missionAddSheet', () => { editingMissionId = null; });
+  sheetMgr.register('companionSheet',  () => { compStopTimers(); });
   // periodSheet is a nested sheet (position:absolute in insights) — handled separately
   initPeriodSheetDrag();
-  // Check inicial de sesión — fuente de verdad para el estado de arranque.
-  // getSession() lee desde localStorage (sin red), por eso es rápido.
-  const { data: { session } } = await sb.auth.getSession();
+  // Arranque rápido: si hay una sesión guardada en el dispositivo, entrar
+  // directo a la app (sin mostrar el login) y pintar los últimos datos
+  // conocidos. getSession() puede tardar porque, si el token venció,
+  // lo refresca por red; por eso se valida en segundo plano.
+  const stored = readStoredSession();
+  if (stored?.user) {
+    currentUser = stored.user;
+    hideLogin();
+    renderFromCache();
+  }
+  const { data: { session }, error } = await sb.auth.getSession();
+  // Sin conexión no se puede refrescar el token: seguir con los datos locales
+  const offline = !navigator.onLine || error?.name === 'AuthRetryableFetchError' || error?.status === 0;
   if (session?.user) {
     currentUser = session.user;
-    hideLogin();    // mostrar app de inmediato
-    loadData();     // cargar hábitos en background, no-bloqueante
+    hideLogin();
+    loadData();     // datos frescos en background, no-bloqueante
+  } else if (stored?.user && offline) {
+    // se queda en la app; al volver la conexión, supabase refresca solo
   } else {
-    showLogin();
+    currentUser = null;
+    showLogin();    // solo si no hay sesión válida
   }
 });
+
+/* ─── ARRANQUE RÁPIDO: sesión y datos locales ─── */
+function readStoredSession() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('hc_session') || 'null');
+    return raw?.currentSession || raw;   // formatos v1 y v2 de supabase-js
+  } catch { return null; }
+}
+function cacheKey() { return currentUser ? 'hc_cache_' + currentUser.id : null; }
+function saveCache(part, value) {
+  const key = cacheKey();
+  if (!key) return;
+  try {
+    const cache = JSON.parse(localStorage.getItem(key) || '{}');
+    cache[part] = value;
+    localStorage.setItem(key, JSON.stringify(cache));
+  } catch {}
+}
+function renderFromCache() {
+  const key = cacheKey();
+  if (!key) return;
+  try {
+    const cache = JSON.parse(localStorage.getItem(key) || '{}');
+    if (Array.isArray(cache.habits)) {
+      habits = cache.habits;
+      customCategories = cache.customCategories || [];
+      renderHabits();
+      renderFilterChips();
+    }
+    if (Array.isArray(cache.missions)) {
+      missions = cache.missions;
+      renderMissions();
+    }
+  } catch {}
+}
 
 function updateClock() {
   const now = new Date();
@@ -5350,6 +5446,8 @@ const MISSION_CATEGORIES = [
   { id:'sabiduria',     emoji:'🧠', name:'Sabiduría',    color:'var(--cat-sabiduria)',    hex:'#5c8ce0', tagline:'Entendé el mundo y a vos' },
   { id:'comunicacion',  emoji:'🤝', name:'Comunicación', color:'var(--cat-comunicacion)', hex:'#f0a955', tagline:'Conectá de verdad' },
   { id:'legendarias',   emoji:'👑', name:'Legendarias',  color:'var(--cat-legendarias)',  hex:'#e8b34a', tagline:'Los sueños que definen una vida' },
+  // Misiones improductivas: su único fin es desconectar y disfrutar
+  { id:'desconexion',   emoji:'🌿', name:'Desconexión',  color:'var(--cat-desconexion)',  hex:'#7bc67e', tagline:'Disfrutar solo porque sí' },
 ];
 const mCat = id => MISSION_CATEGORIES.find(c => c.id === id) || MISSION_CATEGORIES[0];
 
@@ -5394,6 +5492,17 @@ const SEED_MISSIONS = [
   { emoji:'🧘', category:'legendarias', title:'Pasá 24 horas completamente solo, sin celular ni redes sociales.', reward:'Te reencontraste con el silencio y con vos.' },
   { emoji:'🏆', category:'legendarias', title:'Creá algo que haga sentir orgulloso a tu yo de diez años.', reward:'Cumpliste una promesa que ni sabías que tenías.' },
   { emoji:'🎫', category:'legendarias', title:'Reservá una experiencia que hoy te dé miedo.', reward:'Las mejores historias empiezan el día que comprás el pasaje.' },
+  // 🌿 Desconexión (improductivas)
+  { emoji:'☁️', category:'desconexion', title:'Tirate en el pasto a mirar las nubes.', reward:'El tiempo también puede pasar lento.' },
+  { emoji:'🎬', category:'desconexion', title:'Volvé a ver esa película que ya viste mil veces.', reward:'Lo conocido también abraza.' },
+  { emoji:'😴', category:'desconexion', title:'Dormí una siesta sin alarma.', reward:'Tu cuerpo sabe cuándo despertar.' },
+  { emoji:'🍦', category:'desconexion', title:'Salí a tomar un helado solo porque sí.', reward:'Los placeres simples alcanzan.' },
+  { emoji:'🎮', category:'desconexion', title:'Pasá una tarde entera jugando a un videojuego.', reward:'Jugar es una forma de descansar.' },
+  { emoji:'🛁', category:'desconexion', title:'Date un baño largo con tu música favorita.', reward:'Hoy el único plan fuiste vos.' },
+  { emoji:'🧩', category:'desconexion', title:'Armá un rompecabezas o pintá un mandala.', reward:'La mente también necesita recreos.' },
+  { emoji:'💃', category:'desconexion', title:'Bailá tu canción favorita a todo volumen.', reward:'La alegría también se mueve.' },
+  { emoji:'📺', category:'desconexion', title:'Hacé una maratón de una serie liviana.', reward:'Descansar también es parte del camino.' },
+  { emoji:'🚶', category:'desconexion', title:'Salí a caminar sin destino.', reward:'Llegaste a donde tenías que llegar.' },
 ];
 
 /* ─── Estado ─── */
@@ -5491,23 +5600,34 @@ async function loadMissions() {
     completed_at:r.completed_at, notes:r.notes, is_seed:!!r.is_seed,
   }));
   if (missions.length === 0) await seedMissions();
+  else await seedNewCategories();
   renderMissions();
 }
 
-async function seedMissions() {
-  if (!currentUser || !missionsTableOk) return;
-  const rows = SEED_MISSIONS.map(m => ({
+/* Usuarios existentes: sumar una sola vez las misiones de categorías nuevas */
+async function seedNewCategories() {
+  const flag = 'hc_seeded_desconexion_' + currentUser.id;
+  if (localStorage.getItem(flag)) return;
+  if (missions.some(m => m.category === 'desconexion')) { localStorage.setItem(flag, '1'); return; }
+  const ok = await seedMissions(SEED_MISSIONS.filter(m => m.category === 'desconexion'));
+  if (ok) localStorage.setItem(flag, '1');
+}
+
+async function seedMissions(list = SEED_MISSIONS) {
+  if (!currentUser || !missionsTableOk) return false;
+  const rows = list.map(m => ({
     user_id: currentUser.id, emoji:m.emoji, title:m.title,
     description:m.description || null, reward:m.reward || null,
     category:m.category, status:'available', is_favorite:false, is_seed:true,
   }));
   const { data, error } = await sb.from('missions').insert(rows).select('*');
-  if (error) { console.warn('seedMissions:', error.message); return; }
-  missions = (data || []).map(r => ({
+  if (error) { console.warn('seedMissions:', error.message); return false; }
+  missions = missions.concat((data || []).map(r => ({
     id:r.id, emoji:r.emoji, title:r.title, description:r.description, reward:r.reward,
     category:r.category, status:r.status, is_favorite:!!r.is_favorite,
     completed_at:r.completed_at, notes:r.notes, is_seed:!!r.is_seed,
-  }));
+  })));
+  return true;
 }
 
 async function saveMissionToDb(m) {
@@ -5531,6 +5651,7 @@ async function deleteMissionFromDb(id) {
 
 /* ─── Render maestro ─── */
 function renderMissions() {
+  saveCache('missions', missions);
   renderDiscover();
   if (currentMissionScreen === 'favorites') renderFavorites();
   if (currentMissionScreen === 'lived')     renderLived();
@@ -5686,7 +5807,7 @@ function renderMap() {
   const s = missionStats();
   document.getElementById('mStatExplored').textContent = s.pct + '%';
   document.getElementById('mStatLived').textContent = s.lived;
-  document.getElementById('mStatChapters').textContent = s.chaptersComplete + '/6';
+  document.getElementById('mStatChapters').textContent = s.chaptersComplete + '/' + MISSION_CATEGORIES.length;
   document.getElementById('mStatFav').textContent = s.fav;
 
   document.getElementById('mCatProgress').innerHTML = MISSION_CATEGORIES.map(c => {
@@ -5905,6 +6026,239 @@ function formatMissionDate(iso, long = false) {
   const mesesL = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   if (long) return `${d} de ${mesesL[mo-1]} de ${y}`;
   return `${d} ${meses[mo-1]}`;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   ███  COMPAÑERO — apoyo cuando aparece el impulso de abandonar  ███
+   Flujo: 1) qué hábito + qué sentís → 2) mensaje a medida
+   (identidad, racha, regla de 2 minutos, nunca fallar dos veces)
+   → 3) acción: versión mínima, respirar 90 s o soltar sin culpa.
+══════════════════════════════════════════════════════════ */
+const COMP_FEELINGS = [
+  { id:'cansancio',  emoji:'😮‍💨', label:'Cansancio',
+    msg:'Tu energía está baja y es real. Justo para estos días existe la <b>versión mínima</b>: tan chica que se pueda hacer igual.' },
+  { id:'aburrimiento', emoji:'😑', label:'Aburrimiento',
+    msg:'El aburrimiento es la señal de que el hábito se está volviendo rutina: ahí se construye la constancia. Probá cambiarle un detalle (lugar, música, horario).' },
+  { id:'ansiedad',   emoji:'😰', label:'Ansiedad',
+    msg:'Primero, el cuerpo. Un minuto y medio de respiración lenta baja la intensidad; después decidís con más calma.' },
+  { id:'tiempo',     emoji:'⏳', label:'Falta de tiempo',
+    msg:'Con 2 minutos alcanza para mantener viva la cadena. Lo importante hoy es <b>aparecer</b>; la duración se recupera después.' },
+  { id:'ganas',      emoji:'🙃', label:'No tengo ganas',
+    msg:'Las ganas suelen llegar <b>después</b> de empezar. Comprometete solo con los primeros 2 minutos y listo.' },
+  { id:'tentacion',  emoji:'🍩', label:'Tentación',
+    msg:'Los impulsos suben y bajan como una ola: en unos 90 segundos pierden fuerza. Surfeala respirando y mirá qué queda.' },
+];
+
+let compState = { habitId:null, feeling:null };
+let compTimer = null;
+let compBreathTimer = null;
+
+function compEsc(t) {
+  return String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function compLogKey() { return 'hc_impulses_' + (currentUser?.id || 'local'); }
+function compLog() {
+  try { return JSON.parse(localStorage.getItem(compLogKey()) || '[]'); } catch { return []; }
+}
+function compRecord(outcome) {
+  const log = compLog();
+  log.push({ at:new Date().toISOString(), habitId:compState.habitId, feeling:compState.feeling, outcome });
+  try { localStorage.setItem(compLogKey(), JSON.stringify(log.slice(-300))); } catch {}
+}
+function compOvercomeCount() { return compLog().filter(e => e.outcome !== 'skipped').length; }
+function compStopTimers() {
+  clearInterval(compTimer); compTimer = null;
+  clearTimeout(compBreathTimer); compBreathTimer = null;
+}
+function compHabit() { return habits.find(h => String(h.id) === String(compState.habitId)) || null; }
+function compRender(html) {
+  const body = document.getElementById('compBody');
+  body.innerHTML = html;
+  body.scrollTop = 0;
+}
+
+function openCompanion(habitId = null) {
+  compStopTimers();
+  compState = { habitId, feeling:null };
+  compStepOne();
+  haptic('light');
+  sheetMgr.open('companionSheet');
+}
+function closeCompanion() { sheetMgr.close('companionSheet'); }
+
+/* Paso 1 — ¿qué está pasando? */
+function compStepOne() {
+  const pending = habits.filter(h => !h.incorporated && !isCompletedToday(h));
+  const list = pending.length ? pending : habits.filter(h => !h.incorporated);
+  const habitChips = list.map(h =>
+    `<button class="comp-chip ${String(compState.habitId)===String(h.id)?'sel':''}" onclick="compPickHabit('${h.id}')">${compEsc(h.emoji || '•')} ${compEsc(h.name)}</button>`
+  ).join('') +
+    `<button class="comp-chip ${compState.habitId==='general'?'sel':''}" onclick="compPickHabit('general')">🌀 En general</button>`;
+  const feelChips = COMP_FEELINGS.map(f =>
+    `<button class="comp-chip ${compState.feeling===f.id?'sel':''}" onclick="compPickFeeling('${f.id}')">${f.emoji} ${f.label}</button>`
+  ).join('');
+  const n = compOvercomeCount();
+  compRender(`
+    <div class="comp-kicker">Tu compañero</div>
+    <div class="comp-title">Acá estoy. ¿Qué está pasando?</div>
+    <div class="comp-sub">Sentir el impulso de abandonar es parte del proceso. Contame un poco y lo atravesamos juntos.</div>
+    <div class="add-field-label">¿Con qué hábito?</div>
+    <div class="comp-chips">${habitChips}</div>
+    <div class="add-field-label">¿Qué sentís ahora?</div>
+    <div class="comp-chips">${feelChips}</div>
+    <div class="comp-actions">
+      <button class="sheet-btn primary" onclick="compStepTwo()" ${compState.habitId && compState.feeling ? '' : 'disabled style="opacity:.45"'}>Seguir</button>
+    </div>
+    ${n ? `<div class="comp-stat">Ya atravesaste ${n} impulso${n===1?'':'s'} con tu compañero 💪</div>` : ''}
+  `);
+}
+function compPickHabit(id) { compState.habitId = id; haptic('light'); compStepOne(); }
+function compPickFeeling(id) { compState.feeling = id; haptic('light'); compStepOne(); }
+
+/* Paso 2 — mensaje personalizado + opciones */
+function compStepTwo() {
+  if (!compState.habitId || !compState.feeling) return;
+  const h = compHabit();
+  const f = COMP_FEELINGS.find(x => x.id === compState.feeling);
+  const msgs = [f.msg];
+
+  if (h) {
+    if (h.streak >= 2) msgs.push(`Llevás <b>${h.streak} días</b> seguidos con "${compEsc(h.name)}". Cada vez que aparecés es un voto por la persona que querés ser.`);
+    else if (h.streak === 1) msgs.push(`Ayer lo hiciste. Hoy es el día que convierte un intento en una racha.`);
+    if (!isCompletedFor(h, dateStrFor(1)) && (h.streak || 0) === 0 && Object.keys(h.completions || {}).length)
+      msgs.push(`Ayer quedó pendiente. La regla es simple: <b>nunca fallar dos veces seguidas</b>. Hoy alcanza con una versión chiquita.`);
+    const why = h.description || h.intention;
+    if (why) msgs.push(`Cuando lo creaste escribiste: <i>"${compEsc(why)}"</i>`);
+  } else {
+    msgs.push('Recordá por qué empezaste. Un paso pequeño hoy mantiene encendido el sistema.');
+  }
+
+  const isAvoid = h?.type === 'avoid';
+  const doneAlready = h && isCompletedToday(h);
+  const actions = isAvoid
+    ? `<button class="sheet-btn primary" onclick="compBreathe()">🌬 Respirar 90 segundos</button>
+       ${h && !doneAlready ? `<button class="sheet-btn" onclick="compMarkDone('resisted')">💪 Lo resistí</button>` : ''}`
+    : `${h && !doneAlready ? `<button class="sheet-btn primary" onclick="compTwoMinutes()">⏱ Hacer solo 2 minutos</button>` : ''}
+       <button class="sheet-btn ${h && !doneAlready ? '' : 'primary'}" onclick="compBreathe()">🌬 Respirar 90 segundos</button>`;
+
+  compRender(`
+    <div class="comp-kicker">${f.emoji} ${f.label}</div>
+    <div class="comp-title">Te entiendo.</div>
+    ${msgs.map(m => `<div class="comp-msg">${m}</div>`).join('')}
+    <div class="comp-actions">
+      ${actions}
+      <button class="comp-link" onclick="compLetGo()">Hoy lo suelto</button>
+      <button class="comp-link" style="text-decoration:none;padding-top:0" onclick="compStepOne()">‹ Volver</button>
+    </div>
+  `);
+}
+
+/* Acción — regla de los 2 minutos */
+function compTwoMinutes() {
+  compStopTimers();
+  const h = compHabit();
+  let left = 120;
+  const paint = () => {
+    const el = document.getElementById('compClock');
+    if (el) el.textContent = `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+  };
+  compRender(`
+    <div class="comp-kicker">Regla de los 2 minutos</div>
+    <div class="comp-title">Empezá ahora con ${compEsc(h?.name || 'tu hábito')}.</div>
+    <div class="comp-sub">Solo 2 minutos. Si al terminar querés seguir, genial; si no, igual cuenta.</div>
+    <div class="comp-timer" id="compClock">2:00</div>
+    <div class="comp-actions">
+      <button class="sheet-btn primary" onclick="compMarkDone('two_minutes')">✓ Lo hice</button>
+      <button class="comp-link" onclick="compStepTwo()">‹ Volver</button>
+    </div>
+  `);
+  compTimer = setInterval(() => {
+    left--; paint();
+    if (left <= 0) {
+      compStopTimers(); playSuccess(); haptic('success');
+      const t = document.querySelector('#compBody .comp-sub');
+      if (t) t.textContent = '¡Listo! Ya apareciste hoy. ¿Lo marcamos?';
+    }
+  }, 1000);
+}
+
+/* Acción — surfear el impulso con respiración 4-6 durante 90 s */
+function compBreathe() {
+  compStopTimers();
+  compRender(`
+    <div class="comp-kicker">Surfear el impulso</div>
+    <div class="comp-title">Respirá conmigo.</div>
+    <div class="comp-sub">Inhalá 4 segundos, exhalá 6. El impulso va a subir y después bajar.</div>
+    <div class="comp-breath" id="compBreath"></div>
+    <div class="comp-breath-label" id="compBreathLabel">Preparate…</div>
+    <div class="comp-timer" id="compClock" style="font-size:28px">1:30</div>
+    <div class="comp-actions" id="compBreathActions">
+      <button class="comp-link" onclick="compStepTwo()">‹ Volver</button>
+    </div>
+  `);
+  let left = 90;
+  const ball = document.getElementById('compBreath');
+  const label = document.getElementById('compBreathLabel');
+  const cycle = () => {
+    if (!document.getElementById('compBreath')) return;
+    ball.className = 'comp-breath in';  label.textContent = 'Inhalá…';
+    compBreathTimer = setTimeout(() => {
+      ball.className = 'comp-breath out'; label.textContent = 'Exhalá…';
+      compBreathTimer = setTimeout(cycle, 6000);
+    }, 4000);
+  };
+  compBreathTimer = setTimeout(cycle, 600);
+  compTimer = setInterval(() => {
+    left--;
+    const el = document.getElementById('compClock');
+    if (el) el.textContent = `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+    if (left <= 0) {
+      compStopTimers(); haptic('success');
+      compRecord('breathed');
+      const h = compHabit();
+      label.textContent = '¿Cómo está la ola ahora?';
+      ball.className = 'comp-breath';
+      const canDo = h && !isCompletedToday(h);
+      document.getElementById('compBreathActions').innerHTML = `
+        ${canDo && h.type !== 'avoid' ? `<button class="sheet-btn primary" onclick="compTwoMinutes()">⏱ Ahora sí, 2 minutos</button>` : ''}
+        ${canDo && h.type === 'avoid' ? `<button class="sheet-btn primary" onclick="compMarkDone('resisted')">💪 Lo resistí</button>` : ''}
+        <button class="sheet-btn ${canDo ? '' : 'primary'}" onclick="compFinish('Pasó la ola. Bien hecho 🌊')">Ya estoy mejor</button>
+        <button class="comp-link" onclick="compLetGo()">Hoy lo suelto</button>`;
+    }
+  }, 1000);
+}
+
+/* Cierres */
+function compMarkDone(outcome) {
+  compStopTimers();
+  const h = compHabit();
+  if (h && !isCompletedToday(h)) toggleHabit(h.id);   // marca, re-renderiza y guarda
+  compRecord(outcome);
+  compFinish(outcome === 'resisted' ? 'Resististe el impulso. Eso es identidad en acción 💪' : 'Apareciste aunque costaba. Eso vale doble 🔥');
+}
+function compLetGo() {
+  compStopTimers();
+  compRecord('skipped');
+  compRender(`
+    <div class="comp-kicker">Está bien</div>
+    <div class="comp-title">Hoy descansás.</div>
+    <div class="comp-msg">Un día suelto es un accidente y se recupera. Lo que importa es <b>mañana</b>: nunca fallar dos veces seguidas.</div>
+    <div class="comp-msg">Si querés, dejá preparado algo pequeño para mañana (la ropa, el libro, el recordatorio). Tu yo del futuro te lo va a agradecer.</div>
+    <div class="comp-actions">
+      <button class="sheet-btn primary" onclick="closeCompanion()">Gracias</button>
+    </div>
+  `);
+}
+function compFinish(text) {
+  compRender(`
+    <div class="comp-kicker">Lo lograste</div>
+    <div class="comp-title">${text}</div>
+    <div class="comp-stat" style="font-size:var(--fs-sm)">Impulsos atravesados: ${compOvercomeCount()}</div>
+    <div class="comp-actions">
+      <button class="sheet-btn primary" onclick="closeCompanion()">Cerrar</button>
+    </div>
+  `);
 }
 
 </script>
