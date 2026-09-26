@@ -359,7 +359,9 @@ html,body{
   margin-top:10px;padding:5px 11px;border-radius:99px;
   font-size:var(--fs-sm);font-weight:700;
 }
-.trend-up{background:rgba(82,201,122,.12);color:var(--green);}
+.momentum-trend{color:var(--muted);background:rgba(255,255,255,.04);font-weight:600;}
+.momentum-trend:empty{display:none;}
+.trend-up{background:rgba(82,201,122,.12);color:var(--green);font-weight:700;}
 .trend-warn{background:rgba(247,163,92,.12);color:var(--amber);}
 
 /* 3-metric row */
@@ -1270,7 +1272,11 @@ html,body{
   pointer-events:all;
 }
 .toast-icon{font-size:18px;flex-shrink:0;}
-.toast-text{font-size:13px;color:var(--text);font-weight:500;line-height:1.35;white-space:nowrap;}
+.toast-text{font-size:13px;color:var(--text);font-weight:500;line-height:1.35;}
+.toast.moment{border-radius:18px;padding:12px 18px 12px 14px;max-width:min(360px, calc(100vw - 32px));}
+.toast.moment .toast-icon{font-size:22px;}
+.toast.moment .toast-text b{display:block;font-size:14px;font-weight:700;letter-spacing:-.01em;}
+.toast.moment .toast-text span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;}
 
 /* ═══════════════════════════════════════════
    CONFETTI
@@ -1810,6 +1816,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .hist-legend{display:flex;align-items:center;gap:5px;margin-top:10px;font-size:var(--fs-xs);color:var(--muted);}
 .hist-leg{width:10px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0;}
 .hist-leg.done{background:rgba(52,199,89,.25);}
+.hist-day.partial{background:rgba(124,110,247,.18);color:var(--accent);}
+.hist-leg.partial{background:rgba(124,110,247,.18);}
+.hist-day:not(.empty){cursor:pointer;}
 .hist-leg.missed{background:rgba(255,59,48,.1);}
 .hist-leg.today{background:var(--accent);}
 .date-history-icon{font-size:var(--fs-xs);transition:transform .25s;}
@@ -1847,6 +1856,146 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 
+
+
+/* ═══════════════════════════════════════════
+   NÚCLEO DE ACTIVACIÓN
+═══════════════════════════════════════════ */
+/* Tu próximo paso */
+#nextStep:empty,#frictionCard:empty,#focusSection:empty{display:none;}
+.ns-card{
+  margin:2px 16px 14px;padding:12px 14px 14px;
+  background:linear-gradient(135deg,rgba(124,110,247,.13),rgba(78,205,196,.05));
+  border:1px solid rgba(124,110,247,.25);border-radius:18px;
+  box-shadow:var(--card-shadow);animation:fadeInUp .35s ease both;
+}
+.ns-card.running{background:linear-gradient(135deg,rgba(82,201,122,.13),rgba(78,205,196,.05));border-color:rgba(82,201,122,.3);}
+.ns-kicker{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.ns-card.running .ns-kicker{color:var(--green);}
+.ns-row{display:flex;align-items:flex-start;gap:12px;}
+.ns-emoji{font-size:26px;line-height:1;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ns-body{flex:1;min-width:0;}
+.ns-title{font-size:var(--fs-base);font-weight:700;color:var(--text);letter-spacing:-.01em;line-height:1.25;}
+.ns-meta{font-size:var(--fs-sm);color:var(--muted);margin-top:3px;line-height:1.4;}
+.ns-meta b{color:var(--text);font-weight:600;}
+.ns-why{font-size:var(--fs-xs);color:var(--accent2);margin-top:4px;font-weight:600;}
+.ns-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.ns-actions.single{grid-template-columns:1fr;}
+.ns-primary,.ns-secondary{border-radius:12px;padding:11px 10px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:1px solid transparent;-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.ns-primary{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(124,110,247,.3);}
+.ns-card.running .ns-primary{background:var(--green);box-shadow:0 4px 14px rgba(82,201,122,.3);}
+.ns-secondary{background:transparent;color:var(--text);border-color:var(--border);}
+.ns-primary:active,.ns-secondary:active{transform:scale(.97);}
+.ns-head{display:flex;align-items:center;justify-content:space-between;margin:-4px -6px 6px 0;}
+.ns-head .ns-kicker{margin-bottom:0;}
+.ns-links{display:flex;align-items:center;gap:2px;color:var(--muted);font-size:var(--fs-xs);}
+.ns-links button{background:none;border:none;color:var(--muted);font-size:var(--fs-sm);padding:6px 6px;cursor:pointer;}
+.ns-collapsed{display:block;margin:0 16px 12px;background:none;border:1px dashed var(--border);border-radius:12px;padding:9px 12px;width:calc(100% - 32px);text-align:left;font-size:var(--fs-sm);font-weight:600;color:var(--muted);cursor:pointer;}
+.ns-collapsed span{color:var(--accent);}
+
+/* Etiquetas de lista */
+.list-label-row{display:flex;align-items:center;justify-content:space-between;padding:0 20px 8px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;}
+.link-btn{background:none;border:none;color:var(--accent);font-size:var(--fs-xs);font-weight:700;letter-spacing:.02em;text-transform:none;cursor:pointer;padding:4px 0;}
+
+/* Mis 3 */
+.focus-block{margin-bottom:14px;}
+.focus-block .habits-list{padding:0 16px;}
+.focus-block.complete .list-label-row span{color:var(--green);}
+.focus-note{margin:8px 20px 0;font-size:var(--fs-sm);color:var(--green);}
+.focus-pick-list{display:flex;flex-direction:column;gap:8px;}
+.focus-pick{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left;color:var(--text);font-size:var(--fs-base);}
+.focus-pick.on{border-color:var(--accent);background:rgba(124,110,247,.12);}
+.focus-pick.disabled{opacity:.4;}
+.fp-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;}
+.focus-pick.on .fp-check{background:var(--accent);border-color:var(--accent);}
+.fp-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* Tarjeta: estados nuevos */
+.habit-meta{flex-wrap:wrap;gap:5px 8px;min-width:0;}
+.hc-when{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.hc-running{font-size:var(--fs-xs);font-weight:700;color:var(--green);}
+.hc-min{font-size:var(--fs-xs);font-weight:600;color:var(--accent2);}
+.hc-return{font-size:var(--fs-xs);font-weight:700;color:var(--amber);}
+.habit-card.running{border-color:rgba(82,201,122,.35);box-shadow:var(--card-shadow),0 0 0 1px rgba(82,201,122,.12);}
+.habit-card.skipped{opacity:.35;}
+.habit-card.future{opacity:.7;}
+.habit-card.done .hc-min{opacity:1;}
+.habit-card.just-done{animation:justDone .6s ease both;}
+@keyframes justDone{0%{transform:translateY(-6px);opacity:0}60%{opacity:.6}100%{transform:none;opacity:.25}}
+.check-btn.min.done{background:var(--accent2);border-color:var(--accent2);box-shadow:0 0 0 7px rgba(78,205,196,.14);}
+.habit-right{flex-direction:row!important;align-items:center!important;gap:2px!important;}
+.start-btn{width:32px;height:32px;border-radius:50%;border:1px solid rgba(124,110,247,.35);background:rgba(124,110,247,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.start-btn svg{width:12px;height:12px;fill:var(--accent);margin-left:2px;}
+.start-btn:active{transform:scale(.9);}
+.start-btn.running{border-color:rgba(82,201,122,.45);background:rgba(82,201,122,.12);}
+.start-btn.running svg{fill:var(--green);}
+.empty-day{text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);}
+
+/* Formulario: momento, duración, objetivo */
+.slot-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.slot-chip{background:var(--surface);border:1.5px solid var(--border);border-radius:99px;padding:7px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--text);cursor:pointer;}
+.slot-chip.sel{border-color:var(--accent);background:rgba(124,110,247,.15);color:var(--accent);}
+.field-hint{font-size:var(--fs-xs);color:var(--muted);margin-bottom:14px;line-height:1.45;}
+.field-flash{animation:fieldFlash 1.4s ease;}
+@keyframes fieldFlash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px rgba(124,110,247,.45);border-radius:12px}}
+
+/* Fricción */
+.fr-card{margin:14px 16px 4px;padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--border);animation:fadeInUp .35s ease both;}
+.fr-title{font-size:var(--fs-base);font-weight:700;color:var(--text);margin-bottom:4px;}
+.fr-sub{font-size:var(--fs-sm);color:var(--muted);line-height:1.45;margin-bottom:10px;}
+.fr-sub b{color:var(--text);}
+.fr-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.fr-chips button{background:transparent;border:1.5px solid var(--border);border-radius:99px;padding:8px 12px;color:var(--text);font-size:var(--fs-sm);font-weight:600;cursor:pointer;}
+.fr-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.fr-primary,.fr-secondary{border-radius:12px;padding:10px 12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);}
+.fr-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.fr-dismiss{display:block;margin:8px auto 0;background:none;border:none;color:var(--muted);font-size:var(--fs-sm);cursor:pointer;padding:4px 8px;}
+
+/* Día cerrado */
+.all-done-state{padding:36px 32px 28px;}
+.dc-check{width:64px;height:64px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px var(--glow-green),0 0 40px rgba(82,201,122,.3);margin-bottom:18px;}
+.dc-check svg{width:30px;height:30px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:0;}
+.all-done-state.animate .dc-check{animation:allDoneBounce .7s cubic-bezier(.34,1.56,.64,1) both;}
+.all-done-state.animate .dc-check svg{animation:dcDraw .6s .25s ease both;}
+@keyframes dcDraw{from{stroke-dashoffset:30}to{stroke-dashoffset:0}}
+.dc-kicker{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:6px;}
+.dc-count{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-.03em;margin-bottom:6px;}
+.dc-week{font-size:var(--fs-sm);color:var(--muted);margin-top:8px;}
+.dc-btn{margin-top:18px;background:transparent;border:1px solid var(--border);color:var(--text);border-radius:99px;padding:10px 20px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;}
+
+/* Modo foco */
+.focus-overlay{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;flex-direction:column;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,40px) + 40px) 28px calc(env(safe-area-inset-bottom,16px) + 24px);
+  opacity:0;pointer-events:none;transform:translateY(16px);transition:opacity .28s ease,transform .28s ease;}
+.focus-overlay.open{opacity:1;pointer-events:all;transform:none;}
+.fo-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.fo-state{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:22px;}
+.fo-emoji{font-size:56px;margin-bottom:14px;}
+.fo-title{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.03em;line-height:1.2;max-width:320px;}
+.fo-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:8px;min-height:18px;}
+.fo-timer{font-size:56px;font-weight:300;color:var(--text);letter-spacing:-.02em;margin-top:28px;font-variant-numeric:tabular-nums;}
+.fo-note{font-size:var(--fs-sm);color:var(--muted);margin-top:14px;max-width:280px;line-height:1.5;}
+.fo-actions{display:flex;flex-direction:column;gap:10px;}
+.fo-done{background:var(--green);color:#fff;border:none;border-radius:16px;padding:17px;font-size:var(--fs-md);font-weight:800;cursor:pointer;box-shadow:0 6px 22px rgba(82,201,122,.3);}
+.fo-done:active{transform:scale(.98);}
+.fo-alt{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:14px;padding:13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;}
+.fo-links{display:flex;justify-content:center;align-items:center;gap:8px;color:var(--muted);}
+.fo-links button{background:none;border:none;color:var(--muted);font-size:var(--fs-sm);padding:8px;cursor:pointer;}
+.fo-success{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.focus-overlay.success .fo-success{opacity:1;}
+.focus-overlay.success .dc-check{animation:allDoneBounce .6s cubic-bezier(.34,1.56,.64,1) both;}
+.focus-overlay.success .dc-check svg{animation:dcDraw .5s .2s ease both;}
+.fo-success-txt{font-size:var(--fs-lg);font-weight:700;color:var(--text);}
+
+/* Progreso: insights con evidencia */
+.ev-line{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;}
+.ev-line:last-child{margin-bottom:0;}
+.ev-ic{width:22px;flex-shrink:0;text-align:center;}
+
+body.light .ns-card{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(78,205,196,.04));}
+body.light .ns-emoji{background:rgba(0,0,0,.04);}
+body.light .toast{background:rgba(255,255,255,.96);}
+body.light .check-btn:not(.done){border-color:rgba(0,0,0,.18);}
 
 /* ── LIGHT THEME ── */
 body.light{
@@ -1990,16 +2139,30 @@ body.light .nav-item.active{color:var(--accent);}
         <div class="history-inline-inner" id="historyBody"></div>
       </div>
 
+      <!-- ── ACTIVACIÓN: Tu próximo paso ── -->
+      <div id="nextStep"></div>
+
+      <!-- ── Mis 3 de hoy ── -->
+      <div id="focusSection"></div>
+
       <!-- Category filter chips -->
       <div class="filter-row" id="filterRow"></div>
 
       <div class="section-label" id="pendingLabel">Para hoy</div>
+      <div class="list-label-row" id="todayLabelRow"></div>
       <div class="habits-list" id="pendingList"></div>
 
+      <!-- ── Pregunta de fricción (solo con señal suficiente) ── -->
+      <div id="frictionCard"></div>
+
+      <!-- ── Día cerrado ── -->
       <div class="all-done-state" id="allDoneState">
-        <div class="all-done-emoji">🔥</div>
-        <div class="all-done-title">Día completo</div>
-        <div class="all-done-sub">Cada día que mostrás es quien sos.<br>Volvé mañana para mantener tu racha.</div>
+        <div class="dc-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="dc-kicker">Día cerrado</div>
+        <div class="dc-count" id="dcCount">0 de 0</div>
+        <div class="all-done-sub" id="dcSub">Hoy cumpliste con vos.</div>
+        <div class="dc-week" id="dcWeek"></div>
+        <button class="dc-btn" onclick="switchScreen('insights', document.getElementById('navInsights'))">Ver progreso</button>
         <div class="all-done-streak" id="allDoneStreakChip" style="display:none;">
           <span>⚡</span><span id="allDoneStreakText"></span>
         </div>
@@ -2045,12 +2208,12 @@ body.light .nav-item.active{color:var(--accent);}
           </svg>
           <div class="momentum-center">
             <div class="momentum-val" id="momentumVal">0</div>
-            <div class="momentum-unit">momentum</div>
+            <div class="momentum-unit">% semana</div>
           </div>
         </div>
         <div class="momentum-info">
-          <div class="momentum-title">Momentum Score</div>
-          <div class="momentum-desc">Racha activa + consistencia reciente + velocidad de recovery.</div>
+          <div class="momentum-title">Momentum semanal</div>
+          <div class="momentum-desc" id="momentumDesc">Oportunidades cumplidas esta semana.</div>
           <div class="momentum-trend" id="momentumTrend"></div>
         </div>
       </div>
@@ -2060,12 +2223,12 @@ body.light .nav-item.active{color:var(--accent);}
         <div class="metric-tile">
           <div class="mt-icon">🌊</div>
           <div class="mt-val" style="color:var(--green)" id="insConsistencia">0%</div>
-          <div class="mt-lbl">Consistencia global</div>
+          <div class="mt-lbl" id="insConsistenciaLbl">Consistencia 30 días</div>
         </div>
         <div class="metric-tile">
           <div class="mt-icon">⚡</div>
           <div class="mt-val" style="color:var(--accent2)" id="insRecovery">—</div>
-          <div class="mt-lbl">días hasta recovery</div>
+          <div class="mt-lbl">días para volver</div>
         </div>
         <div class="metric-tile">
           <div class="mt-icon">🏆</div>
@@ -2077,8 +2240,8 @@ body.light .nav-item.active{color:var(--accent);}
       <!-- Weekly insight -->
       <div class="insight-card">
         <div class="ic-header">
-          <div class="ic-badge"><div class="ic-dot"></div><div class="ic-title">Insight de la semana</div></div>
-          <div class="ic-week">Abr 22–28</div>
+          <div class="ic-badge"><div class="ic-dot"></div><div class="ic-title">Lo que dicen tus datos</div></div>
+          <div class="ic-week" id="insWeekLabel"></div>
         </div>
         <div class="ic-text" id="insInsight">Completá al menos un hábito para ver tus patrones.</div>
       </div>
@@ -2106,8 +2269,8 @@ body.light .nav-item.active{color:var(--accent);}
       <!-- Failure pattern by day -->
       <div class="ins-section">
         <div class="ins-section-hdr">
-          <div class="ins-section-ttl">Patrón de fallas</div>
-          <div class="ins-section-sub">por día de semana</div>
+          <div class="ins-section-ttl">Días que más cuestan</div>
+          <div class="ins-section-sub" id="dayChartSub">por día de semana</div>
         </div>
         <div class="day-chart" id="dayChart"></div>
         <div class="pattern-note" id="insPatternNote">Completá hábitos durante la semana para ver tu patrón de fallas.</div>
@@ -2116,8 +2279,8 @@ body.light .nav-item.active{color:var(--accent);}
       <!-- Recovery time card -->
       <div class="recovery-card">
         <div class="rc-left">
-          <div class="rc-title">Tiempo hasta recovery</div>
-          <div class="rc-sub">Promedio de días entre una falla y retomar el hábito. La meta es que baje a 1 día.</div>
+          <div class="rc-title">Recovery · volver</div>
+          <div class="rc-sub" id="insRecoverySub">Cuántos días tardás en volver a un hábito después de cortarlo. Volver rápido vale tanto como no cortar.</div>
         </div>
         <div class="rc-value">
           <div class="rc-num" id="insRecoveryNum">—</div>
@@ -2130,7 +2293,7 @@ body.light .nav-item.active{color:var(--accent);}
       <div class="ins-section">
         <div class="ins-section-hdr">
           <div class="ins-section-ttl">Consistencia por hábito</div>
-          <div class="ins-section-sub">30 días</div>
+          <div class="ins-section-sub" id="habitBarsSub">30 días</div>
         </div>
         <div id="habitBars"></div>
       </div>
@@ -2655,8 +2818,12 @@ body.light .nav-item.active{color:var(--accent);}
 
       <!-- Implementation intention -->
       <div class="intention-box">
-        <div class="intention-label">Intención de implementación</div>
+        <div class="intention-label">Cuándo lo hacés</div>
         <div class="intention-text" id="sheetIntention"></div>
+      </div>
+      <div class="intention-box" id="sheetGoalBox" style="display:none;">
+        <div class="intention-label">Objetivo</div>
+        <div class="intention-text" id="sheetGoal"></div>
       </div>
 
       <!-- Primary stats -->
@@ -2758,6 +2925,10 @@ body.light .nav-item.active{color:var(--accent);}
 
     <!-- CTA footer: fuera del scroll → safe-area + altura táctil garantizada -->
     <div class="sheet-cta-footer">
+      <div class="sheet-actions" id="sheetStartRow" style="margin-bottom:10px;">
+        <button class="sheet-btn" id="sheetStartBtn" onclick="startFromSheet('normal')">▶ Empezar</button>
+        <button class="sheet-btn" id="sheetMinBtn" onclick="completeMinFromSheet()">✓ Versión mínima</button>
+      </div>
       <div class="sheet-actions">
         <button class="sheet-btn" id="sheetSkipBtn" onclick="skipHabit()">⏭ Saltar hoy</button>
         <button class="sheet-btn primary" id="sheetCompleteBtn" onclick="completeFromSheet()">✓ Completar</button>
@@ -2833,9 +3004,20 @@ body.light .nav-item.active{color:var(--accent);}
       </div>
     </div>
 
-    <!-- Intención -->
-    <div class="add-field-label">¿Cuándo lo harás? <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(intención)</span></div>
-    <input class="add-input" id="newHabitIntention" placeholder="Ej: Cuando me levante, antes del café…" style="font-size:var(--fs-sm);">
+    <!-- Cuándo (intención estructurada) -->
+    <div class="add-field-label">¿Cuándo lo harás?</div>
+    <div class="slot-chips" id="slotChips"></div>
+    <input class="add-input" id="newHabitIntention" placeholder="Ancla (opcional): Ej. después del café" maxlength="60" style="font-size:var(--fs-sm);">
+
+    <div class="add-field-label">Duración aprox. <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">· opcional</span></div>
+    <div class="slot-chips" id="durationChips"></div>
+
+    <!-- Objetivo y versión mínima -->
+    <div class="add-field-label">Objetivo normal <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">· opcional</span></div>
+    <input class="add-input" id="newHabitGoal" placeholder="Ej: Leer 10 páginas" maxlength="60" style="font-size:var(--fs-sm);">
+    <div class="add-field-label">Versión mínima <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">· opcional</span></div>
+    <input class="add-input" id="newHabitMin" placeholder="Ej: Leer 2 páginas" maxlength="60" style="font-size:var(--fs-sm);margin-bottom:4px;">
+    <div class="field-hint">Para los días difíciles. Cuenta igual como cumplido.</div>
 
     <!-- Descripción -->
     <div class="add-field-label">Descripción <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">· opcional</span></div>
@@ -2907,6 +3089,18 @@ body.light .nav-item.active{color:var(--accent);}
     </div>
   </div><!-- /missionAddSheet -->
 
+  <!-- ══ Mis 3 de hoy · selector ══ -->
+  <div class="hc-sheet add-sheet" id="focusSheet">
+    <div class="hc-handle-zone"><div class="hc-handle-pill"></div></div>
+    <div class="hc-scroll-body" style="padding-bottom:calc(24px + env(safe-area-inset-bottom,16px));">
+      <div class="add-sheet-title" style="margin-bottom:4px;">Mis 3 de hoy</div>
+      <div class="field-hint" style="margin-bottom:16px;">Si hoy hacés estas, fue un buen día. Quedan elegidas hasta que las cambies.</div>
+      <div class="focus-pick-list" id="focusPickList"></div>
+      <button class="add-btn" style="margin-top:14px;" onclick="sheetMgr.close('focusSheet')">Listo</button>
+      <button class="comp-link" onclick="clearFocus()">Quitar todas</button>
+    </div>
+  </div><!-- /focusSheet -->
+
   <!-- ══ Compañero · impulsos ══ -->
   <div class="hc-sheet add-sheet" id="companionSheet">
     <div class="hc-handle-zone"><div class="hc-handle-pill"></div></div>
@@ -2971,6 +3165,31 @@ body.light .nav-item.active{color:var(--accent);}
     <div class="nav-dot"></div>
   </button>
 </div><!-- /missionsNav -->
+
+<!-- ══ MODO FOCO (Empezar) ══ -->
+<div class="focus-overlay" id="focusOverlay" aria-hidden="true">
+  <div class="fo-inner">
+    <div class="fo-state" id="foState">En curso</div>
+    <div class="fo-emoji" id="foEmoji">📚</div>
+    <div class="fo-title" id="foTitle">—</div>
+    <div class="fo-sub" id="foSub"></div>
+    <div class="fo-timer" id="foTimer">00:00</div>
+    <div class="fo-note" id="foNote">Ya empezaste. Eso es lo más difícil.</div>
+  </div>
+  <div class="fo-actions">
+    <button class="fo-done" id="foDoneBtn" onclick="finishFocus()">Terminé</button>
+    <button class="fo-alt" id="foMinBtn" onclick="switchFocusToMin()"></button>
+    <div class="fo-links">
+      <button onclick="exitFocus()">Salir</button>
+      <span>·</span>
+      <button onclick="cancelFocus()">Cancelar</button>
+    </div>
+  </div>
+  <div class="fo-success" id="foSuccess">
+    <div class="dc-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="fo-success-txt" id="foSuccessTxt">Listo</div>
+  </div>
+</div>
 
 <!-- Overlay del sello de completado -->
 <div class="stamp-overlay" id="stampOverlay">
@@ -3086,87 +3305,181 @@ function genUUID() {
   });
 }
 
-/* ─── COMPLETIONS HELPERS ─── */
-// Devuelve la fecha de hoy como 'YYYY-MM-DD'
-function todayStr() { return new Date().toISOString().slice(0,10); }
-// Devuelve la fecha de hace N días como 'YYYY-MM-DD'
+/* ─── FECHAS (siempre en hora LOCAL del dispositivo) ───
+   Antes se usaba toISOString() (UTC): en Argentina, después de las 21 h
+   los checks caían en el día siguiente. */
+function localDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todayStr() { return localDateStr(); }
 function dateStrFor(daysAgo) {
   const d = new Date(); d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().slice(0,10);
+  return localDateStr(d);
 }
-// ¿Fue completado el hábito en la fecha dada?
-function isCompletedFor(h, ds) { return !!(h.completions && h.completions[ds]); }
-// ¿Fue completado hoy?
+function parseDS(ds) { const [y,m,d] = ds.split('-').map(Number); return new Date(y, m-1, d); }
+function addDaysDS(ds, n) { const d = parseDS(ds); d.setDate(d.getDate() + n); return localDateStr(d); }
+function daysBetweenDS(a, b) { return Math.round((parseDS(b) - parseDS(a)) / 86400000); }
+function weekdayIdx(ds) { const j = parseDS(ds).getDay(); return j === 0 ? 6 : j - 1; } // 0=Lu…6=Do
+function nowHM() { const d = new Date(); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+
+/* ─── MODELO DE COMPLETADO ───
+   h.completions[ 'YYYY-MM-DD' ] puede ser:
+     true                                   → dato histórico (= completed_normal, sin hora)
+     { status:'completed_normal',  at:'HH:MM' }
+     { status:'completed_minimum', at:'HH:MM' }   → versión mínima (cuenta como cumplido)
+     { status:'skipped' }                   → día saltado: neutro (no suma ni resta)
+   Es la ÚNICA fuente de verdad; racha, consistencia, recovery, momentum,
+   insights y logros se derivan de acá. */
+const ST_NORMAL = 'completed_normal', ST_MIN = 'completed_minimum', ST_SKIP = 'skipped';
+function statusOfValue(v) { if (!v) return null; if (v === true) return ST_NORMAL; return v.status || ST_NORMAL; }
+function isDoneValue(v)   { const s = statusOfValue(v); return s === ST_NORMAL || s === ST_MIN; }
+function completionStatus(h, ds) { return statusOfValue(h.completions && h.completions[ds]); }
+function isCompletedFor(h, ds) { return isDoneValue(h.completions && h.completions[ds]); }
+function isSkippedFor(h, ds)   { return completionStatus(h, ds) === ST_SKIP; }
+function completionTime(h, ds) { const v = h.completions && h.completions[ds]; return v && typeof v === 'object' ? (v.at || null) : null; }
 function isCompletedToday(h) { return isCompletedFor(h, todayStr()); }
-// Deriva el array heatPattern[35] desde completions (más preciso que el boolean antiguo)
+function setCompletion(h, ds, status) {
+  if (!h.completions) h.completions = {};
+  h._start = null;
+  if (!status) { delete h.completions[ds]; return; }
+  const v = { status };
+  if (status !== ST_SKIP && ds === todayStr()) v.at = nowHM();
+  h.completions[ds] = v;
+}
+// Deriva el array heatPattern[35] desde completions
 function deriveHeatPattern(completions) {
-  const base = new Date();
-  return Array.from({length:35}, (_, i) => {
-    const d = new Date(base); d.setDate(d.getDate() - (34 - i));
-    return completions[d.toISOString().slice(0,10)] ? 3 : 0;
-  });
+  return Array.from({length:35}, (_, i) => isDoneValue(completions[dateStrFor(34 - i)]) ? 3 : 0);
+}
+
+/* ─── CALENDARIO DEL HÁBITO ─── */
+// Primer día en que el hábito "existe": fecha de inicio, creación o primer registro
+function habitStartDS(h) {
+  if (h._start && h._startBase === (h.startDate || h.createdAt || '')) return h._start;
+  const first = Object.keys(h.completions || {}).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && isDoneValue(h.completions[k])).sort()[0];
+  const base = h.startDate || h.createdAt || todayStr();
+  h._startBase = h.startDate || h.createdAt || '';
+  h._start = first && first < base ? first : base;
+  return h._start;
+}
+function isPausedOn(h, ds) {
+  return ((h.meta && h.meta.pauses) || []).some(p => ds >= p.from && (!p.to || ds <= p.to));
+}
+function isPausedNow(h) { return isPausedOn(h, todayStr()); }
+// ¿Le toca ese día? (día de la semana + dentro del rango de fechas)
+function isScheduledOn(h, ds) {
+  const days = h.days;
+  const dayOk = !days || days.length === 0 || days.length === 7 || days.includes(weekdayIdx(ds));
+  if (!dayOk) return false;
+  if (ds < habitStartDS(h)) return false;
+  if (h.endDate && ds > h.endDate) return false;
+  return true;
+}
+// Oportunidad real de cumplir: programado, no pausado, no saltado, no incorporado
+function isOpportunity(h, ds) {
+  return !h.incorporated && isScheduledOn(h, ds) && !isPausedOn(h, ds) && !isSkippedFor(h, ds);
+}
+
+/* ─── META DEL HÁBITO ───
+   Todo lo nuevo del sistema de activación vive en h.meta (columna jsonb
+   `meta` en Supabase). Si la columna todavía no existe, se guarda dentro de
+   completions.__meta para no perder nada, y se migra solo al crearla. */
+const META_DEFAULTS = {
+  goal: '',            // objetivo normal (ej. "Leer 10 páginas"); vacío = nombre
+  minVersion: '',      // versión mínima (ej. "Leer 2 páginas")
+  slot: '',            // momento del día: wake|morning|midday|afternoon|evening|bed|any
+  cue: '',             // ancla personalizada (ej. "Después de cenar")
+  durationMin: null,   // duración estimada en minutos
+  focus: false,        // ¿está en "Mis 3 de hoy"?
+  pauses: [],          // [{from:'YYYY-MM-DD', to:'YYYY-MM-DD'|null}]
+  frictions: [],       // [{d:'YYYY-MM-DD', r:'time'|'forgot'|'mood'|'toomuch'|'other'}]
+  lastAsked: null,     // última vez que se preguntó "¿qué lo hizo difícil?"
+  postponed: {},       // {'YYYY-MM-DD': veces que se eligió "Otro"/"Ahora no"}
+  preferMinUntil: null,// sugerir versión mínima hasta esta fecha
+  running: null,       // {d:'YYYY-MM-DD', t: epoch ms, mode:'normal'|'minimum'} → EN CURSO
+};
+function normalizeMeta(m) {
+  const out = { ...META_DEFAULTS, ...(m && typeof m === 'object' ? m : {}) };
+  out.pauses = Array.isArray(out.pauses) ? out.pauses : [];
+  out.frictions = Array.isArray(out.frictions) ? out.frictions : [];
+  out.postponed = out.postponed && typeof out.postponed === 'object' ? out.postponed : {};
+  return out;
+}
+let metaColumnOk = true;   // se pone en false si la tabla no tiene la columna `meta`
+function pendingKey() { return currentUser ? 'hc_pending_' + currentUser.id : null; }
+function readPending() { try { return JSON.parse(localStorage.getItem(pendingKey()) || '[]'); } catch { return []; } }
+function writePending(ids) { try { localStorage.setItem(pendingKey(), JSON.stringify([...new Set(ids)])); } catch {} }
+
+function rowToHabit(r) {
+  const raw = { ...(r.completions || {}) };
+  const metaInComp = raw.__meta; delete raw.__meta;
+  // Migrar datos antiguos (done boolean → completions)
+  if (r.done && r.last_done_date && !raw[r.last_done_date]) raw[r.last_done_date] = true;
+  const h = {
+    id:           r.id,
+    name:         r.name,
+    emoji:        r.emoji,
+    type:         r.type,
+    streak:       r.streak,
+    bestStreak:   r.best_streak,
+    consistency:  r.consistency,
+    days:         r.days || [0,1,2,3,4,5,6],
+    freq:         r.freq,
+    startDate:    r.start_date,
+    endDate:      r.end_date,
+    createdAt:    r.created_at ? localDateStr(new Date(r.created_at)) : null,
+    completions:  raw,
+    rescue:       r.rescue,
+    incorporated: r.incorporated,
+    color:        r.color,
+    categoryId:   r.category_id,
+    intention:    r.intention,
+    description:  r.description,
+    meta:         normalizeMeta(r.meta && Object.keys(r.meta).length ? r.meta : metaInComp),
+  };
+  h.heatPattern = deriveHeatPattern(h.completions);
+  return h;
 }
 
 async function loadData() {
   if (!currentUser) return;
-  const today = new Date().toISOString().slice(0,10);
+
+  // 1) Reintentar guardados que fallaron (sin conexión, etc.) antes de leer
+  const pending = readPending();
+  if (pending.length) {
+    const toFlush = habits.filter(h => pending.includes(String(h.id)));
+    writePending([]);
+    for (const h of toFlush) await saveHabitToDb(h, { skipCache: true });
+  }
 
   const { data: rows, error } = await sb.from('habits').select('*').eq('user_id', currentUser.id);
   if (error) { console.error('loadData:', error.message); return; }
-  habits = (rows || []).map(r => {
-    // Migrar datos antiguos (done boolean → completions)
-    let completions = r.completions || {};
-    if (r.done && r.last_done_date && !completions[r.last_done_date]) {
-      completions = { ...completions, [r.last_done_date]: true };
-    }
-    return {
-      id:           r.id,
-      name:         r.name,
-      emoji:        r.emoji,
-      type:         r.type,
-      streak:       r.streak,
-      bestStreak:   r.best_streak,
-      consistency:  r.consistency,
-      days:         r.days || [0,1,2,3,4,5,6],
-      freq:         r.freq,
-      startDate:    r.start_date,
-      endDate:      r.end_date,
-      completions,
-      rescue:       r.rescue,
-      incorporated: r.incorporated,
-      color:        r.color,
-      categoryId:   r.category_id,
-      intention:    r.intention,
-      description:  r.description,
-      heatPattern:  deriveHeatPattern(completions),
-    };
-  });
+  habits = (rows || []).map(rowToHabit);
 
   const { data: cats } = await sb.from('custom_categories').select('*').eq('user_id', currentUser.id);
   customCategories = cats || [];
 
-  // Recalcular streak y consistencia desde completions reales en la carga inicial
-  habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); });
+  // Recalcular todo desde completions reales
+  habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); clearStaleRunning(h); });
   saveCache('habits', habits);
   saveCache('customCategories', customCategories);
   renderHabits();
   renderFilterChips();
   updateInsightsFromData();
+  if (currentScreen === 'logros') renderLogros();
 
   loadMissions();   // cargar el segundo pilar en background
 }
 
-async function saveHabitToDb(h) {
+async function saveHabitToDb(h, opts = {}) {
   if (!currentUser) return;
-  saveCache('habits', habits);
-  const today = new Date().toISOString().slice(0,10);
-  await sb.from('habits').upsert({
+  if (!opts.skipCache) saveCache('habits', habits);
+  const payload = {
     id:             h.id,
     user_id:        currentUser.id,
     name:           h.name,
     emoji:          h.emoji,
     type:           h.type,
-    streak:         h.streak,
+    streak:         h.streak || 0,
     best_streak:    h.bestStreak || 0,
     consistency:    h.consistency || 0,
     days:           h.days,
@@ -3174,14 +3487,30 @@ async function saveHabitToDb(h) {
     start_date:     h.startDate || null,
     end_date:       h.endDate   || null,
     completions:    h.completions || {},
-    rescue:         h.rescue,
-    incorporated:   h.incorporated,
+    rescue:         !!h.rescue,
+    incorporated:   !!h.incorporated,
     color:          h.color    || null,
     category_id:    h.categoryId || null,
     intention:      h.intention  || null,
     description:    h.description|| null,
     heat_pattern:   h.heatPattern|| [],
-  });
+  };
+  const meta = normalizeMeta(h.meta);
+  if (metaColumnOk) payload.meta = meta;
+  else payload.completions = { ...payload.completions, __meta: meta };
+
+  let { error } = await sb.from('habits').upsert(payload);
+  if (error && metaColumnOk && /meta/i.test(error.message || '')) {
+    // La columna `meta` no existe todavía → guardar dentro de completions
+    metaColumnOk = false;
+    delete payload.meta;
+    payload.completions = { ...payload.completions, __meta: meta };
+    ({ error } = await sb.from('habits').upsert(payload));
+  }
+  if (error) {
+    console.warn('saveHabitToDb:', error.message);
+    writePending([...readPending(), String(h.id)]);
+  }
 }
 
 async function deleteHabitFromDb(id) {
@@ -3641,12 +3970,14 @@ function showAppleHealthInfo() {
 window.addEventListener('DOMContentLoaded', async () => {
   updateGreeting();
   updateDateNav();
+  checkDayRollover();
 
   sheetMgr.register('bottomSheet', closeSheet);
   sheetMgr.register('addSheet',    closeAddSheet);
   sheetMgr.register('missionSheet',    () => {});
   sheetMgr.register('missionAddSheet', () => { editingMissionId = null; });
   sheetMgr.register('companionSheet',  () => { compStopTimers(); });
+  sheetMgr.register('focusSheet',      () => { renderHabits(); });
   // periodSheet is a nested sheet (position:absolute in insights) — handled separately
   initPeriodSheetDrag();
   // Arranque rápido: si hay una sesión guardada en el dispositivo, entrar
@@ -3697,8 +4028,9 @@ function renderFromCache() {
   try {
     const cache = JSON.parse(localStorage.getItem(key) || '{}');
     if (Array.isArray(cache.habits)) {
-      habits = cache.habits;
+      habits = cache.habits.map(h => ({ ...h, _start: null, meta: normalizeMeta(h.meta) }));
       customCategories = cache.customCategories || [];
+      habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); clearStaleRunning(h); });
       renderHabits();
       renderFilterChips();
     }
@@ -3786,52 +4118,84 @@ function setFilter(catId) {
   renderHabits();
 }
 
-/* ─── TODAY: RENDER HABITS ─── */
+/* ─── TODAY: RENDER HABITS ───
+   Jerarquía: fecha + progreso → Tu próximo paso → Mis 3 → Hoy → Listos.
+   Si todo lo programado está hecho → estado "Día cerrado". */
+function scheduledToday() {
+  const t = todayStr();
+  return habits.filter(h => isScheduledOn(h, t) && !isPausedOn(h, t));
+}
+function trackedToday() { return scheduledToday().filter(h => !h.incorporated); }
+function isDayClosed() {
+  const t = todayStr();
+  const tracked = trackedToday();
+  return tracked.length > 0
+    && tracked.every(h => isCompletedFor(h, t) || isSkippedFor(h, t))
+    && tracked.some(h => isCompletedFor(h, t));
+}
+
 function renderHabits() {
-  // Día de semana actual: 0=Lu, 1=Ma, ..., 6=Do
-  const jsDay = new Date().getDay(); // 0=Dom, 1=Lun...
-  const todayOur = jsDay === 0 ? 6 : jsDay - 1;
+  if (dateOffset !== 0) { renderHabitsForOffset(); return; }
+  const t = todayStr();
+  const catOk = h => activeFilter === 'all' || h.categoryId === activeFilter;
+  const sched = scheduledToday();
+  const inFocus = h => !!(h.meta && h.meta.focus) && !h.incorporated;
+  const doneOrSkipped = h => isCompletedFor(h, t) || isSkippedFor(h, t);
 
-  const filtered = h => {
-    const dayOk = !h.days || h.days.length === 0 || h.days.length === 7 || h.days.includes(todayOur);
-    const catOk = activeFilter === 'all' || h.categoryId === activeFilter;
-    return dayOk && catOk;
-  };
-  const incorporated = habits.filter(h => h.incorporated && filtered(h));
-  const pending = habits.filter(h => !isCompletedToday(h) && !h.incorporated && filtered(h));
-  const done    = habits.filter(h =>  isCompletedToday(h) && !h.incorporated && filtered(h));
+  const incorporated = sched.filter(h => h.incorporated && catOk(h));
+  const pending = sched.filter(h => !h.incorporated && !doneOrSkipped(h) && !inFocus(h) && catOk(h))
+    .sort((a, b) => (isRunningToday(b) ? 1 : 0) - (isRunningToday(a) ? 1 : 0));
+  const closed = activeFilter === 'all' && isDayClosed();
+  // Con el día cerrado, "Mis 3" se oculta y todo lo hecho queda en Listos
+  const done    = sched.filter(h => !h.incorporated && doneOrSkipped(h) && (closed || !inFocus(h)) && catOk(h));
 
-  document.getElementById('pendingList').innerHTML      = pending.map(habitCardHTML).join('');
-  document.getElementById('doneList').innerHTML         = done.map(habitCardHTML).join('');
+  renderNextStep(closed);
+  renderFrictionCard(closed);
+  renderFocusSection(closed);
+
+  document.getElementById('pendingList').innerHTML      = pending.map(h => habitCardHTML(h)).join('');
+  document.getElementById('doneList').innerHTML         = done.map(h => habitCardHTML(h)).join('');
   document.getElementById('incorporatedList').innerHTML = incorporated.map(h => habitCardHTML(h, true)).join('');
 
   document.getElementById('doneSection').style.display         = done.length         ? 'block' : 'none';
   document.getElementById('incorporatedSection').style.display = incorporated.length ? 'block' : 'none';
   document.getElementById('pendingLabel').style.display        = pending.length       ? 'block' : 'none';
 
-  const allVisible = [...pending, ...done];
-  const allFiltered = habits.filter(filtered);
-  const isAllDone = allFiltered.length > 0 && allFiltered.every(h => isCompletedToday(h) || h.incorporated);
-  document.getElementById('allDoneState').classList.toggle('visible', isAllDone);
-  if (isAllDone) {
-    const maxStreak = Math.max(0, ...habits.map(h => h.streak || 0));
+  // Etiqueta "Hoy" + acceso rápido a "Mis 3"
+  const labelRow = document.getElementById('todayLabelRow');
+  const hasFocus = sched.some(inFocus);
+  const showPick = !hasFocus && trackedToday().length >= 4 && !closed;
+  labelRow.innerHTML = pending.length || showPick
+    ? `<span>${hasFocus ? 'El resto de hoy' : 'Hoy'}</span>${showPick ? `<button class="link-btn" onclick="openFocusPicker()">☆ Elegir mis 3</button>` : ''}`
+    : '';
+  labelRow.style.display = labelRow.innerHTML ? '' : 'none';
+
+  // Día cerrado
+  const ads = document.getElementById('allDoneState');
+  const wasVisible = ads.classList.contains('visible');
+  ads.classList.toggle('visible', closed);
+  if (closed) {
+    const tracked = trackedToday();
+    const n = tracked.filter(h => isCompletedFor(h, t)).length;
+    document.getElementById('dcCount').textContent = `${n} de ${tracked.filter(h => !isSkippedFor(h, t)).length}`;
+    const wk = weeklyMomentum(0);
+    document.getElementById('dcWeek').textContent = wk.opp >= 3 ? `Esta semana: ${wk.pct}% de tus oportunidades` : '';
     const chip = document.getElementById('allDoneStreakChip');
-    const chipTxt = document.getElementById('allDoneStreakText');
-    if (maxStreak >= 2) {
-      chipTxt.textContent = `${maxStreak} días en racha`;
-      chip.style.display = 'flex';
-    } else {
-      chip.style.display = 'none';
-    }
+    const maxStreak = Math.max(0, ...habits.map(h => h.streak || 0));
+    if (maxStreak >= 3) { document.getElementById('allDoneStreakText').textContent = `${maxStreak} días en racha`; chip.style.display = 'flex'; }
+    else chip.style.display = 'none';
+    if (!wasVisible) { ads.classList.remove('animate'); void ads.offsetWidth; ads.classList.add('animate'); }
   }
 
-  const todayHabits = habits.filter(filtered);
-  const totalDone = todayHabits.filter(h => isCompletedToday(h) || h.incorporated).length;
+  // Progreso del día (lo saltado no cuenta)
+  const todayHabits = sched.filter(catOk).filter(h => !isSkippedFor(h, t));
+  const totalDone = todayHabits.filter(h => isCompletedFor(h, t) || h.incorporated).length;
   const pct = todayHabits.length ? Math.round((totalDone / todayHabits.length) * 100) : 0;
   document.getElementById('progressCount').innerHTML = `${totalDone}<span> de ${todayHabits.length}</span>`;
   const fill = document.getElementById('progressFill');
   fill.style.width = `${pct}%`;
   fill.classList.toggle('full', pct === 100);
+  lastCompletedId = null;
 }
 
 function freqLabel(h) {
@@ -3847,22 +4211,32 @@ function durationLabel(h) {
 }
 
 function habitCardHTML(h, isIncorporated) {
-  const _done = isCompletedToday(h);
+  const t = todayStr();
+  const st = completionStatus(h, t);
+  const _done = st === ST_NORMAL || st === ST_MIN;
+  const skipped = st === ST_SKIP;
+  const running = !_done && isRunningToday(h);
   const hot   = h.streak >= 7 && !_done && !h.incorporated;
   const icon  = h.streak >= 21 ? '🏆' : h.streak >= 7 ? '🔥' : '⚡';
-  const typeL = {boolean:'',timer:'⏱',quant:'📊',avoid:'🚫'}[h.type];
-  const rescue= h.rescue && !_done ? `<div class="rescue-badge">⚡ Recovery</div>` : '';
+  const typeL = {boolean:'',timer:'⏱',quant:'📊',avoid:'🚫'}[h.type] || '';
 
-  // Category tag
   const cat = getCat(h.categoryId);
   const catTag = cat
     ? `<span class="cat-tag" style="background:${cat.color}22;color:${cat.color};">${cat.emoji} ${cat.name}</span>`
     : '';
-  const incBadge = h.incorporated
-    ? `<span class="incorporated-badge">✅ Incorporado</span>` : '';
+  const incBadge = h.incorporated ? `<span class="incorporated-badge">✅ Incorporado</span>` : '';
 
-  // Duration suffix
-  const dur = h.duration ? `<span style="font-size:var(--fs-xs);color:var(--muted);margin-left:2px;">${h.duration}${h.durationUnit}</span>` : '';
+  // Línea de estado: primero lo accionable; la racha solo aparece cuando suma
+  const bits = [];
+  if (running)            bits.push(`<span class="hc-running">● En curso · ${runningMinutes(h)} min</span>`);
+  else if (st === ST_MIN) bits.push(`<span class="hc-min">✓ Versión mínima</span>`);
+  else if (skipped)       bits.push(`<span class="hc-when">Saltado hoy</span>`);
+  else if (!_done && h.rescue && !h.incorporated) bits.push(`<span class="hc-return">↺ Retomalo hoy</span>`);
+  if (h.streak >= 2)      bits.push(`<span class="habit-streak ${hot?'hot':''}">${icon} ${h.streak}d</span>`);
+  const when = !_done && !running && !skipped ? whenLabel(h) : '';
+  if (when)               bits.push(`<span class="hc-when">${escHTML(when)}</span>`);
+  if (catTag && bits.length < 2) bits.push(catTag);
+  if (incBadge)           bits.push(incBadge);
 
   let extra = '';
   if (h.type === 'quant' && h.quant && !_done) {
@@ -3873,34 +4247,37 @@ function habitCardHTML(h, isIncorporated) {
     </div>`;
   }
 
+  const startBtn = !_done && !skipped && canStartHabit(h)
+    ? `<button class="start-btn ${running?'running':''}" onclick="event.stopPropagation();startHabit('${h.id}')" aria-label="${running?'Volver a':'Empezar'} ${escHTML(h.name)}">
+         <svg viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20 7 4"/></svg>
+       </button>` : '';
+  const justDone = _done && String(h.id) === String(lastCompletedId);
+
   return `
-  <div class="habit-card ${_done?'done':''} ${h.rescue&&!_done?'rescue':''} ${hot?'hot-card':''}" onclick="toggleHabit('${h.id}')">
-    <button class="check-btn ${_done?'done':''}" onclick="event.stopPropagation();toggleHabit('${h.id}')" aria-label="${_done?'Desmarcar':'Completar'} ${h.name}">
+  <div class="habit-card ${_done?'done':''} ${skipped?'skipped':''} ${running?'running':''} ${hot?'hot-card':''} ${justDone?'just-done':''}" data-hid="${h.id}" onclick="toggleHabit('${h.id}')">
+    <button class="check-btn ${_done?'done':''} ${st===ST_MIN?'min':''}" onclick="event.stopPropagation();toggleHabit('${h.id}')" aria-label="${_done?'Desmarcar':'Completar'} ${escHTML(h.name)}">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
     <div class="habit-info">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
-        <div class="habit-name" style="margin-bottom:0;">${h.emoji} ${h.name}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;min-width:0;">
+        <div class="habit-name" style="margin-bottom:0;">${h.emoji} ${escHTML(h.name)}</div>
         ${typeL ? `<span style="font-size:var(--fs-sm);color:var(--muted);">${typeL}</span>` : ''}
-        ${dur}
       </div>
-      <div class="habit-meta" style="flex-wrap:wrap;gap:5px;">
-        <span class="habit-streak ${hot?'hot':''}">${icon} ${h.streak}d</span>
-        ${catTag}
-        ${incBadge}
-      </div>
+      <div class="habit-meta">${bits.join('')}</div>
       ${extra}
     </div>
-    <div class="habit-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-      ${rescue}
-      <button class="detail-btn" onclick="event.stopPropagation();openDetail('${h.id}')" aria-label="Ver detalle de ${h.name}">
+    <div class="habit-right">
+      ${startBtn}
+      <button class="detail-btn" onclick="event.stopPropagation();openDetail('${h.id}')" aria-label="Ver detalle de ${escHTML(h.name)}">
         <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
   </div>`;
 }
 
-/* ─── TOGGLE ─── */
+/* ─── TOGGLE / COMPLETAR ───
+   Un único camino para registrar: check rápido, modo foco, versión mínima,
+   días pasados y detalle. Todo recalcula desde completions. */
 function toggleHabit(id) {
   const h = habits.find(x => String(x.id) === String(id));
   if (!h) return;
@@ -3908,46 +4285,59 @@ function toggleHabit(id) {
 }
 
 function toggleHabitForDate(h, ds, rerenderFn) {
-  if (!h.completions) h.completions = {};
-  const wasDone = !!h.completions[ds];
+  const wasDone = isCompletedFor(h, ds);
+  setHabitStatus(h, ds, wasDone ? null : ST_NORMAL, rerenderFn);
+}
 
-  if (wasDone) {
-    // Desmarcar
-    delete h.completions[ds];
-    h.heatPattern = deriveHeatPattern(h.completions);
-    recalculateStreak(h);
-    recalculateConsistency(h);
-    playTap();
-    haptic('light');
-  } else {
-    // Marcar como completado
-    h.completions[ds] = true;
-    h.heatPattern = deriveHeatPattern(h.completions);
-    recalculateStreak(h);
-    recalculateConsistency(h);
+// Completar desde el modo foco / próximo paso. mode: 'normal' | 'minimum'
+function completeHabit(id, mode = 'normal') {
+  const h = habits.find(x => String(x.id) === String(id));
+  if (!h) return;
+  setHabitStatus(h, todayStr(), mode === 'minimum' ? ST_MIN : ST_NORMAL);
+}
+
+function setHabitStatus(h, ds, status, rerenderFn) {
+  const today = todayStr();
+  const isToday = ds === today;
+  const wasDone = isCompletedFor(h, ds);
+  const before = isToday && status && status !== ST_SKIP ? snapshotForCelebration(h, ds) : null;
+
+  setCompletion(h, ds, status);
+  if (isToday && h.meta) h.meta.running = null;
+  h.heatPattern = deriveHeatPattern(h.completions);
+  recalculateStreak(h);
+  recalculateConsistency(h);
+
+  const nowDone = isCompletedFor(h, ds);
+  if (nowDone && !wasDone) {
+    haptic('success');
     playSuccess();
-    haptic('medium');
-    const wasRescue = h.rescue;
-    h.rescue = false;
-    if (wasRescue)           showToast('⚡','¡Racha rescatada! Completaste al día siguiente.');
-    else if (h.streak === 7) showToast('🔥',`¡7 días seguidos de "${h.name}"! El momentum es real.`);
-    else if (h.streak === 30) showToast('🏆',`¡30 días de "${h.name}"! Esto ya es parte de vos.`);
-    else if (h.streak > (h.bestStreak||0)) { h.bestStreak = h.streak; showToast('⭐',`Nuevo récord: ${h.streak} días seguidos de "${h.name}".`); }
-    // ¿Todos los hábitos de hoy completados?
-    if (ds === todayStr()) {
-      const allDone = habits.filter(x => !x.incorporated).every(x => isCompletedToday(x));
-      if (allDone) setTimeout(() => { launchConfetti(); showToast('🔥','Día completo. Cada día que mostrás es quien sos.'); }, 350);
-    }
+    if (isToday) { lastCompletedId = String(h.id); celebrateCompletion(h, ds, before); }
+  } else if (!nowDone && wasDone) {
+    playTap(); haptic('light');
   }
   saveHabitToDb(h);
-  // Re-render y actualizar insights en tiempo real
+
+  // Microanimación: el check se marca al instante y la tarjeta se mueve después
+  const renderFn = rerenderFn || (isToday && dateOffset === 0 ? renderHabits : renderHabitsForOffset);
+  document.querySelectorAll(`.habit-card[data-hid="${h.id}"]`).forEach(card => {
+    card.classList.toggle('done', nowDone);
+    card.querySelector('.check-btn')?.classList.toggle('done', nowDone);
+  });
   setTimeout(() => {
-    (rerenderFn || renderHabits)();
-    // Actualizar insights si la pantalla está visible
-    const insScreen = document.getElementById('screenInsights');
-    if (insScreen && !insScreen.classList.contains('hidden')) updateInsightsFromData();
-  }, 40);
+    renderFn();
+    refreshStatsViews();
+  }, nowDone && !wasDone ? 320 : 40);
 }
+
+// Refrescar Progreso y Logros si están visibles (datos siempre en vivo)
+function refreshStatsViews() {
+  const ins = document.getElementById('screenInsights');
+  if (ins && !ins.classList.contains('hidden')) { updateInsightsFromData(); animateHabitBars(); }
+  const log = document.getElementById('screenLogros');
+  if (log && !log.classList.contains('hidden')) renderLogros();
+}
+let lastCompletedId = null;
 
 function bumpQuant(e, id) {
   e.stopPropagation();
@@ -3977,7 +4367,7 @@ function openDetail(id, ds) {
   document.getElementById('sheetIcon').textContent       = h.emoji;
   document.getElementById('sheetIcon').style.background  = h.color;
   document.getElementById('sheetName').textContent       = h.name;
-  document.getElementById('sheetSub').textContent        = `${h.freq} · ${h.streak >= 7 ? '🔥' : '⚡'} ${h.streak} días`;
+  document.getElementById('sheetSub').textContent        = `${h.freq || freqLabel(h)}${h.streak >= 2 ? ` · ${h.streak >= 7 ? '🔥' : '⚡'} ${h.streak} días` : ''}${isPausedNow(h) ? ' · ⏸ En pausa' : ''}`;
 
   // Description (only show box if there's content)
   const descBox  = document.getElementById('sheetDescBox');
@@ -3989,12 +4379,18 @@ function openDetail(id, ds) {
     descBox.style.display = 'none';
   }
 
-  // Intention
-  document.getElementById('sheetIntention').textContent = h.intention;
+  // Cuándo + objetivo
+  document.getElementById('sheetIntention').textContent = whenLabel(h, true) || 'Sin definir todavía. Editalo para elegir un momento.';
+  const goalBox = document.getElementById('sheetGoalBox');
+  if (h.meta?.goal || h.meta?.minVersion) {
+    document.getElementById('sheetGoal').innerHTML =
+      `${escHTML(goalText(h))}${h.meta.minVersion ? `<br><span style="color:var(--muted)">Versión mínima: ${escHTML(h.meta.minVersion)}</span>` : ''}`;
+    goalBox.style.display = '';
+  } else goalBox.style.display = 'none';
 
   // Primary stats
   document.getElementById('sheetStreak').textContent  = h.streak;
-  document.getElementById('sheetConsist').textContent = h.consistency + '%';
+  document.getElementById('sheetConsist').textContent = h.consistencyOpp ? h.consistency + '%' : '—';
   document.getElementById('sheetBest').textContent    = h.bestStreak;
 
   // Incorporated toggle
@@ -4007,6 +4403,13 @@ function openDetail(id, ds) {
   const btn      = document.getElementById('sheetCompleteBtn');
   const isFuture = ds && ds > todayStr();
   const isPast   = ds && ds < todayStr();
+
+  const startRow = document.getElementById('sheetStartRow');
+  const canActivate = !isFuture && !isPast && !h.incorporated && !isCompletedToday(h);
+  startRow.style.display = canActivate ? '' : 'none';
+  document.getElementById('sheetStartBtn').style.display = canStartHabit(h) ? '' : 'none';
+  document.getElementById('sheetMinBtn').style.display = h.meta?.minVersion ? '' : 'none';
+  if (canActivate && !canStartHabit(h) && !h.meta?.minVersion) startRow.style.display = 'none';
 
   if (isFuture) {
     // Futuro: ocultar footer — no se puede completar
@@ -4029,91 +4432,84 @@ function openDetail(id, ds) {
 
   // Extended stats y heatmap — en try/catch para que un error no impida abrir el sheet
   try { buildDetailStats(h); } catch(e) { console.warn('buildDetailStats:', e); }
-  try { buildDetailHeatmap(h.heatPattern); } catch(e) { console.warn('buildDetailHeatmap:', e); }
+  try { buildDetailHeatmap(h); } catch(e) { console.warn('buildDetailHeatmap:', e); }
 
   sheetMgr.open('bottomSheet');
 }
 
 function buildDetailStats(h) {
-  // Total done: count non-zero days in heatPattern
-  const totalDone = h.heatPattern.filter(v => v === 3).length;
-  document.getElementById('sheetTotalDone').textContent = totalDone;
+  const today = todayStr();
+  document.getElementById('sheetTotalDone').textContent =
+    Object.keys(h.completions || {}).filter(k => isCompletedFor(h, k)).length;
 
-  // This week: last 7 days in heatPattern
-  const lastWeek = h.heatPattern.slice(-7);
-  const weekDone = lastWeek.filter(v => v === 3).length;
-  const weekTarget = h.freq === '3x semana' ? 3 : h.freq === 'Lun–Vie' ? 5 : 7;
-  document.getElementById('sheetThisWeek').textContent = `${weekDone}/${weekTarget}`;
-
-  // Days since last miss: count from end until first non-3
-  let sinceLastMiss = 0;
-  for (let i = h.heatPattern.length - 1; i >= 0; i--) {
-    if (h.heatPattern[i] === 3) sinceLastMiss++;
-    else break;
+  // Esta semana (lunes → domingo): cumplidas / programadas
+  const monday = addDaysDS(today, -weekdayIdx(today));
+  let wkDone = 0, wkTotal = 0;
+  for (let i = 0; i < 7; i++) {
+    const ds = addDaysDS(monday, i);
+    if (!isOpportunity(h, ds)) continue;
+    wkTotal++; if (isCompletedFor(h, ds)) wkDone++;
   }
-  document.getElementById('sheetLastMiss').textContent = sinceLastMiss > 0 ? sinceLastMiss : '0';
+  document.getElementById('sheetThisWeek').textContent = `${wkDone}/${wkTotal}`;
 
-  // Per-habit day failure pattern
+  // Días desde la última oportunidad no cumplida
+  let since = 0;
+  for (let i = 1; i < 400; i++) {
+    const ds = dateStrFor(i);
+    if (ds < habitStartDS(h)) break;
+    if (!isOpportunity(h, ds)) continue;
+    if (isCompletedFor(h, ds)) since = i; else break;
+  }
+  document.getElementById('sheetLastMiss').textContent = since;
+
   buildHabitDayChart(h);
-
-  // Weekly trend: group heatPattern into 5 weeks of 7 days
   buildWeeklyTrend(h);
 }
 
 function buildHabitDayChart(h) {
   const days = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-  // Count misses per weekday across 5 weeks (35 days)
-  const misses = [0,0,0,0,0,0,0];
-  const totals = [0,0,0,0,0,0,0];
-  h.heatPattern.forEach((v, i) => {
-    const dayIdx = i % 7;
-    totals[dayIdx]++;
-    if (v !== 3) misses[dayIdx]++;
-  });
-  const rates = misses.map((m, i) => totals[i] > 0 ? Math.round((m/totals[i])*100) : 0);
+  const misses = [0,0,0,0,0,0,0], totals = [0,0,0,0,0,0,0];
+  for (let i = 1; i <= 56; i++) {
+    const ds = dateStrFor(i);
+    if (!isOpportunity(h, ds)) continue;
+    const w = weekdayIdx(ds);
+    totals[w]++; if (!isCompletedFor(h, ds)) misses[w]++;
+  }
+  const rates = misses.map((m, i) => totals[i] > 0 ? Math.round((m / totals[i]) * 100) : 0);
   const maxRate = Math.max(...rates, 1);
-
-  const chart = document.getElementById('sheetDayChart');
-  chart.innerHTML = days.map((d, i) => {
+  document.getElementById('sheetDayChart').innerHTML = days.map((d, i) => {
     const pct = Math.round((rates[i] / maxRate) * 100);
     const col = rates[i] > 40 ? 'var(--red)' : rates[i] > 20 ? 'var(--amber)' : 'var(--accent)';
     return `<div class="mini-day-col">
-      <div class="mini-day-outer">
-        <div class="mini-day-fill" style="height:${pct}%;background:${col};opacity:.75;"></div>
-      </div>
+      <div class="mini-day-outer"><div class="mini-day-fill" style="height:${pct}%;background:${col};opacity:.75;"></div></div>
       <div class="mini-day-lbl">${d}</div>
     </div>`;
   }).join('');
-
-  // Pattern note
-  const worstIdx = rates.indexOf(Math.max(...rates));
   const note = document.getElementById('sheetPatternNote');
-  if (rates[worstIdx] > 0) {
-    note.innerHTML = `Fallás más los <strong style="color:var(--text)">${days[worstIdx]}</strong> (${rates[worstIdx]}% de fallas). Considerá ajustar el horario ese día.`;
-  } else {
-    note.textContent = 'Sin fallas registradas en este período. ¡Racha perfecta!';
-  }
+  const totalOpp = totals.reduce((a, b) => a + b, 0);
+  const worst = rates.indexOf(Math.max(...rates));
+  if (totalOpp < 8) note.textContent = 'Todavía hay poco historial para ver un patrón.';
+  else if (rates[worst] >= 40 && totals[worst] >= 3) note.innerHTML = `Los <strong style="color:var(--text)">${days[worst]}</strong> cuesta más (${rates[worst]}% sin hacer). Probá un momento distinto ese día.`;
+  else note.textContent = 'Sin un día problemático claro. Buen equilibrio.';
 }
 
 function buildWeeklyTrend(h) {
+  const today = todayStr();
+  const monday = addDaysDS(today, -weekdayIdx(today));
   const weeks = [];
-  for (let w = 0; w < 5; w++) {
-    const slice = h.heatPattern.slice(w * 7, w * 7 + 7);
-    const done = slice.filter(v => v === 3).length;
-    weeks.push({ done, total: slice.length, pct: Math.round((done / Math.max(slice.length,1)) * 100) });
+  for (let w = 4; w >= 0; w--) {
+    const from = addDaysDS(monday, -7 * w), to = addDaysDS(from, 6);
+    const r = opportunitiesInRange(h, from, to);
+    weeks.push({ pct: r.opp ? Math.round(r.done / r.opp * 100) : 0, has: r.opp > 0 });
   }
   const colors = ['#2a2a3a','#3a3a50','#5a4de0','#6e60f0','#7c6ef7'];
   const weekLabels = ['-4 sem','-3 sem','-2 sem','Ant.','Esta'];
-  const container = document.getElementById('sheetWeeklyBars');
-  container.innerHTML = weeks.map((w, i) => `
+  document.getElementById('sheetWeeklyBars').innerHTML = weeks.map((w, i) => `
     <div class="wk-bar-wrap">
-      <div class="wk-bar-outer">
-        <div class="wk-bar-fill" style="height:${w.pct}%;background:${colors[i]};"></div>
-      </div>
-      <div class="wk-bar-pct" style="color:${i===4?'var(--accent)':'var(--muted)'}">${w.pct}%</div>
+      <div class="wk-bar-outer"><div class="wk-bar-fill" style="height:${w.pct}%;background:${colors[i]};"></div></div>
+      <div class="wk-bar-pct" style="color:${i===4?'var(--accent)':'var(--muted)'}">${w.has ? w.pct + '%' : '—'}</div>
       <div class="wk-bar-lbl">${weekLabels[i]}</div>
-    </div>`
-  ).join('');
+    </div>`).join('');
 }
 
 /* ─── SHEET TABS ─── */
@@ -4165,84 +4561,82 @@ function completeFromSheet() {
   const ds = activeDateContext || todayStr();
   const rerenderFn = activeDateContext ? renderHabitsForOffset : renderHabits;
   toggleHabitForDate(h, ds, rerenderFn);
-  // Actualizar botón inmediatamente (toggleHabitForDate ya modificó completions)
   const btn = document.getElementById('sheetCompleteBtn');
   if (activeDateContext) {
     const nowDone = isCompletedFor(h, ds);
     btn.textContent = nowDone ? '✗ Desmarcar día' : '✓ Marcar día';
   } else {
-    btn.textContent = '✓ Completado'; btn.disabled = true; btn.style.opacity = '.5';
+    sheetMgr.close('bottomSheet');
   }
 }
+function completeMinFromSheet() {
+  if (!activeHabitId) return;
+  const id = activeHabitId;
+  sheetMgr.close('bottomSheet');
+  completeHabit(id, 'minimum');
+}
+function startFromSheet(mode) {
+  if (!activeHabitId) return;
+  const id = activeHabitId;
+  sheetMgr.close('bottomSheet');
+  setTimeout(() => startHabit(id, mode), 280);
+}
 
+// Saltar = día neutro (no cuenta como cumplido ni como falla)
 function skipHabit() {
   if (!activeHabitId) return;
-  const h = habits.find(x => x.id === activeHabitId);
+  const h = habits.find(x => String(x.id) === String(activeHabitId));
   if (h) {
-    if (!h.completions) h.completions = {};
-    h.completions[todayStr()] = true;
-    h.heatPattern = deriveHeatPattern(h.completions);
-    saveHabitToDb(h);
-    showToast('⏭',`"${h.name}" saltado hoy. La racha sigue intacta.`);
-    renderHabits();
+    setHabitStatus(h, todayStr(), ST_SKIP);
+    showToast('⏭',`"${h.name}" saltado hoy. No cuenta como falla.`);
   }
-  closeSheet();
+  sheetMgr.close('bottomSheet');
 }
 
 /* ─── DETAIL HEATMAP (con días pasados clicables) ─── */
-function buildDetailHeatmap(pattern) {
-  const colorMap = {0:'#e87070',1:'rgba(124,110,247,.25)',2:'rgba(124,110,247,.55)',3:'#7c6ef7'};
-  document.getElementById('heatmapGrid').innerHTML = pattern.map((v, i) => {
-    const daysAgo = 34 - i;          // 0 = hoy, 34 = hace 35 días
-    const isToday = daysAgo === 0;
-    const isPast  = daysAgo > 0;
-    const todayClass  = isToday ? ' hm-today-ring' : '';
-    const pastClass   = isPast  ? ' hm-past' : '';
-    const title       = isToday ? 'Hoy' : `Hace ${daysAgo} día${daysAgo > 1 ? 's' : ''}`;
-    const onclick     = isPast  ? `onclick="togglePastDay(${i})"` : '';
-    return `<div class="hm-day${todayClass}${pastClass}" style="background:${colorMap[v]}" title="${title}" ${onclick}></div>`;
-  }).join('');
+function buildDetailHeatmap(h) {
+  const cells = [];
+  for (let i = 0; i < 35; i++) {
+    const daysAgo = 34 - i, ds = dateStrFor(daysAgo);
+    const st = completionStatus(h, ds);
+    let bg = 'var(--surface2)';                               // no programado
+    if (st === ST_NORMAL) bg = '#7c6ef7';
+    else if (st === ST_MIN) bg = 'rgba(124,110,247,.55)';
+    else if (st === ST_SKIP) bg = 'rgba(255,255,255,.12)';
+    else if (daysAgo > 0 && isOpportunity(h, ds)) bg = 'rgba(232,112,112,.55)';
+    const title = daysAgo === 0 ? 'Hoy' : `Hace ${daysAgo} día${daysAgo > 1 ? 's' : ''}`;
+    cells.push(`<div class="hm-day${daysAgo === 0 ? ' hm-today-ring' : ''}${daysAgo > 0 ? ' hm-past' : ''}" style="background:${bg}" title="${title}" ${daysAgo > 0 ? `onclick="togglePastDay(${i})"` : ''}></div>`);
+  }
+  document.getElementById('heatmapGrid').innerHTML = cells.join('');
 }
 
 /* ─── PAST DAY TOGGLE ─── */
 function togglePastDay(index) {
-  const h = habits.find(x => x.id === activeHabitId);
+  const h = habits.find(x => String(x.id) === String(activeHabitId));
   if (!h) return;
   // index 0 = hace 34 días, index 34 = hoy
   const daysAgo = 34 - index;
   const ds = dateStrFor(daysAgo);
-  if (!h.completions) h.completions = {};
-  if (h.completions[ds]) delete h.completions[ds];
-  else h.completions[ds] = true;
-  h.heatPattern = deriveHeatPattern(h.completions);
-  recalculateStreak(h);
-  saveHabitToDb(h);
-  buildDetailHeatmap(h.heatPattern);
+  setHabitStatus(h, ds, isCompletedFor(h, ds) ? null : ST_NORMAL, renderHabitsForOffset);
+  buildDetailHeatmap(h);
   try { buildDetailStats(h); } catch(e) {}
-  renderHabits();
-  haptic('light');
 }
 
 /* ─── PAST DAY CARD & TOGGLE ─── */
 function pastDayHabitCardHTML(h, ds) {
-  const _done = isCompletedFor(h, ds);
-  const cat = getCat(h.categoryId);
-  const catTag = cat
-    ? `<span class="cat-tag" style="background:${cat.color}22;color:${cat.color};">${cat.emoji} ${cat.name}</span>`
-    : '';
+  const st = completionStatus(h, ds);
+  const _done = st === ST_NORMAL || st === ST_MIN;
+  const label = st === ST_MIN ? '<span class="hc-min">✓ Versión mínima</span>'
+              : st === ST_SKIP ? '<span class="hc-when">Saltado</span>'
+              : _done ? '' : '<span class="hc-when">Sin registrar</span>';
   return `
-  <div class="habit-card ${_done?'done':''}" onclick="openDetail('${h.id}','${ds}')">
-    <button class="check-btn ${_done?'done':''}" onclick="event.stopPropagation();togglePastHabit('${h.id}','${ds}')">
+  <div class="habit-card ${_done?'done':''} ${st===ST_SKIP?'skipped':''}" data-hid="${h.id}" onclick="openDetail('${h.id}','${ds}')">
+    <button class="check-btn ${_done?'done':''} ${st===ST_MIN?'min':''}" onclick="event.stopPropagation();togglePastHabit('${h.id}','${ds}')" aria-label="${_done?'Desmarcar':'Marcar'} ${escHTML(h.name)}">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
     <div class="habit-info">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
-        <div class="habit-name" style="margin-bottom:0;">${h.emoji} ${h.name}</div>
-      </div>
-      <div class="habit-meta" style="flex-wrap:wrap;gap:5px;">
-        <span class="habit-streak">⚡ ${h.streak}d</span>
-        ${catTag}
-      </div>
+      <div class="habit-name" style="margin-bottom:3px;">${h.emoji} ${escHTML(h.name)}</div>
+      <div class="habit-meta">${label}</div>
     </div>
   </div>`;
 }
@@ -4254,68 +4648,113 @@ function togglePastHabit(id, ds) {
   toggleHabitForDate(h, ds, renderHabitsForOffset);
 }
 
+/* ─── RACHA ───
+   Días programados consecutivos cumplidos. Hoy pendiente NO corta la racha
+   (el día todavía no terminó); saltados y pausados son neutros. */
 function recalculateStreak(h) {
-  // Recalculate streak from completions, going back up to 365 days
-  if (!h.completions) { h.streak = 0; return; }
   let streak = 0;
-  for (let daysAgo = 0; daysAgo < 365; daysAgo++) {
-    const date  = new Date();
-    date.setDate(date.getDate() - daysAgo);
-    const jsDay = date.getDay();
-    const dayIdx    = jsDay === 0 ? 6 : jsDay - 1; // 0=Lu…6=Do
-    const scheduled = h.days ? h.days.includes(dayIdx) : true;
-    if (!scheduled) continue;  // día no programado no rompe racha
-    const ds = date.toISOString().slice(0,10);
-    if (h.completions[ds]) {
-      streak++;
-    } else {
-      break;
-    }
+  const start = habitStartDS(h);
+  for (let i = 0; i < 800; i++) {
+    const ds = dateStrFor(i);
+    if (ds < start) break;
+    if (!isOpportunity(h, ds)) continue;
+    if (isCompletedFor(h, ds)) streak++;
+    else if (i === 0) continue;
+    else break;
   }
   h.streak = streak;
-  if (streak > (h.bestStreak || 0)) h.bestStreak = streak;
+  h.bestStreak = Math.max(h.bestStreak || 0, streak, computeBestStreak(h));
+  h.rescue = needsReturn(h);
 }
-
-// Recalcula consistencia desde completions reales (últimos N días programados)
-function recalculateConsistency(h, days = 30) {
-  if (!h.completions) { h.consistency = 0; return; }
-  let scheduled = 0, done = 0;
-  for (let i = 0; i < days; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const jsDay  = d.getDay();
-    const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
-    const isScheduled = !h.days || h.days.length === 0 || h.days.length === 7 || h.days.includes(dayIdx);
-    if (!isScheduled) continue;
-    scheduled++;
-    const ds = d.toISOString().slice(0, 10);
-    if (h.completions[ds]) done++;
+// Mejor racha de toda la historia (no solo la actual)
+function computeBestStreak(h) {
+  let best = 0, cur = 0;
+  const today = todayStr();
+  for (let ds = habitStartDS(h); ds <= today; ds = addDaysDS(ds, 1)) {
+    if (!isOpportunity(h, ds)) continue;
+    if (isCompletedFor(h, ds)) { cur++; best = Math.max(best, cur); }
+    else if (ds !== today) cur = 0;
   }
-  h.consistency = scheduled > 0 ? Math.round((done / scheduled) * 100) : 0;
+  return best;
 }
 
-// Tiempo promedio de recovery: días entre una falla y la siguiente completión (últimos 90 días)
-function computeRecoveryDays() {
-  let totalDays = 0, count = 0;
-  habits.forEach(h => {
-    if (!h.completions) return;
-    let missStreak = 0;
-    for (let i = 89; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const jsDay  = d.getDay();
-      const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
-      const scheduled = !h.days || h.days.length === 7 || h.days.includes(dayIdx);
-      if (!scheduled) continue;
-      const ds = d.toISOString().slice(0, 10);
-      if (h.completions[ds]) {
-        if (missStreak > 0) { totalDays += missStreak; count++; }
-        missStreak = 0;
-      } else {
-        missStreak++;
+/* ─── CONSISTENCIA ───
+   cumplidas / oportunidades en un rango. Hoy solo cuenta si ya se hizo
+   (un día en curso no es una falla). */
+function opportunitiesInRange(h, fromDS, toDS) {
+  let opp = 0, done = 0, min = 0;
+  const today = todayStr();
+  const start = habitStartDS(h);
+  let ds = fromDS < start ? start : fromDS;
+  for (; ds <= toDS; ds = addDaysDS(ds, 1)) {
+    if (!isOpportunity(h, ds)) continue;
+    const ok = isCompletedFor(h, ds);
+    if (ds === today && !ok) continue;
+    if (ds > today) continue;
+    opp++;
+    if (ok) { done++; if (completionStatus(h, ds) === ST_MIN) min++; }
+  }
+  return { opp, done, min };
+}
+function recalculateConsistency(h, days = 30) {
+  const { opp, done } = opportunitiesInRange(h, dateStrFor(days - 1), todayStr());
+  h.consistency = opp > 0 ? Math.round((done / opp) * 100) : 0;
+  h.consistencyOpp = opp;
+}
+
+/* ─── RECOVERY ───
+   Un "corte" empieza con la primera oportunidad no cumplida después de haber
+   cumplido; termina cuando el hábito se vuelve a hacer. Medimos cuántos días
+   calendario pasaron entre el último cumplimiento y la vuelta. */
+function recoveryEvents(h) {
+  const events = [];
+  const today = todayStr();
+  let lastDone = null, missed = 0;
+  for (let ds = habitStartDS(h); ds <= today; ds = addDaysDS(ds, 1)) {
+    if (!isOpportunity(h, ds)) continue;
+    if (isCompletedFor(h, ds)) {
+      if (lastDone && missed > 0) {
+        events.push({ habitId: h.id, back: ds, from: lastDone, days: daysBetweenDS(lastDone, ds), missed, minimum: completionStatus(h, ds) === ST_MIN });
       }
+      lastDone = ds; missed = 0;
+    } else if (ds !== today && lastDone) {
+      missed++;
     }
-  });
-  return count > 0 ? Math.round((totalDays / count) * 10) / 10 : null;
+  }
+  return events;
+}
+function allRecoveryEvents() { return habits.flatMap(recoveryEvents); }
+// ¿Quedó pendiente la última oportunidad (antes de hoy) teniendo historial?
+function needsReturn(h) {
+  if (isCompletedToday(h)) return false;
+  for (let i = 1; i < 60; i++) {
+    const ds = dateStrFor(i);
+    if (ds < habitStartDS(h)) return false;
+    if (!isOpportunity(h, ds)) continue;
+    if (isCompletedFor(h, ds)) return false;
+    return Object.keys(h.completions || {}).some(k => k < ds && isCompletedFor(h, k));
+  }
+  return false;
+}
+// Días desde el último cumplimiento anterior a `ds` (para "Volviste")
+function lastDoneBefore(h, ds) {
+  return Object.keys(h.completions || {}).filter(k => k < ds && isCompletedFor(h, k)).sort().pop() || null;
+}
+function missedOppsBetween(h, fromDS, toDS) {
+  let n = 0;
+  for (let ds = addDaysDS(fromDS, 1); ds < toDS; ds = addDaysDS(ds, 1)) if (isOpportunity(h, ds) && !isCompletedFor(h, ds)) n++;
+  return n;
+}
+// Promedio de días hasta volver en una ventana (null si no hay eventos)
+function avgRecovery(events, fromDS, toDS) {
+  const ev = events.filter(e => e.back >= fromDS && e.back <= toDS);
+  if (!ev.length) return null;
+  return { avg: Math.round(ev.reduce((s, e) => s + e.days, 0) / ev.length * 10) / 10, count: ev.length };
+}
+// Compatibilidad con el código anterior: promedio de los últimos 90 días
+function computeRecoveryDays() {
+  const r = avgRecovery(allRecoveryEvents(), dateStrFor(89), todayStr());
+  return r ? r.avg : null;
 }
 
 /* ─── EMOJI PICKER ─── */
@@ -4355,7 +4794,7 @@ function onHabitNameInput(name) {
 }
 
 function openEditSheet() {
-  const h = habits.find(x => x.id === activeHabitId);
+  const h = habits.find(x => String(x.id) === String(activeHabitId));
   if (!h) return;
   sheetMgr.close('bottomSheet');
   setTimeout(() => openAddSheet(h.id), 320); // esperar animación de cierre
@@ -4368,13 +4807,17 @@ function openAddSheet(habitId = null) {
 
   if (habitId) {
     /* ── MODO EDICIÓN: pre-cargar datos ── */
-    const h = habits.find(x => x.id === habitId);
+    const h = habits.find(x => String(x.id) === String(habitId));
     if (!h) return;
     selectedEmoji = h.emoji || EMOJIS[0];
     document.getElementById('addSheetTitle').textContent = 'Editar hábito';
     document.getElementById('addHabitBtn').textContent   = 'Guardar cambios';
     document.getElementById('newHabitName').value        = h.name;
-    document.getElementById('newHabitIntention').value   = h.intention?.replace(/^"|"$/g,'') || '';
+    document.getElementById('newHabitIntention').value   = h.meta?.cue || legacyIntention(h);
+    document.getElementById('newHabitGoal').value        = h.meta?.goal || '';
+    document.getElementById('newHabitMin').value         = h.meta?.minVersion || '';
+    newSlot     = h.meta?.slot || inferSlot(h) || '';
+    newDuration = h.meta?.durationMin || null;
     document.getElementById('newHabitDesc').value        = h.description || '';
     document.getElementById('newHabitStart').value       = h.startDate || '';
     document.getElementById('newHabitEnd').value         = h.endDate   || '';
@@ -4400,9 +4843,10 @@ function openAddSheet(habitId = null) {
     customSwatchColor = SWATCH_COLORS[0];
     document.getElementById('addSheetTitle').textContent = 'Nuevo hábito';
     document.getElementById('addHabitBtn').textContent   = 'Crear hábito';
-    ['newHabitName','newHabitIntention','newHabitDesc'].forEach(id =>
+    ['newHabitName','newHabitIntention','newHabitDesc','newHabitGoal','newHabitMin'].forEach(id =>
       document.getElementById(id).value = '');
-    document.getElementById('newHabitStart').value = new Date().toISOString().slice(0,10);
+    newSlot = ''; newDuration = null;
+    document.getElementById('newHabitStart').value = todayStr();
     document.getElementById('newHabitEnd').value   = '';
     document.getElementById('customCatRow').style.display  = 'none';
     document.getElementById('colorSwatches').style.display = 'none';
@@ -4414,6 +4858,7 @@ function openAddSheet(habitId = null) {
   document.getElementById('emojiSuggest').textContent = '';
   renderEmojiGrid();
   renderCatPicker();
+  renderSlotChips();
   sheetMgr.open('addSheet');
   setTimeout(() => document.getElementById('newHabitName').focus(), 300);
 }
@@ -4435,8 +4880,10 @@ function addHabit() {
   if (!name) { document.getElementById('newHabitName').focus(); return; }
   if (selectedDays.size === 0) { showToast('⚠️','Seleccioná al menos un día de frecuencia.'); return; }
 
-  const intention   = document.getElementById('newHabitIntention').value.trim() ||
-    'Define cuándo y dónde lo harás para aumentar la adherencia.';
+  const cue         = document.getElementById('newHabitIntention').value.trim();
+  const intention   = cue;
+  const goal        = document.getElementById('newHabitGoal').value.trim();
+  const minVersion  = document.getElementById('newHabitMin').value.trim();
   const description = document.getElementById('newHabitDesc').value.trim();
   const startDate   = document.getElementById('newHabitStart').value;
   const endDate     = document.getElementById('newHabitEnd').value;
@@ -4451,7 +4898,7 @@ function addHabit() {
 
   if (editingHabitId) {
     /* ── UPDATE ── */
-    const h = habits.find(x => x.id === editingHabitId);
+    const h = habits.find(x => String(x.id) === String(editingHabitId));
     if (!h) return;
     h.name        = name;
     h.emoji       = selectedEmoji;
@@ -4461,8 +4908,11 @@ function addHabit() {
     h.startDate   = startDate || null;
     h.endDate     = endDate   || null;
     h.categoryId  = newCategoryId;
-    h.intention   = `"${intention}"`;
+    h.intention   = intention || null;
     h.description = description;
+    h.meta = normalizeMeta({ ...h.meta, cue, goal, minVersion, slot: newSlot, durationMin: newDuration });
+    h._start = null;
+    recalculateStreak(h); recalculateConsistency(h);
     saveHabitToDb(h);
     sheetMgr.close('addSheet');
     renderHabits();
@@ -4484,8 +4934,10 @@ function addHabit() {
       completions: {}, rescue: false,
       color: 'rgba(124,110,247,.15)',
       categoryId: newCategoryId,
-      intention: `"${intention}"`,
+      intention: intention || null,
       description,
+      createdAt: todayStr(),
+      meta: normalizeMeta({ cue, goal, minVersion, slot: newSlot, durationMin: newDuration }),
       heatPattern: Array(35).fill(0),
     });
     const newH = habits[habits.length - 1];
@@ -4497,251 +4949,279 @@ function addHabit() {
   }
 }
 
-/* ─── INSIGHTS: 90-day heatmap ─── */
+/* ─── PROGRESO: período seleccionado ─── */
+function periodRange() {
+  const today = todayStr();
+  if (activePeriod.type === 'custom') return { from: activePeriod.from, to: activePeriod.to > today ? today : activePeriod.to };
+  if (!activePeriod.value) {
+    const starts = habits.map(habitStartDS).sort();
+    return { from: starts[0] || today, to: today };
+  }
+  return { from: dateStrFor(activePeriod.value - 1), to: today };
+}
+
+/* ─── INSIGHTS: heatmap 90 días (proporción cumplida por día) ─── */
 function buildHeatmap90() {
   const grid = document.getElementById('heatmap90');
-  const cols = 13, rows = 7, total = cols * rows; // 91 days
-  // Usar completions reales para los 91 días (no limitado a heatPattern de 35 días)
-  const data = new Array(total).fill(0);
-  if (habits && habits.length) {
-    habits.forEach(h => {
-      if (!h.completions) return;
-      for (let i = 0; i < total; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - (total - 1 - i));
-        const ds = d.toISOString().slice(0, 10);
-        if (h.completions[ds]) data[i] = Math.min(habits.length, data[i] + 1);
-      }
-    });
-  }
-  const maxVal = Math.max(...data, 1);
+  const cols = 13, rows = 7, total = cols * rows;
   const bgMap = ['#1e1e2a','rgba(124,110,247,.2)','rgba(124,110,247,.4)','rgba(124,110,247,.7)','#7c6ef7'];
   grid.innerHTML = '';
   for (let c = 0; c < cols; c++) {
     const col = document.createElement('div');
     col.className = 'hm90-col';
     for (let r = 0; r < rows; r++) {
-      const v = data[c * rows + r];
-      const level = v === 0 ? 0 : Math.min(4, Math.ceil((v / maxVal) * 4));
+      const ds = dateStrFor(total - 1 - (c * rows + r));
+      const opp = habits.filter(h => isOpportunity(h, ds));
+      const done = opp.filter(h => isCompletedFor(h, ds)).length;
+      const ratio = opp.length ? done / opp.length : 0;
+      const level = done === 0 ? 0 : Math.max(1, Math.min(4, Math.ceil(ratio * 4)));
       const cell = document.createElement('div');
       cell.className = 'hm90-cell';
       cell.style.background = bgMap[level];
+      cell.title = `${ds}: ${done}/${opp.length}`;
       col.appendChild(cell);
     }
     grid.appendChild(col);
   }
 }
 
-/* ─── INSIGHTS: Day-of-week failure chart ─── */
+/* ─── INSIGHTS: días que más cuestan (período) ─── */
+function weekdayStats(fromDS, toDS) {
+  const opp = [0,0,0,0,0,0,0], miss = [0,0,0,0,0,0,0];
+  const today = todayStr();
+  for (let ds = fromDS; ds <= toDS && ds < today; ds = addDaysDS(ds, 1)) {
+    const w = weekdayIdx(ds);
+    habits.forEach(h => { if (!isOpportunity(h, ds)) return; opp[w]++; if (!isCompletedFor(h, ds)) miss[w]++; });
+  }
+  return { opp, miss, rate: opp.map((o, i) => o ? Math.round(miss[i] / o * 100) : 0) };
+}
 function buildDayChart() {
   const chart = document.getElementById('dayChart');
   const days = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-  // Calcular tasa de fallo por día usando completions reales (últimos 90 días)
-  const completions = new Array(7).fill(0);
-  const totals = new Array(7).fill(0);
-  if (habits && habits.length) {
-    habits.forEach(h => {
-      if (!h.completions) return;
-      for (let i = 0; i < 90; i++) {
-        const d = new Date(); d.setDate(d.getDate() - i);
-        const jsDay  = d.getDay();
-        const ourDay = jsDay === 0 ? 6 : jsDay - 1;
-        const scheduled = !h.days || h.days.length === 0 || h.days.length === 7 || h.days.includes(ourDay);
-        if (!scheduled) continue;
-        totals[ourDay]++;
-        const ds = d.toISOString().slice(0, 10);
-        if (h.completions[ds]) completions[ourDay]++;
-      }
-    });
-  }
-  const failRates = days.map((_, i) => totals[i] > 0 ? Math.round(((totals[i]-completions[i])/totals[i])*100) : 0);
-  const maxFail = Math.max(...failRates, 1);
+  const { from, to } = periodRange();
+  const st = weekdayStats(from, to);
+  const maxFail = Math.max(...st.rate, 1);
   chart.innerHTML = days.map((d, i) => {
-    const pct = Math.round((failRates[i] / maxFail) * 100);
-    const color = failRates[i] > 30 ? 'var(--red)' : failRates[i] > 18 ? 'var(--amber)' : 'var(--accent)';
+    const pct = Math.round((st.rate[i] / maxFail) * 100);
+    const color = st.rate[i] > 40 ? 'var(--red)' : st.rate[i] > 20 ? 'var(--amber)' : 'var(--accent)';
     return `
     <div class="day-col">
       <div class="day-bar-outer">
-        <div class="day-bar-inner" style="height:${pct}%;background:${color};opacity:.75;" data-target="${pct}"></div>
+        <div class="day-bar-inner" style="height:${st.opp[i] ? pct : 0}%;background:${color};opacity:.75;" data-target="${pct}"></div>
       </div>
       <div class="day-lbl">${d}</div>
     </div>`;
   }).join('');
-  // Actualizar nota del patrón con día peor
-  const peorIdx = failRates.indexOf(Math.max(...failRates));
   const patEl = document.getElementById('insPatternNote');
-  if (patEl && habits && habits.length && Math.max(...failRates) > 0) {
-    patEl.innerHTML = `Los <strong style="color:var(--text)">${days[peorIdx]}</strong> tienen más fallas (${failRates[peorIdx]}%). Planificá ese día con más cuidado.`;
-  }
+  const totalOpp = st.opp.reduce((a, b) => a + b, 0);
+  const totalMiss = st.miss.reduce((a, b) => a + b, 0);
+  const avg = totalOpp ? Math.round(totalMiss / totalOpp * 100) : 0;
+  const worst = st.rate.indexOf(Math.max(...st.rate));
+  const dayNames = ['lunes','martes','miércoles','jueves','viernes','sábados','domingos'];
+  if (totalOpp < 14) patEl.textContent = 'Todavía hay poco historial en este período para ver un patrón.';
+  else if (st.opp[worst] >= 4 && st.rate[worst] - avg >= 15)
+    patEl.innerHTML = `Los <strong style="color:var(--text)">${dayNames[worst]}</strong> quedan más hábitos sin hacer (${st.rate[worst]}% vs. ${avg}% promedio). Probá aligerar ese día.`;
+  else patEl.textContent = 'No hay un día claramente más difícil. Tu semana está equilibrada.';
 }
 
-/* ─── INSIGHTS: Per-habit bars ─── */
+/* ─── INSIGHTS basados SOLO en evidencia del historial ───
+   Cada generador devuelve null si no hay datos suficientes. */
+function fmtDays(n) { return String(n).replace('.', ','); }
+function buildEvidenceInsights() {
+  const today = todayStr();
+  const out = [];
+  const push = (score, icon, html) => out.push({ score, icon, html });
+  const b = t => `<strong style="color:var(--text)">${t}</strong>`;
+
+  // 1) Volver más rápido
+  const ev = allRecoveryEvents();
+  const recent = avgRecovery(ev, dateStrFor(29), today);
+  const prev = avgRecovery(ev, dateStrFor(89), dateStrFor(30));
+  if (recent && prev && recent.count >= 2 && prev.count >= 2 && recent.avg < prev.avg)
+    push(95, '↺', `Estás volviendo más rápido después de cortar una rutina: antes tardabas ${b(fmtDays(prev.avg) + ' días')}, ahora ${b(fmtDays(recent.avg))}. Eso es progreso.`);
+  else if (recent && recent.count >= 3)
+    push(60, '↺', `En los últimos 30 días volviste ${b(recent.count + ' veces')} a hábitos que habías cortado.`);
+
+  // 2) Hora del día vs. consistencia
+  const early = [], late = [];
+  habits.forEach(h => {
+    const lh = learnedHour(h);
+    if (lh === null || (h.consistencyOpp || 0) < 8) return;
+    (lh < 10 ? early : late).push(h.consistency);
+  });
+  if (early.length && late.length && early.length + late.length >= 3) {
+    const aE = early.reduce((a, c) => a + c, 0) / early.length, aL = late.reduce((a, c) => a + c, 0) / late.length;
+    if (aL > 0 && aE - aL >= 10 && (aE - aL) / aL >= 0.2)
+      push(85, '🌅', `Los hábitos que hacés antes de las 10 tienen ${b(Math.round((aE - aL) / aL * 100) + '% más')} consistencia.`);
+    else if (aE > 0 && aL - aE >= 10 && (aL - aE) / aE >= 0.2)
+      push(85, '🌙', `Los hábitos que hacés después de las 10 tienen ${b(Math.round((aL - aE) / aE * 100) + '% más')} consistencia.`);
+  }
+
+  // 3) La versión mínima sostuvo hábitos
+  let bestMin = null;
+  habits.forEach(h => {
+    let saves = 0;
+    for (let i = 0; i < 30; i++) {
+      const ds = dateStrFor(i);
+      if (completionStatus(h, ds) !== ST_MIN) continue;
+      // ¿venía de una oportunidad sin hacer? → evitó la segunda falla seguida
+      for (let j = i + 1; j < 60; j++) { const p = dateStrFor(j); if (!isOpportunity(h, p)) continue; if (!isCompletedFor(h, p)) saves++; break; }
+    }
+    const uses = Object.keys(h.completions || {}).filter(k => k >= dateStrFor(29) && completionStatus(h, k) === ST_MIN).length;
+    if (saves >= 2 && (!bestMin || saves > bestMin.n)) bestMin = { h, n: saves, kind: 'save' };
+    else if (!bestMin && uses >= 3) bestMin = { h, n: uses, kind: 'use' };
+  });
+  if (bestMin) push(80, '🌱', bestMin.kind === 'save'
+    ? `Tu versión mínima evitó que abandonaras ${b(escHTML(bestMin.h.name))} ${bestMin.n} veces este mes.`
+    : `La versión mínima mantuvo vivo ${b(escHTML(bestMin.h.name))} ${bestMin.n} días este mes.`);
+
+  // 4) Día de la semana que más se posterga (8 semanas)
+  const ws = weekdayStats(dateStrFor(55), today);
+  const tOpp = ws.opp.reduce((a, c) => a + c, 0), tMiss = ws.miss.reduce((a, c) => a + c, 0);
+  if (tOpp >= 20) {
+    const avg = tMiss / tOpp * 100, worst = ws.rate.indexOf(Math.max(...ws.rate));
+    const names = ['lunes','martes','miércoles','jueves','viernes','sábados','domingos'];
+    if (ws.opp[worst] >= 6 && ws.rate[worst] >= 30 && ws.rate[worst] - avg >= 15)
+      push(70, '📅', `Los ${b(names[worst])} son el día donde más hábitos postergás (${ws.rate[worst]}% sin hacer).`);
+  }
+
+  // 5) Cantidad de hábitos activos vs. consistencia (10 semanas cerradas)
+  const weeks = [];
+  for (let w = 1; w <= 10; w++) {
+    const mon = addDaysDS(today, -weekdayIdx(today) - 7 * w), sun = addDaysDS(mon, 6);
+    let opp = 0, done = 0, active = 0;
+    habits.forEach(h => { const r = opportunitiesInRange(h, mon, sun); if (r.opp) active++; opp += r.opp; done += r.done; });
+    if (opp >= 5) weeks.push({ active, pct: done / opp * 100 });
+  }
+  const activeNow = habits.filter(h => !h.incorporated && !isPausedNow(h)).length;
+  for (let k = activeNow - 1; k >= 2 && weeks.length >= 4; k--) {
+    const low = weeks.filter(w => w.active <= k), high = weeks.filter(w => w.active > k);
+    if (low.length < 2 || high.length < 2) continue;
+    const aLow = low.reduce((a, w) => a + w.pct, 0) / low.length, aHigh = high.reduce((a, w) => a + w.pct, 0) / high.length;
+    if (aLow - aHigh >= 10) { push(65, '⚖️', `Tenés ${b(activeNow + ' hábitos activos')}. En las semanas con ${k} o menos, tu consistencia fue ${Math.round(aLow)}% (vs. ${Math.round(aHigh)}%).`); }
+    break;
+  }
+
+  // 6) Motivo más frecuente cuando algo cuesta
+  const fr = habits.flatMap(h => (h.meta && h.meta.frictions || []).filter(f => f.d >= dateStrFor(59)));
+  if (fr.length >= 3) {
+    const cnt = {}; fr.forEach(f => cnt[f.r] = (cnt[f.r] || 0) + 1);
+    const [top, n] = Object.entries(cnt).sort((a, c) => c[1] - a[1])[0];
+    const tips = { time:'Probá momentos más cortos o fijos.', forgot:'Un momento fijo o un ancla ayuda a recordarlos.', mood:'La versión mínima es tu mejor aliada esos días.', toomuch:'Hacer los hábitos más chicos puede destrabarlos.', other:'' };
+    const label = (FRICTION_REASONS.find(r => r.id === top) || {}).label;
+    if (label && n / fr.length >= 0.5) push(55, '🧩', `Cuando un hábito se cae, el motivo más frecuente es ${b('“' + label + '”')}. ${tips[top] || ''}`);
+  }
+
+  // 7) Hora habitual aprendida
+  habits.forEach(h => {
+    const lh = learnedHour(h);
+    const timed = Object.values(h.completions || {}).filter(v => v && typeof v === 'object' && v.at).length;
+    if (lh !== null && timed >= 6) push(30, '🕐', `Solés hacer ${b(escHTML(h.name))} alrededor de las ${Math.round(lh)} h.`);
+  });
+
+  return out.sort((a, c) => c.score - a.score).slice(0, 3);
+}
+
 /* ─── INSIGHTS: render dinámico desde datos reales ─── */
 function updateInsightsFromData() {
-  if (!habits || habits.length === 0) {
-    const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-    set('momentumVal','0'); set('momentumTrend','');
-    set('insConsistencia','0%'); set('insRecovery','—'); set('insMejorRacha','0');
-    set('insInsight','Agregá hábitos para ver tus patrones.');
-    set('insPatternNote','Completá hábitos durante la semana para ver tu patrón de fallas.');
-    set('insRecoveryNum','—'); set('insRecoveryNote','');
-    set('insReflexion','Completá hábitos esta semana para ver tu reflexión aquí.');
-    const arc = document.getElementById('momentumArc');
-    if (arc) arc.setAttribute('stroke-dasharray','0 226');
-    buildHeatmap90(); buildDayChart(); buildHabitBars();
-    return;
-  }
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const { from, to } = periodRange();
+  const today = todayStr();
 
-  // Recalcular consistencia de todos los hábitos desde completions (datos frescos)
-  habits.forEach(h => recalculateConsistency(h));
+  // Etiqueta de la semana actual
+  const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const mon = parseDS(addDaysDS(today, -weekdayIdx(today))), sun = parseDS(addDaysDS(today, 6 - weekdayIdx(today)));
+  set('insWeekLabel', `${mon.getDate()} ${MONTHS[mon.getMonth()]} – ${sun.getDate()} ${MONTHS[sun.getMonth()]}`);
 
-  // Consistencia global: promedio real desde completions
-  const avgConsistency = Math.round(habits.reduce((s,h) => s + (h.consistency||0), 0) / habits.length);
+  habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); });
 
-  // Mejor racha global
-  const bestStreak = Math.max(...habits.map(h => h.bestStreak||0), 0);
-
-  // Racha activa max
-  const maxStreak = Math.max(...habits.map(h => h.streak||0), 0);
-
-  // Momentum score: 0-100
-  // = (avgConsistency * 0.5) + (min(maxStreak,30)/30 * 30) + (recentActivity * 20)
-  const recentActivity = habits.filter(h => isCompletedToday(h)).length / Math.max(habits.length, 1);
-  const momentum = Math.min(100, Math.round(avgConsistency * 0.5 + (Math.min(maxStreak,30)/30)*30 + recentActivity*20));
-
-  // Recovery real desde completions
-  const recoveryDays = computeRecoveryDays();
-  const recoveryStr  = recoveryDays === null ? '—' : recoveryDays === 0 ? '< 1' : String(recoveryDays);
-  const recoveryNote = recoveryDays === null ? '' : recoveryDays === 0 ? '⚡ casi instantánea' : recoveryDays <= 1 ? '↓ recuperación rápida' : recoveryDays <= 3 ? '→ te retomás en pocos días' : '↑ intentá retomar antes';
-
-  // Actualizar DOM
-  const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-  set('momentumVal', momentum);
-  set('insConsistencia', avgConsistency + '%');
-  set('insMejorRacha', bestStreak);
-  set('insRecovery', recoveryStr);
-  set('insRecoveryNum', recoveryStr);
-  set('insRecoveryNote', recoveryNote);
-
-  // Arco SVG del momentum
+  // Momentum semanal
+  const { cur, delta } = weeklyMomentumComparable();
+  set('momentumVal', cur.opp ? cur.pct : '—');
+  set('momentumDesc', cur.opp ? `${cur.done} de ${cur.opp} oportunidades cumplidas esta semana` : 'Todavía no hay oportunidades esta semana.');
   const arc = document.getElementById('momentumArc');
-  if (arc) {
-    const circ = 226;
-    const dashLen = Math.round((momentum / 100) * circ);
-    arc.setAttribute('stroke-dasharray', dashLen + ' ' + circ);
-  }
-
-  // Trend del momentum
+  if (arc) arc.setAttribute('stroke-dasharray', Math.round((cur.pct / 100) * 226) + ' 226');
   const trendEl = document.getElementById('momentumTrend');
   if (trendEl) {
-    if (momentum >= 80) { trendEl.textContent = '🔥 Estás en racha. No rompas el ciclo.'; trendEl.className='momentum-trend trend-up'; }
-    else if (momentum >= 60) { trendEl.textContent = '↑ Buen momento. Seguí apareciendo.'; trendEl.className='momentum-trend trend-up'; }
-    else if (momentum >= 35) { trendEl.textContent = '→ En construcción. Un día a la vez.'; trendEl.className='momentum-trend'; }
-    else { trendEl.textContent = '↓ Empezá con uno hoy. Siempre con uno.'; trendEl.className='momentum-trend trend-down'; }
+    if (delta === null) { trendEl.textContent = ''; trendEl.className = 'momentum-trend'; }
+    else if (delta > 0) { trendEl.textContent = `↑ ${delta}% vs. semana anterior`; trendEl.className = 'momentum-trend trend-up'; }
+    else if (delta < 0) { trendEl.textContent = `La semana anterior, a esta altura: ${cur.pct + Math.abs(delta)}%. Un hábito hoy suma.`; trendEl.className = 'momentum-trend'; }
+    else { trendEl.textContent = '→ Igual que la semana anterior'; trendEl.className = 'momentum-trend'; }
   }
 
-  // Insight de la semana — inteligente y personal
+  // Consistencia del período
+  let opp = 0, done = 0;
+  const perHabit = habits.map(h => { const r = opportunitiesInRange(h, from, to); opp += r.opp; done += r.done; return { h, ...r }; });
+  set('insConsistencia', opp ? Math.round(done / opp * 100) + '%' : '—');
+  set('insConsistenciaLbl', `Consistencia · ${activePeriod.label}`);
+  set('habitBarsSub', activePeriod.label);
+  set('insMejorRacha', Math.max(0, ...habits.map(h => h.bestStreak || 0)));
+
+  // Recovery: antes vs. ahora
+  const ev = allRecoveryEvents();
+  const recent = avgRecovery(ev, dateStrFor(29), today);
+  const prev = avgRecovery(ev, dateStrFor(89), dateStrFor(30));
+  const rStr = recent ? (recent.avg < 1 ? '< 1' : fmtDays(recent.avg)) : '—';
+  set('insRecovery', rStr); set('insRecoveryNum', rStr);
+  const sub = document.getElementById('insRecoverySub');
+  if (recent && prev && recent.count >= 2 && prev.count >= 2 && recent.avg < prev.avg) {
+    sub.innerHTML = `Antes tardabas <strong style="color:var(--text)">${fmtDays(prev.avg)} días</strong> en volver. Ahora tardás <strong style="color:var(--text)">${fmtDays(recent.avg)}</strong>. Eso es progreso.`;
+    set('insRecoveryNote', '↓ más rápido');
+  } else if (recent) {
+    sub.innerHTML = `Volviste <strong style="color:var(--text)">${recent.count} ${recent.count === 1 ? 'vez' : 'veces'}</strong> en los últimos 30 días. Volver también es consistencia.`;
+    set('insRecoveryNote', recent.avg <= 2 ? 'vuelta rápida' : '');
+  } else {
+    sub.textContent = 'Cuántos días tardás en volver a un hábito después de cortarlo. Volver rápido vale tanto como no cortar.';
+    set('insRecoveryNote', '');
+  }
+
+  // Lo que dicen tus datos (solo con evidencia)
   const insEl = document.getElementById('insInsight');
   if (insEl) {
-    const topHabit = habits.reduce((best, h) => (h.streak||0) > (best.streak||0) ? h : best, habits[0]);
-    const worstConsistency = habits.reduce((worst, h) => (h.consistency||0) < (worst.consistency||0) ? h : worst, habits[0]);
-    const improvingHabit = habits.find(h => (h.streak||0) >= 3 && (h.consistency||0) < 60);
-
-    if ((topHabit?.streak||0) >= 21) {
-      insEl.innerHTML = `${topHabit.emoji} <strong style="color:var(--text)">${topHabit.name}</strong> está en racha de <strong style="color:var(--amber)">${topHabit.streak} días</strong>. Esto ya no es fuerza de voluntad — es tu identidad.`;
-    } else if ((topHabit?.streak||0) >= 7) {
-      insEl.innerHTML = `${topHabit.emoji} <strong style="color:var(--text)">${topHabit.name}</strong> lleva <strong style="color:var(--text)">${topHabit.streak} días</strong> seguidos. El momentum es real — protegelo.`;
-    } else if (improvingHabit) {
-      insEl.innerHTML = `${improvingHabit.emoji} <strong style="color:var(--text)">${improvingHabit.name}</strong> lleva ${improvingHabit.streak} días seguidos. Potencial de racha — seguís apareciendo.`;
-    } else if ((topHabit?.streak||0) > 0) {
-      insEl.innerHTML = `${topHabit.emoji} <strong style="color:var(--text)">${topHabit.name}</strong> es tu hábito más activo con <strong style="color:var(--text)">${topHabit.streak} días</strong> de racha.`;
-    } else {
-      insEl.textContent = 'Completá tus hábitos de hoy para construir tu primera racha.';
-    }
+    const list = buildEvidenceInsights();
+    insEl.innerHTML = list.length
+      ? list.map(i => `<div class="ev-line"><span class="ev-ic">${i.icon}</span><span>${i.html}</span></div>`).join('')
+      : (habits.length ? 'Todavía no hay suficiente historial para sacar conclusiones. Van a aparecer acá a medida que uses la app.' : 'Agregá hábitos para ver tus patrones.');
   }
 
-  // Pattern note — análisis de días de falla
-  const patEl = document.getElementById('insPatternNote');
-  if (patEl) {
-    // Detectar el día de la semana con más fallas
-    const dayNames = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
-    const failsByDay = [0,0,0,0,0,0,0];
-    habits.forEach(h => {
-      if (!h.completions) return;
-      for (let i = 1; i <= 30; i++) {
-        const d = new Date(); d.setDate(d.getDate() - i);
-        const dayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
-        const isScheduled = !h.days || h.days.length === 0 || h.days.length === 7 || h.days.includes(dayIdx);
-        if (!isScheduled) continue;
-        const ds = d.toISOString().slice(0,10);
-        if (!h.completions[ds]) failsByDay[dayIdx]++;
-      }
-    });
-    const worstDayIdx = failsByDay.indexOf(Math.max(...failsByDay));
-    const worstDayFails = failsByDay[worstDayIdx];
-
-    if (avgConsistency >= 80) {
-      patEl.innerHTML = `Consistencia de <strong style="color:var(--green)">${avgConsistency}%</strong> — estás en el top de tu juego. Protegé la racha los fines de semana.`;
-    } else if (avgConsistency >= 60 && worstDayFails > 2) {
-      patEl.innerHTML = `Los <strong style="color:var(--text)">${dayNames[worstDayIdx]}es</strong> son tu punto débil. Considerá reducir la carga ese día.`;
-    } else if (avgConsistency >= 40) {
-      patEl.innerHTML = `Consistencia del <strong style="color:var(--text)">${avgConsistency}%</strong>. Pequeños ajustes suman — ¿cuál es el hábito más difícil de retomar?`;
-    } else if (avgConsistency > 0) {
-      patEl.innerHTML = `Consistencia del <strong style="color:var(--text)">${avgConsistency}%</strong>. Enfocate en un solo hábito hasta que sea automático.`;
-    } else {
-      patEl.textContent = 'Completá hábitos durante la semana para ver tu patrón de fallas.';
-    }
-  }
-
-  // Reflexión: "Quién estás siendo"
+  // Reflexión: quién estás siendo (hábitos hechos hoy)
   const refEl = document.getElementById('insReflexion');
   if (refEl) {
-    const done = habits.filter(h => isCompletedToday(h));
-    const hotHabits = habits.filter(h => (h.streak||0) >= 7);
-    const IDENTITY_TEMPLATES = [
-      h => `Sos alguien que ${h.emoji} <strong>${h.name}</strong>. ${h.streak >= 3 ? `Llevas ${h.streak} días sin saltarte.` : 'Ya va tomando forma.'}`,
-      h => `${h.emoji} <strong>${h.name}</strong> ya no es algo que hacés — es parte de cómo funcionás.`,
-      h => `Cada vez que elegís ${h.emoji} <strong>${h.name}</strong>, le das forma a quien querés ser.`,
-    ];
-    if (done.length > 0) {
-      refEl.innerHTML = done.slice(0, 3).map((h, i) => {
-        const tmpl = IDENTITY_TEMPLATES[i % IDENTITY_TEMPLATES.length];
-        return `<div class="id-line">${tmpl(h)}</div>`;
-      }).join('');
-      if (done.length > 3) {
-        refEl.innerHTML += `<div class="id-line" style="margin-top:6px;color:var(--muted)">…y ${done.length - 3} hábito${done.length - 3 > 1 ? 's' : ''} más hoy.</div>`;
-      }
-    } else if (hotHabits.length > 0) {
-      const h = hotHabits.sort((a,b) => b.streak - a.streak)[0];
-      refEl.innerHTML = `<div class="id-line">${h.emoji} <strong>${h.name}</strong> lleva ${h.streak} días seguidos. Eso no es suerte — es identidad.</div>`;
-    } else if (bestStreak > 0) {
-      const best = habits.reduce((b,h) => (h.bestStreak||0)>(b.bestStreak||0)?h:b, habits[0]);
-      refEl.innerHTML = `<div class="id-line">Tu mejor racha fue ${best.emoji} <strong>${best.name}</strong> por ${best.bestStreak} días. Podés volver a ese nivel.</div>`;
+    const doneToday = habits.filter(h => isCompletedToday(h));
+    if (doneToday.length) {
+      refEl.innerHTML = doneToday.slice(0, 3).map(h => `<div class="id-line">${h.emoji} Hoy elegiste <strong>${escHTML(h.name)}</strong>${h.streak >= 3 ? ` · ${h.streak} días seguidos` : ''}.</div>`).join('')
+        + (doneToday.length > 3 ? `<div class="id-line" style="margin-top:6px;color:var(--muted)">…y ${doneToday.length - 3} más hoy.</div>` : '');
     } else {
-      refEl.textContent = 'Completá tu primer hábito y empezá a ver quién estás siendo.';
+      const best = habits.reduce((b2, h) => (h.bestStreak || 0) > ((b2 && b2.bestStreak) || 0) ? h : b2, null);
+      refEl.innerHTML = best && best.bestStreak >= 3
+        ? `<div class="id-line">Tu mejor racha fue ${best.emoji} <strong>${escHTML(best.name)}</strong> por ${best.bestStreak} días. Podés volver a ese nivel.</div>`
+        : 'Completá tu primer hábito de hoy y empezá a ver quién estás siendo.';
     }
   }
 
   buildHeatmap90();
   buildDayChart();
-  buildHabitBars();
+  buildHabitBars(perHabit);
 }
 
-function buildHabitBars() {
+function buildHabitBars(perHabit) {
   const container = document.getElementById('habitBars');
   const colors = ['#7c6ef7','#4ecdc4','#52c97a','#f7a35c','#e87070'];
-  container.innerHTML = habits.map((h, i) => `
+  const rows = (perHabit || []).filter(r => r.opp > 0);
+  container.innerHTML = rows.length ? rows.map((r, i) => {
+    const pct = Math.round(r.done / r.opp * 100);
+    return `
     <div class="hb-item">
-      <div class="hb-emoji">${h.emoji}</div>
+      <div class="hb-emoji">${r.h.emoji}</div>
       <div class="hb-info">
-        <div class="hb-name">${h.name}</div>
+        <div class="hb-name">${escHTML(r.h.name)}${r.min ? ` <span style="color:var(--muted);font-weight:400;">· ${r.min} mín.</span>` : ''}</div>
         <div class="hb-bar-bg">
-          <div class="hb-bar-fill" style="width:0%;background:${colors[i % colors.length]};" data-target="${h.consistency}"></div>
+          <div class="hb-bar-fill" style="width:0%;background:${colors[i % colors.length]};" data-target="${pct}"></div>
         </div>
       </div>
-      <div class="hb-pct" style="color:${colors[i % colors.length]}">${h.consistency}%</div>
-    </div>`
-  ).join('');
+      <div class="hb-pct" style="color:${colors[i % colors.length]}">${pct}%</div>
+    </div>`;
+  }).join('') : '<div class="field-hint">Sin oportunidades registradas en este período.</div>';
 }
 
 function animateHabitBars() {
@@ -4757,6 +5237,7 @@ function showToast(icon, text) {
   document.getElementById('toastIcon').textContent = icon;
   document.getElementById('toastText').textContent = text;
   const t = document.getElementById('toast');
+  t.classList.remove('moment');
   t.classList.add('visible');
   toastTimer = setTimeout(() => t.classList.remove('visible'), 3600);
 }
@@ -4832,7 +5313,7 @@ function renderHabitMgmt() {
   const list = document.getElementById('habitMgmtList');
   if (!list) return;
   list.innerHTML = habits.length ? habits.map(h => {
-    const paused = pausedHabits.has(h.id);
+    const paused = isPausedNow(h);
     return `
     <div class="hm-item">
       <div class="hm-drag"><span></span><span></span><span></span></div>
@@ -4850,20 +5331,32 @@ function renderHabitMgmt() {
   : '<div style="text-align:center;color:var(--muted);padding:20px;font-size:var(--fs-sm);">Sin hábitos todavía</div>';
 }
 
-function togglePause(id, el) {
-  if (pausedHabits.has(id)) {
-    pausedHabits.delete(id);
-    el.className = 'hm-pause active';
-    el.textContent = '⏸ Pausar';
-    const h = habits.find(x => x.id === id);
-    showToast('▶️', `"${h?.name}" reanudado. Vuelve a aparecer en tu lista de hoy.`);
+// Pausa persistente: se guarda como rango de fechas en meta.pauses.
+// Los días en pausa no cuentan como oportunidad (no afectan racha ni consistencia).
+function setPaused(h, paused) {
+  const today = todayStr();
+  h.meta = normalizeMeta(h.meta);
+  if (paused) {
+    if (!isPausedNow(h)) h.meta.pauses.push({ from: today, to: null });
   } else {
-    pausedHabits.add(id);
-    el.className = 'hm-pause paused';
-    el.textContent = '▶ Reanudar';
-    const h = habits.find(x => x.id === id);
-    showToast('⏸', `"${h?.name}" pausado. La racha se congela, no se pierde.`);
+    h.meta.pauses = h.meta.pauses
+      .map(p => (!p.to || p.to >= today) && p.from <= today ? { ...p, to: addDaysDS(today, -1) } : p)
+      .filter(p => p.to === null || p.to >= p.from);
   }
+  recalculateStreak(h); recalculateConsistency(h);
+  saveHabitToDb(h);
+}
+function togglePause(id, el) {
+  const h = habits.find(x => String(x.id) === String(id));
+  if (!h) return;
+  const willPause = !isPausedNow(h);
+  setPaused(h, willPause);
+  if (el) { el.className = 'hm-pause ' + (willPause ? 'paused' : 'active'); el.textContent = willPause ? '▶ Reanudar' : '⏸ Pausar'; }
+  showToast(willPause ? '⏸' : '▶️', willPause
+    ? `"${h.name}" en pausa. Los días en pausa no cuentan como falla.`
+    : `"${h.name}" vuelve a tu lista de hoy.`);
+  renderHabits();
+  refreshStatsViews();
 }
 
 /* ─── SETTINGS: update badges ─── */
@@ -5037,81 +5530,61 @@ function goToNextDay() {
 
 function renderHabitsForOffset() {
   if (dateOffset === 0) {
-    // Volver a hoy — completions ya tiene el estado correcto, solo re-renderizar
     renderHabits();
     document.getElementById('progressLabel').textContent = 'Progreso de hoy';
     return;
   }
-  // For past/future: filter by day of week of that date
-  const targetDate = getOffsetDate(dateOffset);
-  const jsDay = targetDate.getDay(); // 0=Sun,1=Mon,...
-  // Convert to our encoding: 0=Lu,1=Ma,...,6=Do  (JS: 0=Sun → index 6, 1=Mon → 0, ...)
-  const ourDay = jsDay === 0 ? 6 : jsDay - 1;
-  
-  const filtered = h => h.days && h.days.includes(ourDay);
-  
+  // Los bloques de activación solo existen para hoy
+  ['nextStep','frictionCard','focusSection','todayLabelRow'].forEach(id => { const el = document.getElementById(id); el.innerHTML = ''; });
+  document.getElementById('todayLabelRow').style.display = 'none';
+  document.getElementById('allDoneState').classList.remove('visible');
+  document.getElementById('incorporatedList').innerHTML = '';
+  document.getElementById('incorporatedSection').style.display = 'none';
+
+  const ds = localDateStr(getOffsetDate(dateOffset));
+  const habitsForDay = habits.filter(h => !h.incorporated && isScheduledOn(h, ds) && !isPausedOn(h, ds));
+  const fill = document.getElementById('progressFill');
+
   if (dateOffset < 0) {
-    // Día pasado: cards interactivos — misma lógica que hoy (pending arriba, listos abajo)
-    const targetDateStr = targetDate.toISOString().slice(0,10);
-    const habitsForDay  = habits.filter(filtered);
-    const pendingForDay = habitsForDay.filter(h => !isCompletedFor(h, targetDateStr));
-    const doneForDay    = habitsForDay.filter(h =>  isCompletedFor(h, targetDateStr));
-
+    // Día pasado: se puede marcar / desmarcar (y queda en las estadísticas)
+    const pendingForDay = habitsForDay.filter(h => !isCompletedFor(h, ds) && !isSkippedFor(h, ds));
+    const doneForDay    = habitsForDay.filter(h =>  isCompletedFor(h, ds) ||  isSkippedFor(h, ds));
     document.getElementById('pendingList').innerHTML = pendingForDay.length
-      ? pendingForDay.map(h => pastDayHabitCardHTML(h, targetDateStr)).join('')
-      : (!habitsForDay.length ? '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos este día</div>' : '');
-    document.getElementById('doneList').innerHTML = doneForDay.length
-      ? doneForDay.map(h => pastDayHabitCardHTML(h, targetDateStr)).join('')
-      : '';
-    document.getElementById('incorporatedList').innerHTML = '';
-    document.getElementById('doneSection').style.display         = doneForDay.length    ? 'block' : 'none';
-    document.getElementById('incorporatedSection').style.display = 'none';
-    document.getElementById('pendingLabel').style.display        = pendingForDay.length ? 'block' : 'none';
+      ? pendingForDay.map(h => pastDayHabitCardHTML(h, ds)).join('')
+      : (!habitsForDay.length ? '<div class="empty-day">Sin hábitos este día</div>' : '');
+    document.getElementById('doneList').innerHTML = doneForDay.map(h => pastDayHabitCardHTML(h, ds)).join('');
+    document.getElementById('doneSection').style.display  = doneForDay.length    ? 'block' : 'none';
+    document.getElementById('pendingLabel').style.display = pendingForDay.length ? 'block' : 'none';
 
-    const allPastDone = habitsForDay.length > 0 && doneForDay.length === habitsForDay.length;
-    document.getElementById('allDoneState').classList.toggle('visible', allPastDone);
-
-    const doneCount = doneForDay.length;
-    document.getElementById('progressCount').innerHTML = `${doneCount}<span> de ${habitsForDay.length}</span>`;
-    const pct = habitsForDay.length ? Math.round(doneCount / habitsForDay.length * 100) : 0;
-    const fill = document.getElementById('progressFill');
+    const countable = habitsForDay.filter(h => !isSkippedFor(h, ds));
+    const doneCount = countable.filter(h => isCompletedFor(h, ds)).length;
+    document.getElementById('progressCount').innerHTML = `${doneCount}<span> de ${countable.length}</span>`;
+    const pct = countable.length ? Math.round(doneCount / countable.length * 100) : 0;
     fill.style.width = pct + '%';
     fill.classList.toggle('full', pct === 100);
   } else {
-    // Día futuro: no se puede completar, pero sí abrir el detalle y editar
-    const futureDateStr = targetDate.toISOString().slice(0,10);
-    const habitsForDay = habits.filter(filtered);
+    // Día futuro: solo lectura (se puede abrir el detalle)
     document.getElementById('pendingList').innerHTML = habitsForDay.length
       ? habitsForDay.map(h => {
-          const cat = getCat(h.categoryId);
-          const catTag = cat ? `<span class="cat-tag" style="background:${cat.color}22;color:${cat.color};">${cat.emoji} ${cat.name}</span>` : '';
+          const when = whenLabel(h);
           return `
-          <div class="habit-card" style="opacity:.7" onclick="openDetail('${h.id}','${futureDateStr}')">
+          <div class="habit-card future" onclick="openDetail('${h.id}','${ds}')">
             <button class="check-btn" style="pointer-events:none;opacity:.25;">
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
             <div class="habit-info">
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-                <div class="habit-name" style="margin-bottom:0;">${h.emoji} ${h.name}</div>
-              </div>
-              <div class="habit-meta" style="flex-wrap:wrap;gap:5px;">
-                <span class="habit-streak">⚡ ${h.streak}d</span>
-                ${catTag}
-              </div>
+              <div class="habit-name" style="margin-bottom:3px;">${h.emoji} ${escHTML(h.name)}</div>
+              <div class="habit-meta">${when ? `<span class="hc-when">${escHTML(when)}</span>` : ''}</div>
             </div>
           </div>`;
         }).join('')
-      : '<div style="text-align:center;color:var(--muted);padding:32px 0;font-size:var(--fs-sm);">Sin hábitos planeados</div>';
+      : '<div class="empty-day">Sin hábitos planeados</div>';
     document.getElementById('doneList').innerHTML = '';
-    document.getElementById('incorporatedList').innerHTML = '';
     document.getElementById('doneSection').style.display = 'none';
-    document.getElementById('incorporatedSection').style.display = 'none';
     document.getElementById('pendingLabel').style.display = 'none';
-    document.getElementById('allDoneState').classList.remove('visible');
     document.getElementById('progressCount').innerHTML = `0<span> de ${habitsForDay.length}</span>`;
-    const fillF = document.getElementById('progressFill');
-    fillF.style.width = '0%';
-    fillF.classList.remove('full');
+    fill.style.width = '0%';
+    fill.classList.remove('full');
   }
 }
 
@@ -5169,32 +5642,36 @@ function closeHistory() {
 function buildHistoryCalendar() {
   const el = document.getElementById('historyBody');
   if (!el) return;
-  const today = new Date();
   const DAYS_SHORT = ['L','M','X','J','V','S','D'];
-  const MONTHS_ES  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  // Build last 35 days
-  const days = [];
-  for (let i = 34; i >= 0; i--) {
-    const d = new Date(today); d.setDate(today.getDate() - i); days.push(d);
-  }
   let out = '<div class="hist-cal-header">' + DAYS_SHORT.map(d => '<span>' + d + '</span>').join('') + '</div>';
   out += '<div class="hist-cal-grid">';
-  const firstDow = (days[0].getDay() + 6) % 7; // Mon=0
-  for (let p = 0; p < firstDow; p++) out += '<span class="hist-day empty"></span>';
-  days.forEach(d => {
-    const isToday = d.toDateString() === today.toDateString();
-    const isPast  = d < today && !isToday;
-    const done    = isPast && (Math.sin(d.getDate() * 13.7 + d.getMonth() * 5.3) > -0.4);
-    const cls     = isToday ? 'today' : done ? 'done' : isPast ? 'missed' : 'future';
-    out += '<span class="hist-day ' + cls + '">' + d.getDate() + '</span>';
-  });
+  const first = dateStrFor(34);
+  for (let p = 0; p < weekdayIdx(first); p++) out += '<span class="hist-day empty"></span>';
+  for (let i = 34; i >= 0; i--) {
+    const ds = dateStrFor(i);
+    const opp = habits.filter(h => isOpportunity(h, ds));
+    const done = opp.filter(h => isCompletedFor(h, ds)).length;
+    let cls = 'future';
+    if (i === 0) cls = 'today';
+    else if (opp.length && done === opp.length) cls = 'done';
+    else if (opp.length && done > 0) cls = 'partial';
+    else if (opp.length) cls = 'missed';
+    const title = opp.length ? `${done}/${opp.length}` : 'Sin hábitos';
+    out += `<span class="hist-day ${cls}" title="${title}" onclick="jumpToDay(${-i})">${parseDS(ds).getDate()}</span>`;
+  }
   out += '</div>';
   out += '<div class="hist-legend">'
-       + '<span class="hist-leg today"></span>Hoy&nbsp;'
-       + '<span class="hist-leg done" style="margin-left:8px;"></span>Completado&nbsp;'
-       + '<span class="hist-leg missed" style="margin-left:8px;"></span>Perdido'
+       + '<span class="hist-leg done"></span>Todo&nbsp;'
+       + '<span class="hist-leg partial" style="margin-left:8px;"></span>Parcial&nbsp;'
+       + '<span class="hist-leg missed" style="margin-left:8px;"></span>Nada'
        + '</div>';
   el.innerHTML = out;
+}
+function jumpToDay(offset) {
+  closeHistory();
+  dateOffset = offset;
+  updateDateNav();
+  renderHabitsForOffset();
 }
 
 /* ─── PERIOD FILTER (Insights) ─── */
@@ -5232,7 +5709,7 @@ function selectPeriod(value, label) {
   const sub = document.getElementById('insightsSub');
   if (sub) sub.textContent = 'Últimos ' + label;
   closePeriodPicker();
-  showToast('📅', 'Mostrando ' + label);
+  updateInsightsFromData(); animateHabitBars();
 }
 function applyPeriod() {
   const from = document.getElementById('periodCustomFrom').value;
@@ -5246,7 +5723,7 @@ function applyPeriod() {
   const sub = document.getElementById('insightsSub');
   if (sub) sub.textContent = label;
   closePeriodPicker();
-  showToast('📅', 'Período personalizado aplicado');
+  updateInsightsFromData(); animateHabitBars();
 }
 
 
@@ -5302,18 +5779,19 @@ function renderDailyQuote() {
 /* ─── ACHIEVEMENTS & LOGROS ─── */
 const ACHIEVEMENTS = {
   rachas: [
-    { id:'s3',   icon:'⚡', name:'Primera chispa',  desc:'Racha de 3 días',    threshold:3,   metric:'streak' },
-    { id:'s7',   icon:'🔥', name:'Semana de fuego', desc:'Racha de 7 días',    threshold:7,   metric:'streak' },
-    { id:'s14',  icon:'💪', name:'Dos semanas',      desc:'Racha de 14 días',   threshold:14,  metric:'streak' },
-    { id:'s30',  icon:'🌙', name:'Mes entero',       desc:'Racha de 30 días',   threshold:30,  metric:'streak' },
-    { id:'s60',  icon:'🚀', name:'Dos meses',        desc:'Racha de 60 días',   threshold:60,  metric:'streak' },
-    { id:'s100', icon:'💎', name:'Triple dígito',    desc:'Racha de 100 días',  threshold:100, metric:'streak' },
+    { id:'s3',   icon:'⚡', name:'Primera chispa',  desc:'Racha de 3 días',    threshold:3,   metric:'bestStreak' },
+    { id:'s7',   icon:'🔥', name:'Semana de fuego', desc:'Racha de 7 días',    threshold:7,   metric:'bestStreak' },
+    { id:'s14',  icon:'💪', name:'Dos semanas',      desc:'Racha de 14 días',   threshold:14,  metric:'bestStreak' },
+    { id:'s30',  icon:'🌙', name:'Mes entero',       desc:'Racha de 30 días',   threshold:30,  metric:'bestStreak' },
+    { id:'s60',  icon:'🚀', name:'Dos meses',        desc:'Racha de 60 días',   threshold:60,  metric:'bestStreak' },
+    { id:'s100', icon:'💎', name:'Triple dígito',    desc:'Racha de 100 días',  threshold:100, metric:'bestStreak' },
   ],
   consistencia: [
-    { id:'c50',  icon:'📊', name:'Mitad ganada',     desc:'50% consistencia',   threshold:50,  metric:'consistency' },
-    { id:'c70',  icon:'📈', name:'En forma',          desc:'70% consistencia',   threshold:70,  metric:'consistency' },
-    { id:'c85',  icon:'⭐', name:'Casi perfecto',     desc:'85% consistencia',   threshold:85,  metric:'consistency' },
-    { id:'c95',  icon:'🏅', name:'Élite',             desc:'95% consistencia',   threshold:95,  metric:'consistency' },
+    { id:'c50',  icon:'📊', name:'Mitad ganada',     desc:'50% en 30 días',     threshold:50,  metric:'consistency' },
+    { id:'c70',  icon:'📈', name:'En forma',          desc:'70% en 30 días',     threshold:70,  metric:'consistency' },
+    { id:'c85',  icon:'⭐', name:'Casi perfecto',     desc:'85% en 30 días',     threshold:85,  metric:'consistency' },
+    { id:'c95',  icon:'🏅', name:'Élite',             desc:'95% en 30 días',     threshold:95,  metric:'consistency' },
+    { id:'w80',  icon:'📅', name:'Semana sólida',     desc:'Una semana al 80% o más', threshold:80, metric:'bestWeek' },
   ],
   coleccion: [
     { id:'h1',   icon:'🌱', name:'Primer paso',      desc:'1 hábito creado',    threshold:1,   metric:'habitCount' },
@@ -5322,33 +5800,73 @@ const ACHIEVEMENTS = {
     { id:'hi1',  icon:'✅', name:'Automatizado',     desc:'1 hábito incorporado',threshold:1,  metric:'incorporated' },
   ],
   especiales: [
-    { id:'e_perfect', icon:'🎯', name:'Día perfecto', desc:'Todos completados en un día', threshold:1, metric:'perfectDay' },
-    { id:'e_morning', icon:'🌅', name:'Madrugador',   desc:'Completado antes de las 8am',  threshold:1, metric:'morning'    },
-    { id:'e_rescue',  icon:'⚡', name:'Rescate épico',desc:'Completado hábito en modo rescue', threshold:1, metric:'recovery' },
+    { id:'e_perfect', icon:'🎯', name:'Día perfecto', desc:'Un día con todo hecho',        threshold:1, metric:'perfectDay' },
+    { id:'e_morning', icon:'🌅', name:'Madrugador',   desc:'Un hábito antes de las 8',     threshold:1, metric:'morning'    },
+    { id:'e_rescue',  icon:'↺',  name:'Volviste',     desc:'Retomar un hábito después de cortarlo', threshold:1, metric:'recovery' },
+    { id:'e_resil',   icon:'🌊', name:'Resiliencia',  desc:'Volver 5 veces',               threshold:5, metric:'recovery' },
+    { id:'e_min',     icon:'🌱', name:'Siempre algo', desc:'3 días salvados con la versión mínima', threshold:3, metric:'minimum' },
     { id:'e_cats',    icon:'🌈', name:'Multidimensional', desc:'3 categorías activas', threshold:3, metric:'categories' },
   ],
 };
+const ALL_ACHIEVEMENTS = Object.values(ACHIEVEMENTS).flat();
 
+/* Métricas calculadas SIEMPRE desde el historial real */
 function computeMetrics() {
-  const bestStreak   = habits.reduce((m, h) => Math.max(m, h.streak, h.bestStreak||0), 0);
-  const consistency  = habits.length
-    ? Math.round(habits.reduce((s, h) => s + (h.consistency||0), 0) / habits.length) : 0;
-  const habitCount   = habits.length;
+  const today = todayStr();
+  let totalDone = 0, minimum = 0, morning = 0, opp30 = 0, done30 = 0;
+  habits.forEach(h => {
+    for (const [ds, v] of Object.entries(h.completions || {})) {
+      if (!isDoneValue(v)) continue;
+      totalDone++;
+      if (statusOfValue(v) === ST_MIN) minimum++;
+      if (v && typeof v === 'object' && v.at && v.at < '08:00') morning++;
+    }
+    const r = opportunitiesInRange(h, dateStrFor(29), today);
+    opp30 += r.opp; done30 += r.done;
+  });
+  const bestStreak = habits.reduce((m, h) => Math.max(m, h.streak || 0, h.bestStreak || 0), 0);
+  const consistency = opp30 >= 5 ? Math.round(done30 / opp30 * 100) : 0;
+
+  // Días perfectos: ≥2 oportunidades y todas cumplidas (últimos 180 días)
+  let perfectDay = 0;
+  for (let i = 0; i < 180; i++) {
+    const ds = dateStrFor(i);
+    const opp = habits.filter(h => isOpportunity(h, ds));
+    if (opp.length >= 2 && opp.every(h => isCompletedFor(h, ds))) perfectDay++;
+  }
+  // Mejor semana cerrada (≥7 oportunidades) de las últimas 12
+  let bestWeek = 0;
+  for (let w = 1; w <= 12; w++) { const m = weeklyMomentum(w); if (m.opp >= 7) bestWeek = Math.max(bestWeek, m.pct); }
+  const cur = weeklyMomentum(0); if (cur.opp >= 7) bestWeek = Math.max(bestWeek, cur.pct);
+
+  const recovery = allRecoveryEvents().length;
   const incorporated = habits.filter(h => h.incorporated).length;
-  const perfectDay   = habits.length > 0 && habits.every(h => isCompletedToday(h) || h.incorporated) ? 1 : 0;
-  const catSet       = new Set(habits.map(h => h.categoryId).filter(Boolean));
-  const totalXP      = habits.reduce((s, h) => s + (h.streak||0)*10 + (h.incorporated?200:0), 0)
-                     + habits.filter(h => isCompletedToday(h)).length * 5;
-  return { bestStreak, consistency, habitCount, incorporated, perfectDay,
-           morning:0, recovery:0, categories: catSet.size, totalXP };
+  const catSet = new Set(habits.filter(h => !isPausedNow(h)).map(h => h.categoryId).filter(Boolean));
+  const totalXP = totalDone * 10 + recovery * 25 + perfectDay * 20 + incorporated * 100;
+  return { bestStreak, consistency, habitCount: habits.length, incorporated, perfectDay,
+           morning, recovery, minimum, bestWeek, categories: catSet.size, totalXP, totalDone };
+}
+// Los logros, una vez ganados, no se pierden
+function achStore() { return readLS(userKey('hc_ach_'), {}); }
+function currentUnlockedIds(metrics) {
+  const m = metrics || computeMetrics();
+  const stored = achStore();
+  return ALL_ACHIEVEMENTS.filter(a => stored[a.id] || (m[a.metric] || 0) >= a.threshold).map(a => a.id);
+}
+function newlyUnlocked(beforeIds) {
+  const now = currentUnlockedIds();
+  const store = achStore();
+  now.forEach(id => { if (!store[id]) store[id] = todayStr(); });
+  writeLS(userKey('hc_ach_'), store);
+  return ALL_ACHIEVEMENTS.filter(a => now.includes(a.id) && !beforeIds.includes(a.id));
 }
 
-function renderAchievementGrid(containerId, list, metrics) {
+function renderAchievementGrid(containerId, list, metrics, unlockedIds) {
   const el = document.getElementById(containerId);
   if (!el) return;
   el.innerHTML = list.map(a => {
     const val      = metrics[a.metric] || 0;
-    const unlocked = val >= a.threshold;
+    const unlocked = unlockedIds.includes(a.id);
     return '<div class="logro-card' + (unlocked ? ' unlocked' : '') + '">' +
       '<div class="logro-icon">' + a.icon + '</div>' +
       '<div class="logro-name">' + a.name + '</div>' +
@@ -5363,6 +5881,12 @@ function renderAchievementGrid(containerId, list, metrics) {
 function renderLogros() {
   renderDailyQuote();
   const metrics = computeMetrics();
+  const unlockedIds = currentUnlockedIds(metrics);
+  // persistir lo ganado
+  const store = achStore(); let changed = false;
+  unlockedIds.forEach(id => { if (!store[id]) { store[id] = todayStr(); changed = true; } });
+  if (changed) writeLS(userKey('hc_ach_'), store);
+
   const xp      = metrics.totalXP;
   const level   = Math.floor(xp / 500) + 1;
   const xpInLvl = xp % 500;
@@ -5378,17 +5902,14 @@ function renderLogros() {
   const barEl = document.getElementById('xpBarFill');
   if (barEl) barEl.style.width = pct + '%';
   const tagEl = document.getElementById('xpTagline');
-  if (tagEl) {
-    const tags = ['Cada hábito completado suma XP 💪','¡Vas muy bien! Sigue así 🔥','¡Imparable! Construyendo hábitos 🌱','¡Élite en formación! 🚀','¡Leyenda viva! 💎'];
-    tagEl.textContent = tags[Math.min(level-1, tags.length-1)];
-  }
+  if (tagEl) tagEl.textContent = `${metrics.totalDone} veces cumplido · ${metrics.recovery} regresos · ${unlockedIds.length}/${ALL_ACHIEVEMENTS.length} logros`;
   const subEl = document.getElementById('logrosSubtitle');
   if (subEl) subEl.textContent = xp + ' XP · Nivel ' + level;
 
-  renderAchievementGrid('logrosRachas',       ACHIEVEMENTS.rachas,       metrics);
-  renderAchievementGrid('logrosConsistencia', ACHIEVEMENTS.consistencia, metrics);
-  renderAchievementGrid('logrosColeccion',    ACHIEVEMENTS.coleccion,    metrics);
-  renderAchievementGrid('logrosEspeciales',   ACHIEVEMENTS.especiales,   metrics);
+  renderAchievementGrid('logrosRachas',       ACHIEVEMENTS.rachas,       metrics, unlockedIds);
+  renderAchievementGrid('logrosConsistencia', ACHIEVEMENTS.consistencia, metrics, unlockedIds);
+  renderAchievementGrid('logrosColeccion',    ACHIEVEMENTS.coleccion,    metrics, unlockedIds);
+  renderAchievementGrid('logrosEspeciales',   ACHIEVEMENTS.especiales,   metrics, unlockedIds);
 }
 
 /* ─── THEME TOGGLE ─── */
@@ -5414,12 +5935,11 @@ function applyTheme() {
 
 /* ─── INCORPORATED TOGGLE ─── */
 function toggleIncorporated() {
-  const h = habits.find(x => x.id === activeHabitId);
+  const h = habits.find(x => String(x.id) === String(activeHabitId));
   if (!h) return;
   h.incorporated = !h.incorporated;
   if (h.incorporated) {
-    if (!h.completions) h.completions = {};
-    h.completions[todayStr()] = true;
+    if (!isCompletedToday(h)) setCompletion(h, todayStr(), ST_NORMAL);
     h.heatPattern = deriveHeatPattern(h.completions);
     showToast('✅', 'Hábito marcado como incorporado');
   } else {
@@ -5432,7 +5952,10 @@ function toggleIncorporated() {
     if (h.incorporated) { btn.textContent = '✓ Incorporado'; btn.disabled = true; btn.style.opacity = '.4'; }
     else                { btn.textContent = '✓ Completar';   btn.disabled = false; btn.style.opacity = '1'; }
   }
+  recalculateStreak(h); recalculateConsistency(h);
+  saveHabitToDb(h);
   renderHabits();
+  refreshStatsViews();
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -6028,6 +6551,679 @@ function formatMissionDate(iso, long = false) {
   return `${d} ${meses[mo-1]}`;
 }
 
+
+/* ══════════════════════════════════════════════════════════
+   ███  NÚCLEO DE ACTIVACIÓN  ███
+   Pregunta central: "¿Qué necesitás ahora para empezar uno?"
+   · Tu próximo paso (recomendación determinística y extensible)
+   · Empezar → EN CURSO → Terminé (modo foco)
+   · Versión mínima · Mis 3 de hoy · Fricción · Celebraciones
+══════════════════════════════════════════════════════════ */
+function escHTML(t) {
+  return String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function userKey(prefix) { return prefix + (currentUser ? currentUser.id : 'local'); }
+function readLS(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; } catch { return fallback; } }
+function writeLS(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
+
+/* ─── Momento del día (intención estructurada) ─── */
+const SLOTS = [
+  { id:'wake',      label:'Al despertar',     from:5,  to:10 },
+  { id:'morning',   label:'A la mañana',      from:7,  to:12 },
+  { id:'midday',    label:'Al mediodía',      from:12, to:15 },
+  { id:'afternoon', label:'A la tarde',       from:15, to:19 },
+  { id:'evening',   label:'A la noche',       from:19, to:23 },
+  { id:'bed',       label:'Antes de dormir',  from:21, to:26 },
+  { id:'any',       label:'Cualquier momento' },
+];
+const DURATION_OPTIONS = [2, 5, 10, 15, 30, 45, 60];
+let newSlot = '', newDuration = null;
+
+function slotById(id) { return SLOTS.find(s => s.id === id) || null; }
+function legacyIntention(h) {
+  const t = (h.intention || '').replace(/^"|"$/g, '').trim();
+  return !t || /^Define cuándo y dónde/i.test(t) ? '' : t;
+}
+// Para hábitos viejos sin momento elegido: deducirlo del texto de la intención
+function inferSlot(h) {
+  const t = ((h.meta && h.meta.cue) || legacyIntention(h)).toLowerCase();
+  if (!t) return '';
+  if (/dormir|acost/.test(t)) return 'bed';
+  if (/despert|levant/.test(t)) return 'wake';
+  if (/mañana|desayun|café/.test(t)) return 'morning';
+  if (/almuerz|mediod/.test(t)) return 'midday';
+  if (/tarde|trabajo/.test(t)) return 'afternoon';
+  if (/cena|noche/.test(t)) return 'evening';
+  return '';
+}
+function effectiveSlot(h) { return (h.meta && h.meta.slot) || inferSlot(h); }
+function goalText(h) { return (h.meta && h.meta.goal) || h.name; }
+function durationOf(h) {
+  if (h.meta && h.meta.durationMin) return Number(h.meta.durationMin);
+  if (h.duration) return h.durationUnit === 'h' ? Number(h.duration) * 60 : Number(h.duration);
+  const m = /(\d+)\s*(min|minutos|')/i.exec(`${h.name} ${(h.meta && h.meta.goal) || ''}`);
+  return m ? Number(m[1]) : null;
+}
+function capFirst(t) { return t ? t.charAt(0).toUpperCase() + t.slice(1) : t; }
+// "Después de cenar · ~15 min" (tarjeta) / versión larga para el detalle
+function whenLabel(h, long = false) {
+  const cue = h.meta && h.meta.cue;
+  const slot = slotById(h.meta && h.meta.slot);
+  const dur = durationOf(h);
+  const parts = [];
+  if (long && slot && slot.id !== 'any') parts.push(slot.label);
+  if (cue) parts.push(capFirst(cue));
+  else if (slot && !long) parts.push(slot.label);
+  else if (long && !slot && legacyIntention(h)) parts.push(legacyIntention(h));
+  if (dur) parts.push(`~${dur} min`);
+  return parts.join(' · ');
+}
+function renderSlotChips() {
+  const sc = document.getElementById('slotChips');
+  if (sc) sc.innerHTML = SLOTS.map(s =>
+    `<button type="button" class="slot-chip ${newSlot === s.id ? 'sel' : ''}" onclick="pickSlot('${s.id}')">${s.label}</button>`).join('');
+  const dc = document.getElementById('durationChips');
+  if (dc) dc.innerHTML = DURATION_OPTIONS.map(d =>
+    `<button type="button" class="slot-chip ${Number(newDuration) === d ? 'sel' : ''}" onclick="pickDuration(${d})">${d} min</button>`).join('');
+}
+function pickSlot(id) { newSlot = newSlot === id ? '' : id; haptic('light'); renderSlotChips(); }
+function pickDuration(d) { newDuration = Number(newDuration) === d ? null : d; haptic('light'); renderSlotChips(); }
+
+/* ─── Empezar → EN CURSO → Terminé ─── */
+function canStartHabit(h) { return !h.incorporated && h.type !== 'avoid' && h.type !== 'quant'; }
+function isRunningToday(h) { return !!(h.meta && h.meta.running && h.meta.running.d === todayStr()); }
+function runningMinutes(h) { return h.meta && h.meta.running ? Math.max(0, Math.floor((Date.now() - h.meta.running.t) / 60000)) : 0; }
+function clearStaleRunning(h) { if (h.meta && h.meta.running && h.meta.running.d !== todayStr()) h.meta.running = null; }
+
+let focusHabitId = null, focusTick = null;
+function startHabit(id, mode) {
+  const h = habits.find(x => String(x.id) === String(id));
+  if (!h || !canStartHabit(h) || isCompletedToday(h)) return;
+  h.meta = normalizeMeta(h.meta);
+  if (!isRunningToday(h)) {
+    h.meta.running = { d: todayStr(), t: Date.now(), mode: mode || 'normal' };
+    saveHabitToDb(h);
+  } else if (mode && h.meta.running.mode !== mode) {
+    h.meta.running.mode = mode;
+    saveHabitToDb(h);
+  }
+  haptic('medium');
+  openFocus(h);
+  renderHabits();
+}
+function focusHabit() { return habits.find(x => String(x.id) === String(focusHabitId)) || null; }
+function openFocus(h) {
+  focusHabitId = h.id;
+  const ov = document.getElementById('focusOverlay');
+  ov.classList.remove('success');
+  paintFocus();
+  ov.classList.add('open');
+  ov.setAttribute('aria-hidden', 'false');
+  document.getElementById('habitsNav')?.classList.add('is-hidden');
+  document.getElementById('worldSwitch')?.classList.add('is-hidden');
+  clearInterval(focusTick);
+  focusTick = setInterval(paintFocusTimer, 1000);
+}
+function paintFocus() {
+  const h = focusHabit(); if (!h) return;
+  const mode = (h.meta.running && h.meta.running.mode) || 'normal';
+  const isMin = mode === 'minimum';
+  const dur = durationOf(h);
+  document.getElementById('foEmoji').textContent = h.emoji;
+  document.getElementById('foTitle').textContent = isMin ? h.meta.minVersion : goalText(h);
+  document.getElementById('foSub').textContent = isMin
+    ? 'Versión mínima · cuenta igual'
+    : [dur ? `${dur} min aprox.` : '', h.meta.cue ? capFirst(h.meta.cue) : ''].filter(Boolean).join(' · ');
+  document.getElementById('foState').textContent = 'En curso';
+  const showTimer = h.type === 'timer' || !!dur;
+  document.getElementById('foTimer').style.display = showTimer ? '' : 'none';
+  const minBtn = document.getElementById('foMinBtn');
+  if (!isMin && h.meta.minVersion) { minBtn.textContent = `Hoy alcanza con: ${h.meta.minVersion}`; minBtn.style.display = ''; }
+  else if (isMin) { minBtn.textContent = 'Volver al objetivo completo'; minBtn.style.display = ''; }
+  else minBtn.style.display = 'none';
+  paintFocusTimer();
+}
+function paintFocusTimer() {
+  const h = focusHabit(); if (!h || !h.meta.running) return;
+  const sec = Math.max(0, Math.floor((Date.now() - h.meta.running.t) / 1000));
+  const mm = Math.floor(sec / 60), ss = sec % 60;
+  document.getElementById('foTimer').textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  const dur = durationOf(h);
+  const note = document.getElementById('foNote');
+  if (dur && mm >= dur && h.meta.running.mode !== 'minimum') note.textContent = 'Llegaste al tiempo estimado. Terminá cuando quieras.';
+  else if (sec < 90) note.textContent = 'Ya empezaste. Eso es lo más difícil.';
+  else note.textContent = 'Seguí a tu ritmo. Cuando termines, tocá Terminé.';
+}
+function switchFocusToMin() {
+  const h = focusHabit(); if (!h || !h.meta.running) return;
+  h.meta.running.mode = h.meta.running.mode === 'minimum' ? 'normal' : 'minimum';
+  saveHabitToDb(h);
+  haptic('light');
+  paintFocus();
+}
+function closeFocus() {
+  clearInterval(focusTick); focusTick = null;
+  const ov = document.getElementById('focusOverlay');
+  ov.classList.remove('open', 'success');
+  ov.setAttribute('aria-hidden', 'true');
+  if (currentWorld !== 'missions') document.getElementById('habitsNav')?.classList.remove('is-hidden');
+  document.getElementById('worldSwitch')?.classList.remove('is-hidden');
+  focusHabitId = null;
+}
+function finishFocus() {
+  const h = focusHabit(); if (!h) return;
+  const mode = (h.meta.running && h.meta.running.mode) || 'normal';
+  const ov = document.getElementById('focusOverlay');
+  document.getElementById('foSuccessTxt').textContent = mode === 'minimum' ? 'Hecho. El hábito sigue vivo.' : 'Hecho.';
+  ov.classList.add('success');
+  haptic('success');
+  clearInterval(focusTick);
+  const id = h.id;
+  setTimeout(() => { closeFocus(); completeHabit(id, mode); }, 750);
+}
+function exitFocus() {
+  closeFocus();
+  showToast('●', 'Sigue en curso. Tocá ▶ para volver.');
+  renderHabits();
+}
+function cancelFocus() {
+  const h = focusHabit();
+  if (h) { h.meta.running = null; saveHabitToDb(h); }
+  closeFocus();
+  renderHabits();
+}
+
+/* ─── TU PRÓXIMO PASO ───
+   Motor determinístico: cada regla suma o resta puntos y puede aportar el
+   "por qué". Para hacerlo más inteligente alcanza con agregar reglas
+   (o reemplazar pesos por valores aprendidos del historial). */
+function postponeCount(h, days = 14) {
+  const from = dateStrFor(days - 1);
+  return Object.entries((h.meta && h.meta.postponed) || {}).reduce((s, [d, n]) => d >= from ? s + n : s, 0);
+}
+function recordPostpone(h) {
+  h.meta = normalizeMeta(h.meta);
+  const t = todayStr(), oldest = dateStrFor(45);
+  h.meta.postponed[t] = (h.meta.postponed[t] || 0) + 1;
+  Object.keys(h.meta.postponed).forEach(k => { if (k < oldest) delete h.meta.postponed[k]; });
+  saveHabitToDb(h);
+}
+// Hora típica en que se completa (mediana), si hay datos suficientes
+function learnedHour(h) {
+  const from = dateStrFor(59), hours = [];
+  for (const [ds, v] of Object.entries(h.completions || {})) {
+    if (ds < from || !v || typeof v !== 'object' || !v.at || !isDoneValue(v)) continue;
+    const [hh, mm] = v.at.split(':').map(Number);
+    hours.push(hh + mm / 60);
+  }
+  if (hours.length < 4) return null;
+  hours.sort((a, b) => a - b);
+  return hours[Math.floor(hours.length / 2)];
+}
+function slotStatus(slotId, hourF) {
+  const s = slotById(slotId);
+  if (!s || s.id === 'any') return 'any';
+  const hr = hourF < 4 ? hourF + 24 : hourF;
+  if (hr >= s.from && hr < s.to) return 'now';
+  return hr < s.from ? 'later' : 'passed';
+}
+const NEXT_STEP_RULES = [
+  (h, c) => h.meta.focus ? { w: 30, why: 'Es uno de tus 3 de hoy' } : null,
+  (h, c) => {
+    const slot = effectiveSlot(h), st = slotStatus(slot, c.hourF);
+    if (st === 'now')    return { w: 25, why: `Es tu momento: ${slotById(slot).label.toLowerCase()}` };
+    if (st === 'later')  return { w: -14 };
+    if (st === 'passed') return { w: 8, why: 'Todavía estás a tiempo hoy' };
+    return null;
+  },
+  (h, c) => {
+    const lh = learnedHour(h); if (lh === null) return null;
+    if (Math.abs(lh - c.hourF) <= 1.5) return { w: 15, why: 'Solés hacerlo a esta hora' };
+    return lh > c.hourF + 3 ? { w: -6 } : null;
+  },
+  (h, c) => h.rescue ? { w: 14, why: 'Retomalo hoy: nunca dos veces seguidas' } : null,
+  (h, c) => h.streak >= 3 && c.hourF >= 17 ? { w: 10, why: `Sostené tus ${h.streak} días` } : null,
+  (h, c) => {
+    const d = durationOf(h); if (!d) return null;
+    if (d <= 10) return { w: 6, why: `Es rápido: ~${d} min` };
+    return c.hourF >= 21 && d >= 30 ? { w: -8 } : null;
+  },
+  (h, c) => (h.meta.postponed[c.today] || 0) ? { w: -35 * h.meta.postponed[c.today] } : null,
+  (h, c) => c.skips.includes(String(h.id)) ? { w: -200 } : null,
+];
+let nextStepSkips = [], nextStepSkipsDay = null;
+function nextStepContext() {
+  const now = new Date(), today = todayStr();
+  if (nextStepSkipsDay !== today) { nextStepSkips = []; nextStepSkipsDay = today; }
+  return { now, today, hourF: now.getHours() + now.getMinutes() / 60, skips: nextStepSkips };
+}
+function rankNextSteps() {
+  const c = nextStepContext();
+  return trackedToday()
+    .filter(h => canStartHabit(h) && !isCompletedFor(h, c.today) && !isSkippedFor(h, c.today))
+    .map((h, i) => {
+      h.meta = normalizeMeta(h.meta);
+      let score = 0, best = null;
+      NEXT_STEP_RULES.forEach(rule => {
+        const r = rule(h, c); if (!r) return;
+        score += r.w;
+        if (r.why && r.w > 0 && (!best || r.w > best.w)) best = r;
+      });
+      return { h, score, why: best ? best.why : '', order: i };
+    })
+    .sort((a, b) => b.score - a.score || a.order - b.order);
+}
+function shouldOfferMin(h) {
+  if (!h.meta || !h.meta.minVersion) return false;
+  const today = todayStr(), hour = new Date().getHours();
+  return (h.meta.preferMinUntil && h.meta.preferMinUntil >= today)
+    || (h.meta.postponed[today] || 0) >= 1
+    || postponeCount(h, 14) >= 3
+    || h.rescue
+    || (h.consistencyOpp >= 4 && h.consistency < 50)
+    || (hour >= 21 && (durationOf(h) || 0) >= 20);
+}
+function nsSnoozeKey() { return userKey('hc_nextsnooze_'); }
+function isNextStepSnoozed() {
+  const v = readLS(nsSnoozeKey(), null);
+  return !!(v && v.d === todayStr() && v.until > Date.now());
+}
+function renderNextStep(closed) {
+  const el = document.getElementById('nextStep');
+  if (dateOffset !== 0 || closed) { el.innerHTML = ''; return; }
+
+  // 1) Algo EN CURSO tiene prioridad: volver o terminar
+  const running = trackedToday().find(h => isRunningToday(h) && !isCompletedToday(h));
+  if (running) {
+    const m = runningMinutes(running);
+    el.innerHTML = `
+    <div class="ns-card running">
+      <div class="ns-kicker">● En curso</div>
+      <div class="ns-row">
+        <div class="ns-emoji">${running.emoji}</div>
+        <div class="ns-body">
+          <div class="ns-title">${escHTML(running.meta.running.mode === 'minimum' ? running.meta.minVersion : goalText(running))}</div>
+          <div class="ns-meta">Empezaste hace ${m} min</div>
+        </div>
+      </div>
+      <div class="ns-actions">
+        <button class="ns-primary" onclick="completeHabit('${running.id}', '${running.meta.running.mode === 'minimum' ? 'minimum' : 'normal'}')">Terminé</button>
+        <button class="ns-secondary" onclick="startHabit('${running.id}')">Volver al foco</button>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const ranked = rankNextSteps();
+  if (!ranked.length) { el.innerHTML = ''; return; }
+  if (isNextStepSnoozed()) {
+    el.innerHTML = `<button class="ns-collapsed" onclick="unsnoozeNextStep()">Tu próximo paso <span>· Ver</span></button>`;
+    return;
+  }
+  const { h, why } = ranked[0];
+  const dur = durationOf(h);
+  const meta = [dur ? `≈ ${dur} min` : '', h.meta.cue ? capFirst(h.meta.cue) : (slotById(h.meta.slot)?.id !== 'any' ? (slotById(h.meta.slot)?.label || '') : '')].filter(Boolean).join(' · ');
+  const others = ranked.length > 1;
+
+  if (shouldOfferMin(h)) {
+    el.innerHTML = `
+    <div class="ns-card">
+      ${nsHead(h, others)}
+      <div class="ns-row">
+        <div class="ns-emoji">${h.emoji}</div>
+        <div class="ns-body">
+          <div class="ns-title">¿${escHTML(goalText(h))} se siente demasiado hoy?</div>
+          <div class="ns-meta">Hacé solo esto: <b>${escHTML(h.meta.minVersion)}</b>. Mantengamos el hábito vivo.</div>
+        </div>
+      </div>
+      <div class="ns-actions">
+        <button class="ns-primary" onclick="startHabit('${h.id}','minimum')">Hacer versión mínima</button>
+        <button class="ns-secondary" onclick="startHabit('${h.id}','normal')">Mantener objetivo</button>
+      </div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+  <div class="ns-card">
+    ${nsHead(h, others)}
+    <div class="ns-row">
+      <div class="ns-emoji">${h.emoji}</div>
+      <div class="ns-body">
+        <div class="ns-title">${escHTML(goalText(h))}</div>
+        ${meta ? `<div class="ns-meta">${escHTML(meta)}</div>` : ''}
+        ${why ? `<div class="ns-why">${escHTML(why)}</div>` : ''}
+      </div>
+    </div>
+    <div class="ns-actions single">
+      <button class="ns-primary" onclick="startHabit('${h.id}','normal')">Empezar ahora</button>
+    </div>
+  </div>`;
+}
+function nsHead(h, others) {
+  return `<div class="ns-head"><div class="ns-kicker">Tu próximo paso</div>
+    <div class="ns-links">${others ? `<button onclick="nextStepOther('${h.id}')">Otro</button><span>·</span>` : ''}<button onclick="snoozeNextStep('${h.id}')">Ahora no</button></div></div>`;
+}
+function nextStepOther(id) {
+  const h = habits.find(x => String(x.id) === String(id));
+  nextStepContext();
+  if (h) recordPostpone(h);
+  nextStepSkips.push(String(id));
+  // Si ya se pasó por todos, volver a empezar la ronda
+  if (rankNextSteps().every(r => nextStepSkips.includes(String(r.h.id)))) nextStepSkips = [String(id)];
+  haptic('light');
+  renderNextStep(false);
+}
+function snoozeNextStep(id) {
+  const h = habits.find(x => String(x.id) === String(id));
+  if (h) recordPostpone(h);
+  writeLS(nsSnoozeKey(), { d: todayStr(), until: Date.now() + 2 * 3600 * 1000 });
+  haptic('light');
+  renderNextStep(false);
+}
+function unsnoozeNextStep() {
+  writeLS(nsSnoozeKey(), null);
+  renderNextStep(false);
+}
+
+/* ─── MIS 3 DE HOY ─── */
+function renderFocusSection(closed) {
+  const el = document.getElementById('focusSection');
+  if (dateOffset !== 0 || closed) { el.innerHTML = ''; return; }
+  const t = todayStr();
+  const list = trackedToday().filter(h => h.meta && h.meta.focus);
+  if (!list.length) { el.innerHTML = ''; return; }
+  const done = list.filter(h => isCompletedFor(h, t)).length;
+  const all = done === list.length;
+  el.innerHTML = `
+  <div class="focus-block ${all ? 'complete' : ''}">
+    <div class="list-label-row">
+      <span>Mis ${list.length} de hoy · ${done}/${list.length}</span>
+      <button class="link-btn" onclick="openFocusPicker()">Cambiar</button>
+    </div>
+    <div class="habits-list">${list.map(h => habitCardHTML(h)).join('')}</div>
+    ${all ? `<div class="focus-note">✓ Tus ${list.length} están hechos. Pase lo que pase, fue un buen día.</div>` : ''}
+  </div>`;
+}
+function openFocusPicker() { renderFocusPick(); haptic('light'); sheetMgr.open('focusSheet'); }
+function focusPickCandidates() {
+  const today = trackedToday();
+  return today.length ? today : habits.filter(h => !h.incorporated && !isPausedNow(h));
+}
+function renderFocusPick() {
+  const selected = habits.filter(h => h.meta && h.meta.focus).length;
+  document.getElementById('focusPickList').innerHTML = focusPickCandidates().map(h => {
+    const on = !!(h.meta && h.meta.focus);
+    const disabled = !on && selected >= 3;
+    return `<button class="focus-pick ${on ? 'on' : ''} ${disabled ? 'disabled' : ''}" onclick="toggleFocusPick('${h.id}')">
+      <span class="fp-check">${on ? '✓' : ''}</span><span class="fp-name">${h.emoji} ${escHTML(h.name)}</span>
+    </button>`;
+  }).join('') || '<div class="field-hint">Todavía no hay hábitos para hoy.</div>';
+}
+function toggleFocusPick(id) {
+  const h = habits.find(x => String(x.id) === String(id)); if (!h) return;
+  h.meta = normalizeMeta(h.meta);
+  if (!h.meta.focus && habits.filter(x => x.meta && x.meta.focus).length >= 3) { showToast('☆', 'Máximo 3. Quitá uno para sumar otro.'); return; }
+  h.meta.focus = !h.meta.focus;
+  haptic('light');
+  saveHabitToDb(h);
+  renderFocusPick();
+}
+function clearFocus() {
+  habits.forEach(h => { if (h.meta && h.meta.focus) { h.meta.focus = false; saveHabitToDb(h); } });
+  sheetMgr.close('focusSheet');
+}
+
+/* ─── ¿QUÉ LO HIZO DIFÍCIL? ───
+   Solo aparece con señal suficiente: ≥3 oportunidades sin hacer entre las
+   últimas 5, sin haber preguntado por ese hábito en 7 días, y como máximo
+   una pregunta por día. */
+const FRICTION_REASONS = [
+  { id:'time',    label:'No tuve tiempo' },
+  { id:'forgot',  label:'Me olvidé' },
+  { id:'mood',    label:'No tenía ganas' },
+  { id:'toomuch', label:'Era demasiado' },
+  { id:'other',   label:'Otro' },
+];
+let frictionState = null;   // {id, r, heavy} después de responder
+function recentMisses(h, n) {
+  let looked = 0, misses = 0;
+  for (let i = 1; i < 90 && looked < n; i++) {
+    const ds = dateStrFor(i);
+    if (ds < habitStartDS(h)) break;
+    if (!isOpportunity(h, ds)) continue;
+    looked++; if (!isCompletedFor(h, ds)) misses++;
+  }
+  return { looked, misses };
+}
+function frictionAskedKey() { return userKey('hc_friction_day_'); }
+function frictionCandidate() {
+  const today = todayStr();
+  if (readLS(frictionAskedKey(), null) === today) return null;
+  let best = null;
+  trackedToday().forEach(h => {
+    if (isCompletedFor(h, today)) return;
+    const last = h.meta && h.meta.lastAsked;
+    if (last && daysBetweenDS(last, today) < 7) return;
+    const r5 = recentMisses(h, 5);
+    if (r5.looked < 4 || r5.misses < 3) return;
+    const r8 = recentMisses(h, 8);
+    const heavy = r8.looked >= 6 && r8.misses >= 6;
+    if (!best || r5.misses > best.misses) best = { h, misses: r5.misses, heavy };
+  });
+  return best;
+}
+function renderFrictionCard(closed) {
+  const el = document.getElementById('frictionCard');
+  if (dateOffset !== 0 || closed) { el.innerHTML = ''; return; }
+  if (frictionState) { el.innerHTML = frictionSuggestionHTML(frictionState); return; }
+  const c = frictionCandidate();
+  if (!c) { el.innerHTML = ''; return; }
+  const { h } = c;
+  el.innerHTML = `
+  <div class="fr-card">
+    <div class="fr-title">${h.emoji} ${escHTML(h.name)} viene costando</div>
+    <div class="fr-sub">¿Qué lo hizo difícil? Así ajustamos el hábito a tu vida real.</div>
+    <div class="fr-chips">${FRICTION_REASONS.map(r => `<button onclick="answerFriction('${h.id}','${r.id}',${c.heavy})">${r.label}</button>`).join('')}</div>
+    <button class="fr-dismiss" onclick="dismissFriction('${h.id}')">Ahora no</button>
+  </div>`;
+}
+function markFrictionAsked(h) {
+  h.meta = normalizeMeta(h.meta);
+  h.meta.lastAsked = todayStr();
+  writeLS(frictionAskedKey(), todayStr());
+}
+function answerFriction(id, r, heavy) {
+  const h = habits.find(x => String(x.id) === String(id)); if (!h) return;
+  markFrictionAsked(h);
+  h.meta.frictions.push({ d: todayStr(), r });
+  h.meta.frictions = h.meta.frictions.slice(-40);
+  saveHabitToDb(h);
+  frictionState = { id: h.id, r, heavy: !!heavy };
+  haptic('light');
+  renderFrictionCard(false);
+}
+function dismissFriction(id) {
+  const h = habits.find(x => String(x.id) === String(id));
+  if (h) { markFrictionAsked(h); saveHabitToDb(h); }
+  frictionState = null;
+  renderFrictionCard(false);
+}
+function frictionSuggestionHTML(st) {
+  const h = habits.find(x => String(x.id) === String(st.id));
+  if (!h) return '';
+  const hasMin = !!h.meta.minVersion;
+  const btn = (label, fn, primary) => `<button class="${primary ? 'fr-primary' : 'fr-secondary'}" onclick="${fn}">${label}</button>`;
+  let text = '', actions = [];
+  if (st.r === 'toomuch') {
+    text = hasMin ? `Probá unos días solo con la versión mínima: <b>${escHTML(h.meta.minVersion)}</b>.` : 'Definí una versión mínima: algo tan chico que se pueda hacer igual en un mal día.';
+    actions.push(hasMin ? btn('Usar versión mínima 7 días', `preferMinFor('${h.id}')`, true) : btn('Hacerlo más fácil', `editHabitField('${h.id}','newHabitMin')`, true));
+  } else if (st.r === 'forgot') {
+    text = 'Anclarlo a algo que ya hacés todos los días ayuda a recordarlo.';
+    actions.push(btn('Elegir cuándo', `editHabitField('${h.id}','slotChips')`, true));
+  } else if (st.r === 'time') {
+    text = 'Probá otro momento del día o una duración más corta.';
+    actions.push(btn('Cambiar momento', `editHabitField('${h.id}','slotChips')`, true));
+    actions.push(hasMin ? btn('Usar versión mínima', `preferMinFor('${h.id}')`) : btn('Hacerlo más corto', `editHabitField('${h.id}','durationChips')`));
+  } else if (st.r === 'mood') {
+    text = hasMin ? `En días sin ganas, empezar con <b>${escHTML(h.meta.minVersion)}</b> alcanza.` : 'En días sin ganas, una versión mínima alcanza. ¿La definimos?';
+    actions.push(hasMin ? btn('Empezar con la mínima', `preferMinFor('${h.id}')`, true) : btn('Definir versión mínima', `editHabitField('${h.id}','newHabitMin')`, true));
+  } else {
+    text = 'Gracias. Queda registrado para entender mejor tus patrones.';
+  }
+  if (st.heavy) {
+    text = `Este hábito viene costando. ¿Querés hacerlo más fácil, cambiar cuándo lo hacés o pausarlo por un tiempo?`;
+    actions = [
+      hasMin ? btn('Hacerlo más fácil', `preferMinFor('${h.id}')`, true) : btn('Hacerlo más fácil', `editHabitField('${h.id}','newHabitMin')`, true),
+      btn('Cambiar momento', `editHabitField('${h.id}','slotChips')`),
+      btn('Pausar', `pauseFromFriction('${h.id}')`),
+    ];
+  }
+  return `
+  <div class="fr-card">
+    <div class="fr-title">${h.emoji} ${escHTML(h.name)}</div>
+    <div class="fr-sub">${text}</div>
+    <div class="fr-actions">${actions.join('')}</div>
+    <button class="fr-dismiss" onclick="closeFriction()">${actions.length ? 'Dejarlo así' : 'Cerrar'}</button>
+  </div>`;
+}
+function closeFriction() { frictionState = null; renderFrictionCard(false); }
+function preferMinFor(id) {
+  const h = habits.find(x => String(x.id) === String(id)); if (!h) return;
+  h.meta = normalizeMeta(h.meta);
+  h.meta.preferMinUntil = addDaysDS(todayStr(), 7);
+  saveHabitToDb(h);
+  frictionState = null;
+  showToast('🌱', 'Esta semana te voy a proponer la versión mínima.');
+  renderHabits();
+}
+function pauseFromFriction(id) {
+  const h = habits.find(x => String(x.id) === String(id)); if (!h) return;
+  frictionState = null;
+  setPaused(h, true);
+  showToast('⏸', `"${h.name}" en pausa. Lo reanudás desde Ajustes cuando quieras.`);
+  renderHabits();
+}
+// Abrir la edición del hábito directo en el campo a ajustar
+function editHabitField(id, fieldId) {
+  frictionState = null;
+  renderFrictionCard(false);
+  openAddSheet(id);
+  setTimeout(() => {
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el.tagName === 'INPUT') el.focus();
+    el.classList.add('field-flash');
+    setTimeout(() => el.classList.remove('field-flash'), 1400);
+  }, 420);
+}
+
+/* ─── MOMENTUM SEMANAL ───
+   Oportunidades cumplidas de lunes a hoy (hoy solo suma si ya se hizo).
+   La comparación es contra el mismo tramo de la semana anterior. */
+function weeklyMomentum(weeksAgo = 0) {
+  const today = todayStr();
+  const monday = addDaysDS(today, -weekdayIdx(today) - 7 * weeksAgo);
+  const to = addDaysDS(monday, weeksAgo === 0 ? weekdayIdx(today) : 6);
+  let opp = 0, done = 0;
+  habits.forEach(h => { const r = opportunitiesInRange(h, monday, to); opp += r.opp; done += r.done; });
+  return { opp, done, pct: opp ? Math.round(done / opp * 100) : 0, from: monday, to };
+}
+function weeklyMomentumComparable() {
+  const today = todayStr();
+  const cur = weeklyMomentum(0);
+  const prevMonday = addDaysDS(today, -weekdayIdx(today) - 7);
+  const prevTo = addDaysDS(prevMonday, weekdayIdx(today));
+  let opp = 0, done = 0;
+  habits.forEach(h => { const r = opportunitiesInRange(h, prevMonday, prevTo); opp += r.opp; done += r.done; });
+  const prev = { opp, done, pct: opp ? Math.round(done / opp * 100) : 0 };
+  return { cur, prev, delta: prev.opp >= 3 && cur.opp >= 3 ? cur.pct - prev.pct : null };
+}
+
+/* ─── CELEBRACIONES (solo cuando hay algo real) ─── */
+function celebrationFlags() { return readLS(userKey('hc_cel_'), {}); }
+function setCelebrationFlag(k) { const f = celebrationFlags(); f[k] = todayStr(); writeLS(userKey('hc_cel_'), f); }
+function snapshotForCelebration(h, ds) {
+  return { lastDone: lastDoneBefore(h, ds), unlocked: currentUnlockedIds() };
+}
+function showMoment(icon, title, sub) {
+  clearTimeout(toastTimer);
+  document.getElementById('toastIcon').textContent = icon;
+  document.getElementById('toastText').innerHTML = `<b>${escHTML(title)}</b>${sub ? `<span>${escHTML(sub)}</span>` : ''}`;
+  const t = document.getElementById('toast');
+  t.classList.add('visible', 'moment');
+  toastTimer = setTimeout(() => t.classList.remove('visible', 'moment'), 3600);
+}
+function categoryWeekCelebration(h, ds) {
+  if (!h.categoryId) return null;
+  const cat = getCat(h.categoryId); if (!cat) return null;
+  const monday = addDaysDS(ds, -weekdayIdx(ds));
+  const key = `cat_${cat.id}_${monday}`;
+  if (celebrationFlags()[key]) return null;
+  const inCat = habits.filter(x => x.categoryId === h.categoryId);
+  let opp = 0, done = 0;
+  inCat.forEach(x => { const r = opportunitiesInRange(x, monday, ds); opp += r.opp; done += r.done; });
+  // pendientes de hoy en la categoría → todavía no
+  if (inCat.some(x => isOpportunity(x, ds) && !isCompletedFor(x, ds))) return null;
+  if (opp < 5 || done !== opp) return null;
+  // ¿Mejor semana del último mes para esta categoría?
+  let best = true;
+  for (let w = 1; w <= 4; w++) {
+    const f = addDaysDS(monday, -7 * w), tt = addDaysDS(f, 6);
+    let o = 0, d = 0; inCat.forEach(x => { const r = opportunitiesInRange(x, f, tt); o += r.opp; d += r.done; });
+    if (o >= 3 && d / o >= 1) best = false;
+  }
+  setCelebrationFlag(key);
+  return { title: `${done}/${opp} en ${cat.name} esta semana`, sub: best ? 'Tu mejor semana del último mes.' : 'Semana completa en esta área.' };
+}
+function celebrateCompletion(h, ds, before) {
+  const status = completionStatus(h, ds);
+  // 1) Volver después de un corte
+  if (before && before.lastDone) {
+    const gap = daysBetweenDS(before.lastDone, ds);
+    if (gap >= 3 && missedOppsBetween(h, before.lastDone, ds) >= 2) {
+      showMoment('↺', `${h.emoji} Volviste`, `Pasaron ${gap} días desde la última vez. Volver también es consistencia.`);
+      return;
+    }
+  }
+  // 2) Logro nuevo desbloqueado de verdad
+  const newly = newlyUnlocked(before ? before.unlocked : []);
+  if (newly.length) { showMoment(newly[0].icon, `Logro: ${newly[0].name}`, newly[0].desc); return; }
+  // 3) Día cerrado → lo muestra la pantalla (sin confetti)
+  if (isDayClosed()) { haptic('heavy'); return; }
+  // 4) Semana completa en una categoría
+  const cw = categoryWeekCelebration(h, ds);
+  if (cw) { showMoment('✨', cw.title, cw.sub); return; }
+  // 5) Hitos de racha (pocos, para que mantengan valor)
+  if ([7, 21, 30, 60, 100].includes(h.streak)) {
+    showMoment('🔥', `${h.streak} días de ${h.name}`, h.streak >= 21 ? 'Esto ya es parte de vos.' : 'El momentum es real.');
+    return;
+  }
+  if (status === ST_MIN) showToast('🌱', 'Versión mínima hecha. El hábito sigue vivo.');
+}
+
+/* ─── CAMBIO DE DÍA con la app abierta ─── */
+let renderedDay = null;
+function checkDayRollover() {
+  const t = todayStr();
+  if (renderedDay === null) { renderedDay = t; return; }
+  if (t === renderedDay) return;
+  renderedDay = t;
+  habits.forEach(h => { clearStaleRunning(h); h.heatPattern = deriveHeatPattern(h.completions || {}); recalculateStreak(h); recalculateConsistency(h); });
+  frictionState = null;
+  if (dateOffset !== 0) dateOffset = 0;
+  updateGreeting();
+  updateDateNav();
+  renderHabits();
+  refreshStatsViews();
+}
+setInterval(checkDayRollover, 60 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  checkDayRollover();
+  if (currentScreen === 'today' && dateOffset === 0) renderHabits();   // refrescar "hace N min"
+});
 
 /* ══════════════════════════════════════════════════════════
    ███  COMPAÑERO — apoyo cuando aparece el impulso de abandonar  ███
