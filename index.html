@@ -2644,7 +2644,7 @@ body.light .nav-item.active{color:var(--accent);}
       <div class="settings-footer">
         <div class="sf-logo">🔁</div>
         <div class="sf-name">HabitCore</div>
-        <div class="sf-version">Prototipo v1.0 · Abril 2026</div>
+        <div class="sf-version">Versión 2026.09.28 · fechas en hora local</div>
         <div class="sf-links">
           <span class="sf-link">Términos</span>
           <span class="sf-link">Privacidad</span>
@@ -3346,6 +3346,24 @@ function setCompletion(h, ds, status) {
   if (status !== ST_SKIP && ds === todayStr()) v.at = nowHM();
   h.completions[ds] = v;
 }
+// La versión anterior guardaba en UTC: lo completado después de las 21 h
+// (Argentina) quedaba con la fecha del día siguiente. Un registro con fecha
+// posterior a hoy no puede venir de la app actual (no se completan días
+// futuros), así que se mueve al día anterior, que es cuando se hizo.
+function repairFutureCompletions(h) {
+  const today = todayStr();
+  let changed = false;
+  Object.keys(h.completions || {}).forEach(k => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || k <= today) return;
+    const v = h.completions[k];
+    const prev = addDaysDS(k, -1);
+    if (isDoneValue(v) && !h.completions[prev]) h.completions[prev] = v;
+    delete h.completions[k];
+    changed = true;
+  });
+  if (changed) { h._start = null; h.heatPattern = deriveHeatPattern(h.completions); }
+  return changed;
+}
 // Deriva el array heatPattern[35] desde completions
 function deriveHeatPattern(completions) {
   return Array.from({length:35}, (_, i) => isDoneValue(completions[dateStrFor(34 - i)]) ? 3 : 0);
@@ -3454,6 +3472,8 @@ async function loadData() {
   const { data: rows, error } = await sb.from('habits').select('*').eq('user_id', currentUser.id);
   if (error) { console.error('loadData:', error.message); return; }
   habits = (rows || []).map(rowToHabit);
+  // Reparar registros "del futuro" que dejó la versión vieja (UTC) y guardarlos bien
+  habits.forEach(h => { if (repairFutureCompletions(h)) saveHabitToDb(h, { skipCache: true }); });
 
   const { data: cats } = await sb.from('custom_categories').select('*').eq('user_id', currentUser.id);
   customCategories = cats || [];
