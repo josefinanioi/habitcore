@@ -2691,7 +2691,7 @@ body.light .nav-item.active{color:var(--accent);}
       <div class="settings-footer">
         <div class="sf-logo">🔁</div>
         <div class="sf-name">HabitCore</div>
-        <div class="sf-version">Versión 2026.10.11 · seguridad</div>
+        <div class="sf-version">Versión 2026.10.12 · seguridad</div>
         <div class="sf-links">
           <span class="sf-link">Términos</span>
           <span class="sf-link">Privacidad</span>
@@ -3286,6 +3286,23 @@ function hideLogin()  {
   }
 }
 
+/* ─── MENSAJES DE ERROR PROPIOS ───
+   Nunca se muestra al usuario el texto técnico de Supabase. */
+function friendlyAuthError(error) {
+  const m = String((error && error.message) || '');
+  if (/invalid login credentials/i.test(m)) return 'Email o contraseña incorrectos.';
+  if (/email not confirmed/i.test(m))       return 'Tenés que confirmar tu email antes de entrar. Revisá tu casilla.';
+  if (/rate limit|too many|security purposes/i.test(m)) return 'Demasiados intentos. Esperá unos minutos y probá de nuevo.';
+  if (/fetch|network|load failed/i.test(m)) return 'Sin conexión. Revisá internet y probá de nuevo.';
+  return 'No se pudo completar. Probá de nuevo en unos minutos.';
+}
+let cloudErrorShown = false;
+function notifyCloudError() {
+  if (cloudErrorShown) return;
+  cloudErrorShown = true;
+  showToast('☁️', 'No se pudo guardar en la nube. Queda en el teléfono y se reintenta solo.');
+}
+
 async function forgotPassword() {
   const email = document.getElementById('loginEmail').value.trim();
   const msg   = document.getElementById('loginMsg');
@@ -3293,8 +3310,12 @@ async function forgotPassword() {
   const { error } = await sb.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + '?reset=1'
   });
-  if (error) { msg.style.color = 'var(--red)'; msg.textContent = error.message; }
-  else { msg.style.color = 'var(--green)'; msg.textContent = '✓ Revisá tu email para resetear la contraseña.'; }
+  // Mismo mensaje exista o no la cuenta (no revela qué emails están registrados)
+  if (error && /rate limit|too many|security purposes|fetch|network|load failed/i.test(error.message || '')) {
+    msg.style.color = 'var(--red)'; msg.textContent = friendlyAuthError(error);
+  } else {
+    msg.style.color = 'var(--green)'; msg.textContent = '✓ Si el email está registrado, te llega un mail para elegir una contraseña nueva.';
+  }
 }
 
 /* ─── RECUPERAR CONTRASEÑA ───
@@ -3381,8 +3402,7 @@ async function signIn() {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
     msg.style.color = 'var(--red)';
-    msg.textContent = error.message === 'Invalid login credentials'
-      ? 'Email o contraseña incorrectos.' : error.message;
+    msg.textContent = friendlyAuthError(error);
   }
 }
 
@@ -3608,7 +3628,11 @@ async function loadData() {
   }
 
   const { data: rows, error } = await sb.from('habits').select('*').eq('user_id', currentUser.id);
-  if (error) { console.error('loadData:', error.message); return; }
+  if (error) {
+    console.error('loadData:', error.message);
+    showToast('☁️', 'No se pudieron traer tus datos. Mostrando la última copia del teléfono.');
+    return;
+  }
   missionStoreRow = (rows || []).find(isMissionStoreRow) || null;
   habits = (rows || []).filter(r => !isMissionStoreRow(r)).map(rowToHabit);
   // Reparar registros "del futuro" que dejó la versión vieja (UTC) y guardarlos bien
@@ -3669,6 +3693,7 @@ async function saveHabitToDb(h, opts = {}) {
   if (error) {
     console.warn('saveHabitToDb:', error.message);
     writePending([...readPending(), String(h.id)]);
+    notifyCloudError();
   }
 }
 
@@ -6389,7 +6414,7 @@ function saveMissionStore() {
       completions: { missions, savedAt: new Date().toISOString() },
     };
     const { error } = await sb.from('habits').upsert(payload);
-    if (error) console.warn('saveMissionStore:', error.message);
+    if (error) { console.warn('saveMissionStore:', error.message); notifyCloudError(); }
     else missionStoreRow = payload;
   }, 400);
 }
