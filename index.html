@@ -1997,6 +1997,12 @@ body.light .ns-emoji{background:rgba(0,0,0,.04);}
 body.light .toast{background:rgba(255,255,255,.96);}
 body.light .check-btn:not(.done){border-color:rgba(0,0,0,.18);}
 
+
+/* Volver atrás (gesto desde el borde) */
+.back-hint{position:fixed;left:0;top:50%;z-index:900;width:38px;height:38px;border-radius:50%;
+  background:rgba(124,110,247,.9);display:flex;align-items:center;justify-content:center;pointer-events:none;
+  opacity:0;transform:translate(-30px,-50%) scale(.6);box-shadow:0 4px 16px rgba(0,0,0,.35);}
+.back-hint svg{width:18px;height:18px;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round;}
 /* ── LIGHT THEME ── */
 body.light{
   --bg:#f2f2f7;
@@ -2644,7 +2650,7 @@ body.light .nav-item.active{color:var(--accent);}
       <div class="settings-footer">
         <div class="sf-logo">🔁</div>
         <div class="sf-name">HabitCore</div>
-        <div class="sf-version">Versión 2026.09.28 · fechas en hora local</div>
+        <div class="sf-version">Versión 2026.10.10 · misiones guardadas · volver deslizando</div>
         <div class="sf-links">
           <span class="sf-link">Términos</span>
           <span class="sf-link">Privacidad</span>
@@ -3471,7 +3477,8 @@ async function loadData() {
 
   const { data: rows, error } = await sb.from('habits').select('*').eq('user_id', currentUser.id);
   if (error) { console.error('loadData:', error.message); return; }
-  habits = (rows || []).map(rowToHabit);
+  missionStoreRow = (rows || []).find(isMissionStoreRow) || null;
+  habits = (rows || []).filter(r => !isMissionStoreRow(r)).map(rowToHabit);
   // Reparar registros "del futuro" que dejó la versión vieja (UTC) y guardarlos bien
   habits.forEach(h => { if (repairFutureCompletions(h)) saveHabitToDb(h, { skipCache: true }); });
 
@@ -5615,6 +5622,8 @@ function renderHabitsForOffset() {
   el.addEventListener('touchstart', e => {
     const backdrop = document.getElementById('hc-backdrop');
     if (backdrop && backdrop.classList.contains('is-open')) { swipeActive = false; return; }
+    // Desde el borde izquierdo manda el gesto de "volver atrás"
+    if (e.touches[0].clientX <= EDGE_BACK_PX && backAction()) { swipeActive = false; return; }
     if (e.target.tagName === 'INPUT' || (e.target.closest && e.target.closest('input[type=range]'))) { swipeActive = false; return; }
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
@@ -5632,6 +5641,70 @@ function renderHabitsForOffset() {
     }
     startX = null; startY = null;
   }, { passive: true });
+})();
+
+/* ─── VOLVER ATRÁS: deslizar desde el borde izquierdo (y "atrás" de Android) ─── */
+const EDGE_BACK_PX = 32;
+// Devuelve la acción de "volver" que corresponde ahora, o null si ya estás en el inicio
+function backAction() {
+  if (document.getElementById('focusOverlay')?.classList.contains('open')) return () => exitFocus();
+  const openSheet = document.querySelector('.hc-sheet.is-open');
+  if (openSheet) return () => sheetMgr.close(openSheet.id);
+  const ps = document.getElementById('periodOverlay');
+  if (ps && ps.classList.contains('visible')) return () => closePeriodPicker();
+  if (document.getElementById('loginScreen')?.style.display === 'flex') return null;
+  if (typeof historyOpen !== 'undefined' && historyOpen) return () => closeHistory();
+  if (currentWorld === 'missions') {
+    if (currentMissionScreen !== 'discover') return () => switchMissionScreen('discover', document.getElementById('navDiscover'));
+    return () => switchWorld('habits');
+  }
+  if (currentScreen !== 'today') return () => switchScreen('today', document.getElementById('navToday'));
+  if (dateOffset !== 0) return () => goToToday();
+  return null;
+}
+function goBack() {
+  const act = backAction();
+  if (!act) return false;
+  act(); haptic('light');
+  return true;
+}
+(function edgeSwipeBack() {
+  let sx = null, sy = null, tracking = false;
+  const hint = document.createElement('div');
+  hint.className = 'back-hint';
+  hint.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>';
+  document.body.appendChild(hint);
+  const reset = () => { tracking = false; sx = sy = null; hint.style.opacity = '0'; hint.style.transform = 'translate(-30px,-50%) scale(.6)'; };
+  document.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    if (e.touches.length !== 1 || t.clientX > EDGE_BACK_PX || !backAction()) { tracking = false; return; }
+    sx = t.clientX; sy = t.clientY; tracking = true;
+    hint.style.top = t.clientY + 'px';
+  }, { passive: true, capture: true });
+  document.addEventListener('touchmove', e => {
+    if (!tracking) return;
+    const t = e.touches[0], dx = t.clientX - sx, dy = Math.abs(t.clientY - sy);
+    if (dy > 60 && dy > dx) { reset(); return; }
+    const p = Math.max(0, Math.min(1, dx / 90));
+    hint.style.opacity = String(p);
+    hint.style.transform = `translate(${-30 + p * 46}px,-50%) scale(${.6 + p * .4})`;
+  }, { passive: true, capture: true });
+  document.addEventListener('touchend', e => {
+    if (!tracking) return;
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = Math.abs(t.clientY - sy);
+    reset();
+    if (dx > 70 && dx > dy * 1.5) goBack();
+  }, { passive: true, capture: true });
+  document.addEventListener('touchcancel', reset, { passive: true, capture: true });
+
+  // Gesto / botón "atrás" del sistema (Android): vuelve dentro de la app en vez de cerrarla
+  try {
+    history.replaceState({ hc: 'base' }, '');
+    history.pushState({ hc: 'app' }, '');
+    window.addEventListener('popstate', () => {
+      if (goBack()) history.pushState({ hc: 'app' }, '');
+    });
+  } catch {}
 })();
 
 /* ─── HISTORY INLINE ─── */
@@ -6125,26 +6198,103 @@ function switchMissionScreen(name, btn) {
 }
 
 /* ─── Supabase ─── */
+/* ─── PERSISTENCIA DE MISIONES ───
+   1) Tabla `missions` de Supabase, si existe y funciona.
+   2) Si no: un registro interno oculto en la tabla `habits` (que sí existe),
+      así las misiones se guardan en la cuenta y se sincronizan entre dispositivos.
+   3) Siempre: copia local en el teléfono. */
+const MISSION_STORE_TYPE = 'missions_store';
+let missionStoreRow = null;      // fila oculta leída en loadData()
+let missionStoreMode = false;    // true = se guarda en el registro oculto
+function isMissionStoreRow(r) { return r && r.type === MISSION_STORE_TYPE; }
+function missionLocalKey() { return userKey('hc_missions_'); }
+function isTempMissionId(id) { return /^(seed|tmp|loc)-/.test(String(id)); }
+function normalizeMission(r) {
+  return {
+    id: r.id, emoji: r.emoji, title: r.title, description: r.description || null, reward: r.reward || null,
+    category: r.category, status: r.status || 'available', is_favorite: !!r.is_favorite,
+    completed_at: r.completed_at || null, notes: r.notes || null, is_seed: !!r.is_seed,
+  };
+}
+function seedMissionList(list = SEED_MISSIONS) {
+  return list.map(m => normalizeMission({ ...m, id: genUUID(), status: 'available', is_seed: true }));
+}
+let storeSaveTimer = null;
+function persistMissionsLocal() { writeLS(missionLocalKey(), { at: Date.now(), missions }); }
+// Guardar todo el listado en el registro oculto (con pequeño debounce)
+function saveMissionStore() {
+  persistMissionsLocal();
+  if (!currentUser) return;
+  clearTimeout(storeSaveTimer);
+  storeSaveTimer = setTimeout(async () => {
+    const payload = {
+      id: currentUser.id, user_id: currentUser.id,
+      name: 'Misiones (datos internos)', emoji: '🗺️', type: MISSION_STORE_TYPE,
+      days: [], freq: '', start_date: null, end_date: null, incorporated: true, rescue: false,
+      streak: 0, best_streak: 0, consistency: 0, color: null, category_id: null,
+      intention: null, description: 'Registro interno de la app: guarda tus misiones.', heat_pattern: [],
+      completions: { missions, savedAt: new Date().toISOString() },
+    };
+    const { error } = await sb.from('habits').upsert(payload);
+    if (error) console.warn('saveMissionStore:', error.message);
+    else missionStoreRow = payload;
+  }, 400);
+}
+
 async function loadMissions() {
   if (!currentUser) return;
-  const { data: rows, error } = await sb.from('missions').select('*').eq('user_id', currentUser.id);
-  if (error) {
-    console.warn('loadMissions:', error.message);
-    missionsTableOk = false;
-    // Fallback: mostrar seed en memoria (sin persistir) para no romper la UX
-    missions = SEED_MISSIONS.map((m, i) => ({ id:'seed-'+i, ...m, status:'available', is_favorite:false, completed_at:null, notes:null, is_seed:true }));
-    renderMissions();
+  const local = readLS(missionLocalKey(), null);
+  const stored = missionStoreRow && missionStoreRow.completions && Array.isArray(missionStoreRow.completions.missions)
+    ? missionStoreRow.completions.missions : null;
+
+  // a) Ya existe el registro oculto → es la fuente de verdad
+  if (stored) {
+    missionStoreMode = true; missionsTableOk = false;
+    missions = stored.map(normalizeMission);
+    await seedNewCategories();
+    renderMissions(); persistMissionsLocal();
     return;
   }
-  missionsTableOk = true;
-  missions = (rows || []).map(r => ({
-    id:r.id, emoji:r.emoji, title:r.title, description:r.description, reward:r.reward,
-    category:r.category, status:r.status || 'available', is_favorite:!!r.is_favorite,
-    completed_at:r.completed_at, notes:r.notes, is_seed:!!r.is_seed,
-  }));
-  if (missions.length === 0) await seedMissions();
-  else await seedNewCategories();
+
+  // b) Tabla `missions`
+  const { data: rows, error } = await sb.from('missions').select('*').eq('user_id', currentUser.id);
+  if (!error) {
+    missionsTableOk = true; missionStoreMode = false;
+    missions = (rows || []).map(normalizeMission);
+    if (missions.length === 0) {
+      // migrar lo que haya en el teléfono, o sembrar las precargadas
+      const base = local && local.missions && local.missions.length ? local.missions.map(normalizeMission) : seedMissionList();
+      const ok = await insertMissionsInTable(base);
+      if (!ok) { switchToStoreMode(base); return; }
+    } else {
+      await seedNewCategories();
+    }
+    renderMissions(); persistMissionsLocal();
+    return;
+  }
+
+  // c) La tabla no existe o falla → registro oculto (con lo local, o sembrar)
+  console.warn('loadMissions (tabla missions):', error.message);
+  switchToStoreMode(local && local.missions && local.missions.length ? local.missions.map(normalizeMission) : seedMissionList());
+}
+function switchToStoreMode(list) {
+  missionsTableOk = false; missionStoreMode = true;
+  missions = list;
+  if (!missions.some(m => m.category === 'desconexion')) missions = missions.concat(seedMissionList(SEED_MISSIONS.filter(m => m.category === 'desconexion')));
   renderMissions();
+  saveMissionStore();
+}
+async function insertMissionsInTable(list) {
+  const rows = list.map(m => {
+    const r = { user_id: currentUser.id, emoji: m.emoji, title: m.title, description: m.description, reward: m.reward,
+      category: m.category, status: m.status, is_favorite: m.is_favorite, completed_at: m.completed_at, notes: m.notes, is_seed: m.is_seed };
+    if (!isTempMissionId(m.id)) r.id = m.id;
+    return r;
+  });
+  const { data, error } = await sb.from('missions').insert(rows).select('*');
+  if (error) { console.warn('insertMissionsInTable:', error.message); return false; }
+  missions = missions.concat((data || []).map(normalizeMission));
+  return true;
 }
 
 /* Usuarios existentes: sumar una sola vez las misiones de categorías nuevas */
@@ -6152,43 +6302,37 @@ async function seedNewCategories() {
   const flag = 'hc_seeded_desconexion_' + currentUser.id;
   if (localStorage.getItem(flag)) return;
   if (missions.some(m => m.category === 'desconexion')) { localStorage.setItem(flag, '1'); return; }
-  const ok = await seedMissions(SEED_MISSIONS.filter(m => m.category === 'desconexion'));
-  if (ok) localStorage.setItem(flag, '1');
-}
-
-async function seedMissions(list = SEED_MISSIONS) {
-  if (!currentUser || !missionsTableOk) return false;
-  const rows = list.map(m => ({
-    user_id: currentUser.id, emoji:m.emoji, title:m.title,
-    description:m.description || null, reward:m.reward || null,
-    category:m.category, status:'available', is_favorite:false, is_seed:true,
-  }));
-  const { data, error } = await sb.from('missions').insert(rows).select('*');
-  if (error) { console.warn('seedMissions:', error.message); return false; }
-  missions = missions.concat((data || []).map(r => ({
-    id:r.id, emoji:r.emoji, title:r.title, description:r.description, reward:r.reward,
-    category:r.category, status:r.status, is_favorite:!!r.is_favorite,
-    completed_at:r.completed_at, notes:r.notes, is_seed:!!r.is_seed,
-  })));
-  return true;
+  const extra = seedMissionList(SEED_MISSIONS.filter(m => m.category === 'desconexion'));
+  if (missionStoreMode) { missions = missions.concat(extra); saveMissionStore(); localStorage.setItem(flag, '1'); return; }
+  if (await insertMissionsInTable(extra)) localStorage.setItem(flag, '1');
 }
 
 async function saveMissionToDb(m) {
-  if (!currentUser || !missionsTableOk) return;
+  if (!currentUser) return;
+  if (missionStoreMode) { saveMissionStore(); return; }
   const payload = {
     user_id: currentUser.id, emoji:m.emoji, title:m.title,
     description:m.description || null, reward:m.reward || null,
     category:m.category, status:m.status, is_favorite:m.is_favorite,
     completed_at:m.completed_at || null, notes:m.notes || null, is_seed:m.is_seed || false,
   };
-  if (m.id && !String(m.id).startsWith('seed-')) payload.id = m.id;
+  if (m.id && !isTempMissionId(m.id)) payload.id = m.id;
   const { data, error } = await sb.from('missions').upsert(payload).select('*').single();
-  if (error) { console.warn('saveMissionToDb:', error.message); return; }
+  if (error) {
+    // La tabla no acepta el guardado → pasar todo al registro oculto para no perder nada
+    console.warn('saveMissionToDb:', error.message);
+    switchToStoreMode(missions);
+    return;
+  }
   if (data) m.id = data.id;
+  persistMissionsLocal();
 }
 
 async function deleteMissionFromDb(id) {
-  if (!currentUser || !missionsTableOk || String(id).startsWith('seed-')) return;
+  if (!currentUser) return;
+  if (missionStoreMode) { saveMissionStore(); return; }
+  persistMissionsLocal();
+  if (isTempMissionId(id)) return;
   await sb.from('missions').delete().eq('id', id).eq('user_id', currentUser.id);
 }
 
@@ -6456,7 +6600,7 @@ function quickCompleteMission(id) {
 function doCompleteMission(m) {
   haptic('medium');
   m.status = 'completed';
-  m.completed_at = new Date().toISOString().slice(0,10);
+  m.completed_at = todayStr();
   saveMissionToDb(m);
   showStamp(m);
   renderMissions();
