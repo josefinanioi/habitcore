@@ -2039,8 +2039,8 @@ body.light .nav-item.active{color:var(--accent);}
   <meta name="apple-mobile-web-app-title" content="HabitCore">
   <link rel="apple-touch-icon" href="/icon-180.png">
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase (incluida en el proyecto, versión fija auditada) -->
+  <script src="/vendor/supabase-js-2.117.3.js"></script>
 </head>
 <body>
 
@@ -2083,6 +2083,30 @@ body.light .nav-item.active{color:var(--accent);}
     </button>
   </div>
 
+
+  <!-- ── NUEVA CONTRASEÑA (desde el mail de recuperación) ── -->
+  <div id="resetScreen" style="
+    position:fixed;inset:0;background:var(--bg);z-index:650;
+    display:none;flex-direction:column;align-items:center;
+    justify-content:center;padding:36px 28px;gap:12px;
+  ">
+    <div style="font-size:44px;margin-bottom:4px;">🔑</div>
+    <div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;">Elegí una contraseña nueva</div>
+    <div id="resetIntro" style="font-size:var(--fs-sm);color:var(--muted);text-align:center;line-height:1.5;margin-bottom:4px;">
+      Mínimo 8 caracteres. Combiná letras y números.
+    </div>
+    <input id="resetPass1" type="password" placeholder="Contraseña nueva" autocomplete="new-password"
+      style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;color:var(--text);font-size:var(--fs-base);outline:none;">
+    <input id="resetPass2" type="password" placeholder="Repetila" autocomplete="new-password"
+      onkeydown="if(event.key==='Enter')saveNewPassword()"
+      style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;color:var(--text);font-size:var(--fs-base);outline:none;">
+    <button id="resetSaveBtn" onclick="saveNewPassword()"
+      style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:15px;font-size:var(--fs-base);font-weight:700;cursor:pointer;margin-top:4px;">
+      Guardar contraseña
+    </button>
+    <div id="resetMsg" style="font-size:var(--fs-xs);color:var(--muted);text-align:center;min-height:18px;"></div>
+    <button onclick="cancelRecovery()" style="background:none;border:none;color:var(--muted);font-size:var(--fs-sm);cursor:pointer;padding:4px;">Volver</button>
+  </div>
 
   <div class="confetti-container" id="confettiContainer"></div>
 
@@ -2627,6 +2651,23 @@ body.light .nav-item.active{color:var(--accent);}
         </div>
       </div>
 
+      <!-- ── Cuenta ── -->
+      <div class="settings-group">
+        <div class="settings-group-label">Cuenta</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="confirmSignOut()">
+            <div class="si-icon">🚪</div>
+            <div class="si-body">
+              <div class="si-label">Cerrar sesión</div>
+              <div class="si-sub" id="accountEmail">Salir de tu cuenta en este dispositivo.</div>
+            </div>
+            <div class="si-right">
+              <svg class="si-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Zona de peligro ── -->
       <div class="settings-group">
         <div class="settings-group-label">Zona de peligro</div>
@@ -2650,7 +2691,7 @@ body.light .nav-item.active{color:var(--accent);}
       <div class="settings-footer">
         <div class="sf-logo">🔁</div>
         <div class="sf-name">HabitCore</div>
-        <div class="sf-version">Versión 2026.10.10 · misiones guardadas · volver deslizando</div>
+        <div class="sf-version">Versión 2026.10.11 · seguridad</div>
         <div class="sf-links">
           <span class="sf-link">Términos</span>
           <span class="sf-link">Privacidad</span>
@@ -3220,7 +3261,7 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
     storageKey:    'hc_session',   // clave en localStorage
     storage:       window.localStorage, // explícito: nunca sessionStorage
     autoRefreshToken: true,        // refrescar token automáticamente
-    detectSessionInUrl: false,     // no necesario en PWA standalone
+    detectSessionInUrl: true,      // necesario para el link de "Olvidé mi contraseña"
   }
 });
 let currentUser = null;
@@ -3256,6 +3297,79 @@ async function forgotPassword() {
   else { msg.style.color = 'var(--green)'; msg.textContent = '✓ Revisá tu email para resetear la contraseña.'; }
 }
 
+/* ─── RECUPERAR CONTRASEÑA ───
+   El mail de Supabase vuelve a la app con #access_token…&type=recovery.
+   Con detectSessionInUrl la librería abre una sesión temporal y avisa con
+   PASSWORD_RECOVERY: ahí se pide la contraseña nueva. */
+const RECOVERY_IN_URL = /type=recovery/.test(location.hash) || /[?&]reset=1/.test(location.search);
+const RECOVERY_ERROR = /error_code=otp_expired|error=access_denied/.test(location.hash);
+function cleanAuthUrl() {
+  try { history.replaceState(history.state, '', location.pathname); } catch {}
+}
+function showResetScreen() {
+  document.getElementById('resetScreen').style.display = 'flex';
+  document.getElementById('resetMsg').textContent = '';
+  setTimeout(() => document.getElementById('resetPass1')?.focus(), 200);
+}
+function hideResetScreen() { document.getElementById('resetScreen').style.display = 'none'; }
+async function saveNewPassword() {
+  const p1 = document.getElementById('resetPass1').value;
+  const p2 = document.getElementById('resetPass2').value;
+  const msg = document.getElementById('resetMsg');
+  msg.style.color = 'var(--red)';
+  if (p1.length < 8) { msg.textContent = 'Usá al menos 8 caracteres.'; return; }
+  if (!/[a-zA-Z]/.test(p1) || !/[0-9]/.test(p1)) { msg.textContent = 'Combiná letras y números.'; return; }
+  if (p1 !== p2) { msg.textContent = 'Las contraseñas no coinciden.'; return; }
+  const btn = document.getElementById('resetSaveBtn');
+  btn.disabled = true; msg.style.color = 'var(--muted)'; msg.textContent = 'Guardando…';
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  btn.disabled = false;
+  if (error) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = /same|different/i.test(error.message)
+      ? 'Elegí una contraseña distinta a la anterior.'
+      : 'No se pudo guardar. Pedí un mail nuevo desde "Olvidé mi contraseña".';
+    return;
+  }
+  document.getElementById('resetPass1').value = '';
+  document.getElementById('resetPass2').value = '';
+  hideResetScreen();
+  cleanAuthUrl();
+  showToast('🔑', 'Contraseña actualizada.');
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) { currentUser = session.user; hideLogin(); loadData(); }
+}
+async function cancelRecovery() {
+  hideResetScreen();
+  cleanAuthUrl();
+  await sb.auth.signOut();
+  showLogin();
+}
+
+/* ─── CERRAR SESIÓN ─── */
+function confirmSignOut() {
+  if (!confirm('¿Cerrar sesión en este dispositivo?\n\nTus datos quedan guardados en tu cuenta.')) return;
+  signOutNow();
+}
+async function signOutNow() {
+  const uid = currentUser && currentUser.id;
+  // Borrar copias locales de esta cuenta (los datos siguen en Supabase)
+  try {
+    Object.keys(localStorage)
+      .filter(k => uid && k.endsWith(uid) && /^hc_(cache|missions|pending|ach|cel|nextsnooze|friction_day|impulses|seeded_desconexion)_/.test(k))
+      .forEach(k => localStorage.removeItem(k));
+  } catch {}
+  await sb.auth.signOut();
+  try { localStorage.removeItem('hc_session'); } catch {}
+  currentUser = null;
+  habits = []; customCategories = []; missions = [];
+  if (currentWorld === 'missions') switchWorld('habits');
+  switchScreen('today', document.getElementById('navToday'));
+  renderHabits();
+  showLogin();
+  showToast('🚪', 'Sesión cerrada.');
+}
+
 async function signIn() {
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPass').value;
@@ -3281,6 +3395,11 @@ async function signIn() {
    • TOKEN_REFRESHED / USER_UPDATED → sin acción (sesión sigue activa).
 ──────────────────────────────────────────────────────────────── */
 sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    if (session && session.user) currentUser = session.user;
+    showResetScreen();
+    return;
+  }
   if (event === 'INITIAL_SESSION') {
     // getSession() en DOMContentLoaded ya maneja este caso.
     // Retornar aquí evita doble llamada a loadData().
@@ -3298,6 +3417,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     currentUser = null;
     habits = [];
     customCategories = [];
+    missions = [];
     renderHabits();
     showLogin();
   }
@@ -3310,6 +3430,16 @@ function genUUID() {
     return v.toString(16);
   });
 }
+
+/* ─── LIMPIEZA DE DATOS DEL USUARIO (seguridad) ───
+   Todo texto escrito por el usuario pasa por cleanText() al leerse de la base
+   y al guardarse: se eliminan "<" y ">" para que nunca pueda interpretarse
+   como código HTML. Los colores se validan antes de usarse en estilos. */
+function cleanText(v, max = 500) { return typeof v === 'string' ? v.replace(/[<>]/g, '').slice(0, max) : v; }
+function safeColor(c, fallback = '#7c6ef7') {
+  return typeof c === 'string' && (/^#[0-9a-fA-F]{3,8}$/.test(c) || /^rgba?\([\d\s.,%]+\)$/.test(c)) ? c : fallback;
+}
+function cleanCategory(c) { return { ...c, name: cleanText(c.name, 30), emoji: cleanText(c.emoji, 8), color: safeColor(c.color) }; }
 
 /* ─── FECHAS (siempre en hora LOCAL del dispositivo) ───
    Antes se usaba toISOString() (UTC): en Argentina, después de las 21 h
@@ -3426,6 +3556,8 @@ function normalizeMeta(m) {
   out.pauses = Array.isArray(out.pauses) ? out.pauses : [];
   out.frictions = Array.isArray(out.frictions) ? out.frictions : [];
   out.postponed = out.postponed && typeof out.postponed === 'object' ? out.postponed : {};
+  out.goal = cleanText(out.goal || '', 60); out.minVersion = cleanText(out.minVersion || '', 60);
+  out.cue = cleanText(out.cue || '', 60); out.slot = cleanText(out.slot || '', 12);
   return out;
 }
 let metaColumnOk = true;   // se pone en false si la tabla no tiene la columna `meta`
@@ -3440,8 +3572,8 @@ function rowToHabit(r) {
   if (r.done && r.last_done_date && !raw[r.last_done_date]) raw[r.last_done_date] = true;
   const h = {
     id:           r.id,
-    name:         r.name,
-    emoji:        r.emoji,
+    name:         cleanText(r.name, 80),
+    emoji:        cleanText(r.emoji, 8),
     type:         r.type,
     streak:       r.streak,
     bestStreak:   r.best_streak,
@@ -3454,10 +3586,10 @@ function rowToHabit(r) {
     completions:  raw,
     rescue:       r.rescue,
     incorporated: r.incorporated,
-    color:        r.color,
+    color:        safeColor(r.color, 'rgba(124,110,247,.15)'),
     categoryId:   r.category_id,
-    intention:    r.intention,
-    description:  r.description,
+    intention:    cleanText(r.intention, 200),
+    description:  cleanText(r.description, 500),
     meta:         normalizeMeta(r.meta && Object.keys(r.meta).length ? r.meta : metaInComp),
   };
   h.heatPattern = deriveHeatPattern(h.completions);
@@ -3483,7 +3615,7 @@ async function loadData() {
   habits.forEach(h => { if (repairFutureCompletions(h)) saveHabitToDb(h, { skipCache: true }); });
 
   const { data: cats } = await sb.from('custom_categories').select('*').eq('user_id', currentUser.id);
-  customCategories = cats || [];
+  customCategories = (cats || []).map(cleanCategory);
 
   // Recalcular todo desde completions reales
   habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); clearStaleRunning(h); });
@@ -4011,6 +4143,20 @@ window.addEventListener('DOMContentLoaded', async () => {
   // directo a la app (sin mostrar el login) y pintar los últimos datos
   // conocidos. getSession() puede tardar porque, si el token venció,
   // lo refresca por red; por eso se valida en segundo plano.
+  if (RECOVERY_ERROR) {
+    cleanAuthUrl();
+    showLogin();
+    const m = document.getElementById('loginMsg');
+    if (m) { m.style.color = 'var(--red)'; m.textContent = 'El link venció o ya se usó. Pedí uno nuevo con "Olvidé mi contraseña".'; }
+    return;
+  }
+  if (RECOVERY_IN_URL) {
+    // La librería procesa el link y dispara PASSWORD_RECOVERY
+    const { data: { session } } = await sb.auth.getSession();
+    if (session && session.user) { currentUser = session.user; showResetScreen(); }
+    else { cleanAuthUrl(); showLogin(); }
+    return;
+  }
   const stored = readStoredSession();
   if (stored?.user) {
     currentUser = stored.user;
@@ -4055,14 +4201,16 @@ function renderFromCache() {
   try {
     const cache = JSON.parse(localStorage.getItem(key) || '{}');
     if (Array.isArray(cache.habits)) {
-      habits = cache.habits.map(h => ({ ...h, _start: null, meta: normalizeMeta(h.meta) }));
-      customCategories = cache.customCategories || [];
+      habits = cache.habits.map(h => ({ ...h, name: cleanText(h.name, 80), emoji: cleanText(h.emoji, 8),
+        intention: cleanText(h.intention, 200), description: cleanText(h.description, 500),
+        color: safeColor(h.color, 'rgba(124,110,247,.15)'), _start: null, meta: normalizeMeta(h.meta) }));
+      customCategories = (cache.customCategories || []).map(cleanCategory);
       habits.forEach(h => { recalculateStreak(h); recalculateConsistency(h); clearStaleRunning(h); });
       renderHabits();
       renderFilterChips();
     }
     if (Array.isArray(cache.missions)) {
-      missions = cache.missions;
+      missions = cache.missions.map(normalizeMission);
       renderMissions();
     }
   } catch {}
@@ -4115,7 +4263,11 @@ function switchScreen(name, btn) {
 
   if (name === 'insights') { setTimeout(() => { updateInsightsFromData(); animateHabitBars(); }, 120); }
   if (name === 'logros')   setTimeout(renderLogros, 120);
-  if (name === 'settings') { renderHabitMgmt(); updateBadges(); }
+  if (name === 'settings') {
+    const ae = document.getElementById('accountEmail');
+    if (ae && currentUser && currentUser.email) ae.textContent = `Cuenta: ${currentUser.email}`;
+    renderHabitMgmt(); updateBadges();
+  }
 }
 
 /* ─── FILTER CHIPS ─── */
@@ -4129,11 +4281,11 @@ function renderFilterChips() {
     .map(c => {
       const isAll    = c.id === 'all';
       const active   = activeFilter === c.id;
-      const dotStyle = c.color ? `style="background:${c.color}"` : '';
+      const dotStyle = c.color ? `style="background:${safeColor(c.color)}"` : '';
       return `<div class="filter-chip ${active?'active':''}" onclick="setFilter('${c.id}')"
-        ${active && !isAll ? `style="border-color:${c.color};color:${c.color};background:${c.color}18"` : ''}>
+        ${active && !isAll ? `style="border-color:${safeColor(c.color)};color:${safeColor(c.color)};background:${safeColor(c.color)}18"` : ''}>
         ${c.color ? `<span class="fc-dot" ${dotStyle}></span>` : ''}
-        ${c.name}
+        ${escHTML(c.name)}
       </div>`;
     }).join('');
   row.innerHTML = chips;
@@ -4249,7 +4401,7 @@ function habitCardHTML(h, isIncorporated) {
 
   const cat = getCat(h.categoryId);
   const catTag = cat
-    ? `<span class="cat-tag" style="background:${cat.color}22;color:${cat.color};">${cat.emoji} ${cat.name}</span>`
+    ? `<span class="cat-tag" style="background:${safeColor(cat.color)}22;color:${safeColor(cat.color)};">${escHTML(cat.emoji)} ${escHTML(cat.name)}</span>`
     : '';
   const incBadge = h.incorporated ? `<span class="incorporated-badge">✅ Incorporado</span>` : '';
 
@@ -4559,8 +4711,6 @@ function deleteHabit(id) {
   const name = h.name;
   deleteHabitFromDb(id);
   habits = habits.filter(x => String(x.id) !== String(id));
-  console.log('alerta eliminada:', id);
-  console.log('hábitos activos:', habits.map(x => x.id));
   renderHabits();
   renderHabitMgmt();
   updateBadges();
@@ -4903,15 +5053,15 @@ function selectFreq(el, f) {
   el.classList.add('selected'); newHabitFreq = f;
 }
 function addHabit() {
-  const name = document.getElementById('newHabitName').value.trim();
+  const name = cleanText(document.getElementById('newHabitName').value.trim(), 80);
   if (!name) { document.getElementById('newHabitName').focus(); return; }
   if (selectedDays.size === 0) { showToast('⚠️','Seleccioná al menos un día de frecuencia.'); return; }
 
-  const cue         = document.getElementById('newHabitIntention').value.trim();
+  const cue         = cleanText(document.getElementById('newHabitIntention').value.trim(), 60);
   const intention   = cue;
-  const goal        = document.getElementById('newHabitGoal').value.trim();
-  const minVersion  = document.getElementById('newHabitMin').value.trim();
-  const description = document.getElementById('newHabitDesc').value.trim();
+  const goal        = cleanText(document.getElementById('newHabitGoal').value.trim(), 60);
+  const minVersion  = cleanText(document.getElementById('newHabitMin').value.trim(), 60);
+  const description = cleanText(document.getElementById('newHabitDesc').value.trim(), 500);
   const startDate   = document.getElementById('newHabitStart').value;
   const endDate     = document.getElementById('newHabitEnd').value;
   const days        = [...selectedDays].sort((a,b) => a-b);
@@ -5344,8 +5494,8 @@ function renderHabitMgmt() {
     return `
     <div class="hm-item">
       <div class="hm-drag"><span></span><span></span><span></span></div>
-      <div class="hm-emoji2">${h.emoji}</div>
-      <div class="hm-name2">${h.name}</div>
+      <div class="hm-emoji2">${escHTML(h.emoji)}</div>
+      <div class="hm-name2">${escHTML(h.name)}</div>
       <div class="hm-actions">
         <button class="hm-action-btn" title="Editar" onclick="openAddSheet('${h.id}')">✏️</button>
         <button class="hm-action-btn danger" title="Eliminar" onclick="deleteHabit('${h.id}')">🗑</button>
@@ -5435,9 +5585,9 @@ function renderCatPicker() {
   container.innerHTML = allCategories().map(c => {
     const sel = c.id === newCategoryId;
     return `<div class="cat-picker-pill ${sel ? 'selected' : ''}"
-      style="border-color:${c.color};${sel ? `background:${c.color};color:#fff;` : `color:${c.color};`}"
+      style="border-color:${safeColor(c.color)};${sel ? `background:${safeColor(c.color)};color:#fff;` : `color:${safeColor(c.color)};`}"
       onclick="selectCategory('${c.id}')">
-      ${c.emoji} ${c.name}
+      ${escHTML(c.emoji)} ${escHTML(c.name)}
     </div>`;
   }).join('') +
   `<div class="cat-picker-pill" style="border-color:var(--muted);color:var(--muted);" onclick="openCustomCatRow()">+ Nueva</div>`;
@@ -5474,7 +5624,7 @@ function selectCustomColor(color) {
 
 function saveCustomCategory() {
   const nameEl = document.getElementById('customCatName');
-  const name   = nameEl.value.trim();
+  const name   = cleanText(nameEl.value.trim(), 30);
   if (!name) { nameEl.focus(); return; }
   if (allCategories().some(c => c.name.toLowerCase() === name.toLowerCase())) {
     showToast('⚠️', 'Ya existe una categoría con ese nombre.');
@@ -6211,9 +6361,12 @@ function missionLocalKey() { return userKey('hc_missions_'); }
 function isTempMissionId(id) { return /^(seed|tmp|loc)-/.test(String(id)); }
 function normalizeMission(r) {
   return {
-    id: r.id, emoji: r.emoji, title: r.title, description: r.description || null, reward: r.reward || null,
-    category: r.category, status: r.status || 'available', is_favorite: !!r.is_favorite,
-    completed_at: r.completed_at || null, notes: r.notes || null, is_seed: !!r.is_seed,
+    id: r.id, emoji: cleanText(r.emoji, 8), title: cleanText(r.title, 120),
+    description: cleanText(r.description, 300) || null, reward: cleanText(r.reward, 200) || null,
+    category: MISSION_CATEGORIES.some(c => c.id === r.category) ? r.category : 'exploracion',
+    status: r.status === 'completed' ? 'completed' : 'available', is_favorite: !!r.is_favorite,
+    completed_at: /^\d{4}-\d{2}-\d{2}/.test(r.completed_at || '') ? r.completed_at : null,
+    notes: cleanText(r.notes, 500) || null, is_seed: !!r.is_seed,
   };
 }
 function seedMissionList(list = SEED_MISSIONS) {
@@ -6442,10 +6595,10 @@ function missionCardHTML(m, i = 0) {
     <button class="m-card-state ${done?'completed':''}" style="${done?`--cc:${c.hex}`:''}" onclick="event.stopPropagation();quickCompleteMission('${m.id}')">
       ${done ? '✓' : ''}
     </button>
-    <div class="m-card-emoji">${m.emoji || c.emoji}</div>
+    <div class="m-card-emoji">${escHTML(m.emoji || c.emoji)}</div>
     <div class="m-card-body">
-      <div class="m-card-title">${m.title}</div>
-      ${m.description ? `<div class="m-card-desc">${m.description}</div>` : ''}
+      <div class="m-card-title">${escHTML(m.title)}</div>
+      ${m.description ? `<div class="m-card-desc">${escHTML(m.description)}</div>` : ''}
       <div class="m-card-foot">
         <span class="m-cat-pill" style="background:${c.hex}22;color:${c.hex};">${c.emoji} ${c.name}</span>
         ${dateStr ? `<span class="m-card-date">· ${dateStr}</span>` : ''}
@@ -6482,8 +6635,8 @@ function renderLived() {
       <div class="m-tl-dot"></div>
       <div class="m-tl-date">${m.completed_at ? formatMissionDate(m.completed_at, true) : 'Vivida'}</div>
       <div class="m-tl-card" onclick="openMissionDetail('${m.id}')">
-        <div class="m-tl-title"><span class="tl-emoji">${m.emoji || c.emoji}</span>${m.title}</div>
-        ${m.notes ? `<div class="m-tl-notes">"${m.notes}"</div>` : ''}
+        <div class="m-tl-title"><span class="tl-emoji">${escHTML(m.emoji || c.emoji)}</span>${escHTML(m.title)}</div>
+        ${m.notes ? `<div class="m-tl-notes">"${escHTML(m.notes)}"</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -6667,12 +6820,12 @@ function renderMissionCatPicker(selected) {
 function selectMissionCat(id) { renderMissionCatPicker(id); }
 
 async function saveMission() {
-  const title = document.getElementById('mfTitle').value.trim();
+  const title = cleanText(document.getElementById('mfTitle').value.trim(), 120);
   if (!title) { showToast('✏️', 'Ponéle un título a la misión.'); return; }
-  const emoji  = document.getElementById('mfEmoji').value.trim() || mCat(mfSelectedCat).emoji;
-  const desc   = document.getElementById('mfDesc').value.trim();
-  const reward = document.getElementById('mfReward').value.trim();
-  const notes  = document.getElementById('mfNotes').value.trim();
+  const emoji  = cleanText(document.getElementById('mfEmoji').value.trim(), 8) || mCat(mfSelectedCat).emoji;
+  const desc   = cleanText(document.getElementById('mfDesc').value.trim(), 300);
+  const reward = cleanText(document.getElementById('mfReward').value.trim(), 200);
+  const notes  = cleanText(document.getElementById('mfNotes').value.trim(), 500);
 
   const wasEditing = !!editingMissionId;
   if (editingMissionId) {

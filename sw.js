@@ -1,5 +1,5 @@
-const CACHE = 'habitcore-v16';
-const ASSETS = ['/manifest.json', '/icon-192.png', '/icon-512.png'];
+const CACHE = 'habitcore-v17';
+const ASSETS = ['/manifest.json', '/icon-192.png', '/icon-512.png', '/vendor/supabase-js-2.117.3.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -54,15 +54,8 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Librería de Supabase (CDN): caché primero, así no se descarga en cada apertura
-  if (req.url.startsWith('https://cdn.jsdelivr.net/npm/@supabase/')) {
-    e.respondWith(caches.match(req).then(cached => cached || fetch(req).then(res => {
-      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
-      return res;
-    })));
-    return;
-  }
-
+  // Solo se cachean archivos del propio sitio; los datos (Supabase) van siempre por red
+  if (new URL(req.url).origin !== self.location.origin) return;
   e.respondWith(
     caches.match(req).then(cached => cached || fetch(req))
   );
