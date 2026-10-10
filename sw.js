@@ -1,4 +1,4 @@
-const CACHE = 'habitcore-v17';
+const CACHE = 'habitcore-v18';
 const ASSETS = ['/manifest.json', '/icon-192.png', '/icon-512.png', '/vendor/supabase-js-2.117.3.js'];
 
 self.addEventListener('install', e => {
